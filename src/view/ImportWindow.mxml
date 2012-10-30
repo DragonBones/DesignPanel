@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:TitleWindow xmlns:fx="http://ns.adobe.com/mxml/2009"
+		 xmlns:s="library://ns.adobe.com/flex/spark"
+		 xmlns:mx="library://ns.adobe.com/flex/mx"
+		 width="310" height="250" title="{LanguageProxy.getInstance().importTitle}"
+		 close="closeWindow()"
+		 >
+	<fx:Script>
+		<![CDATA[
+			import control.LoadFLADataCommand;
+			import control.LoadFileDataCommand;
+			
+			import message.Message;
+			import message.MessageDispatcher;
+			
+			import model.ImportDataProxy;
+			import model.LanguageProxy;
+			
+			import mx.events.CloseEvent;
+			import mx.managers.PopUpManager;
+			import mx.collections.ArrayCollection;
+			
+			[Bindable]
+			private var dataImportAC:ArrayCollection = new ArrayCollection([
+				LanguageProxy.getInstance().getItem(LanguageProxy.IMPORT_FLA_ALL_ITEM), 
+				LanguageProxy.getInstance().getItem(LanguageProxy.IMPORT_FLA_SELECTED_ITEM), 
+				LanguageProxy.getInstance().getItem(LanguageProxy.IMPORT_EXPORTED_DATA), 
+			]);
+			
+			private function importData():void{
+				switch(ImportDataProxy.getInstance().dataImportID){
+					case 0:
+						LoadFLADataCommand.instance.load(false);
+						break;
+					case 1:
+						LoadFLADataCommand.instance.load(true);
+						break;
+					case 2:
+						LoadFileDataCommand.instance.load();
+						break;
+				}
+				MessageDispatcher.addEventListener(MessageDispatcher.LOAD_FLADATA, onCommandHandler);
+				MessageDispatcher.addEventListener(MessageDispatcher.LOAD_FILEDATA, onCommandHandler);
+			}
+			
+			private function onCommandHandler(_e:Message):void{
+				closeWindow();
+			}
+			
+			private function closeWindow():void{
+				MessageDispatcher.addEventListener(MessageDispatcher.LOAD_FLADATA, onCommandHandler);
+				MessageDispatcher.addEventListener(MessageDispatcher.LOAD_FILEDATA, onCommandHandler);
+				PopUpManager.removePopUp(this);
+			}
+		]]>
+	</fx:Script>
+	<s:VGroup x="10" y="10" width="100" height="150" gap="6" horizontalAlign="right">
+		<s:Label width="100%" height="24" text="{LanguageProxy.getInstance().getItem(LanguageProxy.IMPORT_LABEL)}" textAlign="right" verticalAlign="middle"/>
+		<s:Label width="100%" height="24" text="{LanguageProxy.getInstance().getItem(LanguageProxy.TEXTURE_SORT)}" textAlign="right" verticalAlign="middle"/>
+		<s:Label width="100%" height="24" text="{LanguageProxy.getInstance().getItem(LanguageProxy.TEXTURE_WIDTH)}" textAlign="right" verticalAlign="middle"/>
+		<s:Label width="100%" height="24" text="{LanguageProxy.getInstance().getItem(LanguageProxy.TEXTURE_PADDING)}" textAlign="right" verticalAlign="middle"/>
+	</s:VGroup>
+	<s:VGroup x="118" y="10" width="170" height="150" gap="6">
+		<s:DropDownList width="100%" height="24" textAlign="right"
+						dataProvider="{dataImportAC}"
+						selectedIndex="@{ImportDataProxy.getInstance().dataImportID}"
+						/>
+		<s:DropDownList width="100%" height="24" textAlign="right"
+						dataProvider="{ImportDataProxy.getInstance().textureSortAC}"
+						enabled="{!ImportDataProxy.getInstance().isExportedSource}"
+						selectedIndex="@{ImportDataProxy.getInstance().textureSortID}"
+						/>
+		<s:DropDownList width="100%" height="24"
+						change="{ImportDataProxy.getInstance().updateTextures()}" cornerRadius="0" textAlign="right"
+						dataProvider="{ImportDataProxy.getInstance().textureMaxWidthAC}"
+						enabled="{ImportDataProxy.getInstance().textureSortID == 0 &amp;&amp; !ImportDataProxy.getInstance().isExportedSource}"
+						selectedIndex="@{ImportDataProxy.getInstance().textureMaxWidthID}"
+						/>
+		<s:NumericStepper width="100%" height="24" textAlign="right" cornerRadius="0"
+						  maximum="100" minimum="0"
+						  change="{ImportDataProxy.getInstance().updateTextures()}"
+						  enabled="{ImportDataProxy.getInstance().textureSortID == 0 &amp;&amp; !ImportDataProxy.getInstance().isExportedSource}"
+						  value="@{ImportDataProxy.getInstance().texturePadding}"
+						  />
+	</s:VGroup>
+	<s:Button right="140" bottom="20" width="100" height="24" cornerRadius="0"
+			  label="{LanguageProxy.getInstance().getItem(LanguageProxy.OK)}" 
+			  click="importData()"
+			  />
+	<s:Button right="20" bottom="20" width="100" height="24" cornerRadius="0"
+			  label="{LanguageProxy.getInstance().getItem(LanguageProxy.CANCEL)}"
+			  click="closeWindow()"
+			  />
+</s:TitleWindow>

@@ -1,0 +1,227 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:HGroup xmlns:fx="http://ns.adobe.com/mxml/2009"
+		  xmlns:s="library://ns.adobe.com/flex/spark"
+		  xmlns:mx="library://ns.adobe.com/flex/mx"
+		  xmlns:components="view.components.*"
+		  xmlns:view="view.*"
+		  minHeight="100" gap="2"
+		  creationComplete="addedToStageHandler()">
+	<fx:Script>
+		<![CDATA[
+			import dragonBones.utils.ConstValues;
+			
+			import message.Message;
+			import message.MessageDispatcher;
+			
+			import model.ImportDataProxy;
+			import model.LanguageProxy;
+			import model.ShareObjectDataProxy;
+			
+			import mx.controls.Alert;
+			import mx.events.ColorPickerEvent;
+			import mx.events.DragEvent;
+			import mx.events.ListEvent;
+			import mx.managers.PopUpManager;
+			
+			import spark.events.GridSelectionEvent;
+			
+			private static const AT_NAME:String = ConstValues.AT + ConstValues.A_NAME;
+			
+			[Bindable]
+			private var languageProxy:LanguageProxy = LanguageProxy.getInstance();
+			
+			private var importDataProxy:ImportDataProxy = ImportDataProxy.getInstance();
+			
+			private var alert:Alert;
+			
+			private function addedToStageHandler():void{
+				colorBoneHighlight.selectedColor = ShareObjectDataProxy.getInstance().getOrSetData("boneHighlightColor", 0xFF0000);
+				//colorBoneHighlight.label = languageProxy.boneHighlightLabel;
+				
+				armatureList.dataProvider = importDataProxy.armaturesMC;
+				movementList.dataProvider = importDataProxy.animationDataProxy.movementsMC;
+				displayList.dataProvider = importDataProxy.armatureDataProxy.displaysMC;
+				
+				armatureList.addEventListener(GridSelectionEvent.SELECTION_CHANGE, onArmatureChangeHandler);
+				movementList.addEventListener(GridSelectionEvent.SELECTION_CHANGE, onMovementChangeHandler);
+				//displayList.addEventListener(GridSelectionEvent.SELECTION_CHANGE, onTextureChangeHandler);
+				
+				boneTree.addEventListener(ListEvent.CHANGE, onBoneChangeHandler);
+				boneTree.addEventListener(DragEvent.DRAG_COMPLETE, onBoneDragCompleteHandler);
+				
+				MessageDispatcher.addEventListener(MessageDispatcher.LOAD_FLADATA, onCommandHandler);
+				MessageDispatcher.addEventListener(MessageDispatcher.LOAD_ARMATURE_DATA, onCommandHandler);
+				MessageDispatcher.addEventListener(MessageDispatcher.LOAD_TEXTURE_DATA, onCommandHandler);
+				MessageDispatcher.addEventListener(MessageDispatcher.LOAD_SWF_COMPLETE, onCommandHandler);
+				
+				MessageDispatcher.addEventListener(MessageDispatcher.LOAD_FILEDATA, onCommandHandler);
+				MessageDispatcher.addEventListener(MessageDispatcher.LOAD_FILEDATA_ERROR, onCommandHandler);
+				MessageDispatcher.addEventListener(MessageDispatcher.LOAD_FILEDATA_PROGRESS, onCommandHandler);
+				MessageDispatcher.addEventListener(MessageDispatcher.LOAD_FILEDATA_COMPLETE, onCommandHandler);
+				
+				MessageDispatcher.addEventListener(MessageDispatcher.EXPORT, onCommandHandler);
+				MessageDispatcher.addEventListener(MessageDispatcher.EXPORT_CANCEL, onCommandHandler);
+				MessageDispatcher.addEventListener(MessageDispatcher.EXPORT_ERROR, onCommandHandler);
+				MessageDispatcher.addEventListener(MessageDispatcher.EXPORT_COMPLETE, onCommandHandler);
+				
+				MessageDispatcher.addEventListener(MessageDispatcher.CHANGE_IMPORT_DATA, onCommandHandler);
+				MessageDispatcher.addEventListener(MessageDispatcher.CHANGE_ARMATURE_DATA, onCommandHandler);
+				MessageDispatcher.addEventListener(MessageDispatcher.CHANGE_ANIMATION_DATA, onCommandHandler);
+				MessageDispatcher.addEventListener(MessageDispatcher.CHANGE_BONE_DATA, onCommandHandler);
+				
+				MessageDispatcher.addEventListener(MessageDispatcher.UPDATE_BONE_PARENT, onCommandHandler);
+			}
+			
+			private function clearAlert():void{
+				if(alert){
+					PopUpManager.removePopUp(alert);
+					alert = null;
+				}
+			}
+			
+			private function onCommandHandler(_e:Message):void{
+				switch(_e.type){
+					case MessageDispatcher.LOAD_FLADATA:
+						if(_e.parameters[0] > 0){
+							alert = Alert.show(languageProxy.getItem(LanguageProxy.IMPORT_FLA_WAITTING, _e.parameters[1]));
+							//alert.mouseChildren = false;
+						}else{
+							alert = Alert.show(languageProxy.getItem(LanguageProxy.IMPORT_NO_ELEMENT, _e.parameters[1]));
+						}
+						break;
+					case MessageDispatcher.LOAD_ARMATURE_DATA:
+						if(alert){
+							alert.title = languageProxy.getItem(LanguageProxy.IMPORT_ARMATURE_PROGRESS, _e.parameters[1], _e.parameters[2]);
+						}
+						break;
+					case MessageDispatcher.LOAD_TEXTURE_DATA:
+						if(alert){
+							alert.title = languageProxy.getItem(LanguageProxy.IMPORT_TEXTURE_PROGRESS, _e.parameters[1], _e.parameters[2]);
+						}
+						break;
+					case MessageDispatcher.LOAD_FILEDATA:
+						alert = Alert.show(languageProxy.getItem(LanguageProxy.IMPORT_FILE_WAITTING));
+						//alert.mouseChildren = false;
+						break;
+					case MessageDispatcher.LOAD_FILEDATA_ERROR:
+						clearAlert();
+						alert = Alert.show(languageProxy.getItem(LanguageProxy.IMPORT_FILE_ERROR));
+						break;
+					case MessageDispatcher.LOAD_FILEDATA_PROGRESS:
+						if(alert){
+							alert.title = languageProxy.getItem(LanguageProxy.IMPORT_FILE_PROGRESS, Math.round(_e.parameters[0] * 100));
+						}
+						break;
+					case MessageDispatcher.LOAD_SWF_COMPLETE:
+					case MessageDispatcher.LOAD_FILEDATA_COMPLETE:
+						clearAlert();
+						importDataProxy.setData(_e.parameters[0], _e.parameters[1], _e.parameters[2], _e.parameters[3]);
+						break;
+					case MessageDispatcher.EXPORT:
+						alert = Alert.show(languageProxy.getItem(LanguageProxy.EXPORT_WAITTING));
+						//alert.mouseChildren = false;
+						break;
+					case MessageDispatcher.EXPORT_CANCEL:
+						clearAlert();
+						break;
+					case MessageDispatcher.EXPORT_ERROR:
+						clearAlert();
+						alert = Alert.show(languageProxy.getItem(LanguageProxy.EXPORT_ERROR));
+						break;
+					case MessageDispatcher.EXPORT_COMPLETE:
+						clearAlert();
+						break;
+					case MessageDispatcher.CHANGE_IMPORT_DATA:
+						armatureList.selectedIndex = -1;
+						armatureList.selectedIndex = 0;
+						break;
+					case MessageDispatcher.CHANGE_ARMATURE_DATA:
+					case MessageDispatcher.UPDATE_BONE_PARENT:
+						boneTree.dataProvider = importDataProxy.armatureDataProxy.bonesMC;
+						boneTree.validateNow();
+						for each(var _item:Object in boneTree.dataProvider){
+							boneTree.expandChildrenOf(_item, true);
+						}
+						if(_e.type == MessageDispatcher.UPDATE_BONE_PARENT){
+							boneTree.selectItemByName(_e.parameters[0]);
+						}
+						break;
+					case MessageDispatcher.CHANGE_ANIMATION_DATA:
+						movementList.selectedIndex = -1;
+						movementList.selectedIndex = 0;
+						break;
+					case MessageDispatcher.CHANGE_BONE_DATA:
+						boneTree.selectItemByName(_e.parameters[0]);
+						break;
+				}
+			}
+			
+			private function onArmatureChangeHandler(_e:Event):void{
+				var _armatureName:String = ImportDataProxy.getElementName(armatureList.selectedItem as XML);
+				importDataProxy.armatureDataProxy.setData(importDataProxy.getArmatureXMLByName(_armatureName));
+			}
+			
+			private function onMovementChangeHandler(_e:Event):void{
+				var _movementName:String = ImportDataProxy.getElementName(movementList.selectedItem as XML);
+				importDataProxy.animationDataProxy.changeMovement(_movementName);
+			}
+			
+			private function onBoneChangeHandler(_e:Event):void{
+				var _boneName:String = ImportDataProxy.getElementName(boneTree.selectedItem as XML);
+				importDataProxy.armatureDataProxy.changeBone(_boneName);
+				importDataProxy.animationDataProxy.changeMovementBone(_boneName);
+			}
+			
+			private function onBoneDragCompleteHandler(_e:DragEvent):void{
+				if(boneTree.lastMoveNode){
+					var _name:String = ImportDataProxy.getElementName(boneTree.lastMoveNode);
+					var _parentXML:XML = boneTree.lastMoveNode.parent();
+					var _parentName:String = ImportDataProxy.getElementName(_parentXML);
+					if(_parentXML.name() != boneTree.lastMoveNode.name()){
+						_parentName = null;
+					}
+					
+					importDataProxy.armatureDataProxy.updateBoneParent(_name, _parentName);
+				}
+			}
+			
+			private function boneDisplayHighlightChangeHandler(event:ColorPickerEvent):void{
+				ShareObjectDataProxy.getInstance().setData("boneHighlightColor", event.color);
+				MessageDispatcher.dispatchEvent(MessageDispatcher.VIEW_BONE_HIGHLIGHT_CHANGE, event.color);
+			}
+		]]>
+	</fx:Script>
+		<s:DataGrid id="armatureList" maxWidth="200" width="100%" height="100%">
+			<s:columns>
+				<s:ArrayList>
+					<s:GridColumn dataField="{AT_NAME}" headerText="{languageProxy.armatureListLabel}"/>
+				</s:ArrayList>
+			</s:columns>
+		</s:DataGrid>
+		<s:DataGrid id="movementList" maxWidth="150" width="100%" height="100%" sortableColumns="false">
+			<s:columns>
+				<s:ArrayList>
+					<s:GridColumn dataField="{AT_NAME}" headerText="{languageProxy.movementListLabel}"/>
+				</s:ArrayList>
+			</s:columns>
+		</s:DataGrid>
+		<s:Group width="100%" height="100%">
+			<s:HGroup width="100%" height="100%" gap="0">
+				<s:Button width="100%" height="24" label="{languageProxy.boneTreeLabel}"
+					 	 cornerRadius="0" fontWeight="bold"/>
+				<components:ColorPickerNoColor id="colorBoneHighlight" width="24" height="24"
+											   label="{languageProxy.boneHighlightLabel}"
+											   change="boneDisplayHighlightChangeHandler(event)"/>
+			</s:HGroup>
+			<components:DragTree id="boneTree" y="23" width="100%" height="100%" dragEnabled="true"
+							dropEnabled="true" labelField="{AT_NAME}" textRollOverColor="#CCCCCC"
+							textSelectedColor="#CCCCCC"/>
+		</s:Group>
+		<s:DataGrid id="displayList" maxWidth="350" width="100%" height="100%" sortableColumns="false">
+			<s:columns>
+				<s:ArrayList>
+					<s:GridColumn dataField="{AT_NAME}" headerText="{languageProxy.textureListLabel}"/>
+				</s:ArrayList>
+			</s:columns>
+		</s:DataGrid>
+</s:HGroup>

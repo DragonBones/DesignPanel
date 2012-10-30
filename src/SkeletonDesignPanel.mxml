@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009"
+			   xmlns:s="library://ns.adobe.com/flex/spark"
+			   xmlns:mx="library://ns.adobe.com/flex/mx"
+			   xmlns:view="view.*"
+			   addedToStage="addedToStageHandler()">
+	<fx:Script>
+		<![CDATA[
+			import control.LoadFileDataCommand;
+			
+			import message.Message;
+			import message.MessageDispatcher;
+			
+			import model.ImportDataProxy;
+			import model.JSFLProxy;
+			import model.LanguageProxy;
+			
+			import mx.controls.Alert;
+			import mx.managers.PopUpManager;
+			
+			import view.ExportWindow;
+			import view.ImportWindow;
+			//
+			JSFLProxy.getInstance();
+			
+			public static var instance:SkeletonDesignPanel; 
+			
+			[Bindable]
+			private var languageProxy:LanguageProxy = LanguageProxy.getInstance();
+			
+			private var importDataProxy:ImportDataProxy = ImportDataProxy.getInstance();
+			
+			private function addedToStageHandler():void{
+				instance = this;
+				removeEventListener(Event.ADDED_TO_STAGE, addedToStageHandler);
+				if(loaderInfo){
+					loaderInfo.uncaughtErrorEvents.addEventListener(UncaughtErrorEvent.UNCAUGHT_ERROR, onUncaughtErrorHandler);
+					var _data:String = loaderInfo.parameters["data"];
+					if(_data){
+						LoadFileDataCommand.instance.load(_data);
+					}
+				}
+				
+				numFrameRate.value = stage.frameRate;
+				numFrameRate.addEventListener(Event.CHANGE, valueChangeHandler);
+				
+				MessageDispatcher.addEventListener(MessageDispatcher.CHANGE_IMPORT_DATA, onCommandHandler);
+			}
+			
+			private function onCommandHandler(_e:Message):void{
+				switch(_e.type){
+					case MessageDispatcher.CHANGE_IMPORT_DATA:
+						numFrameRate.value = stage.frameRate = importDataProxy.frameRate;
+						break;
+				}
+			}
+			
+			public function importData():void{
+				var _window:ImportWindow = new ImportWindow();
+				PopUpManager.addPopUp(_window, SkeletonDesignPanel.instance, true);
+				PopUpManager.centerPopUp(_window);
+			}
+			
+			public function exportData():void{
+				var _window:ExportWindow = new ExportWindow();
+				PopUpManager.addPopUp(_window, SkeletonDesignPanel.instance, true);
+				PopUpManager.centerPopUp(_window);
+			}
+			
+			private function navIndexChangeHandler(event:Event):void{
+				switch(event.target.selectedChild){
+					case navXML:
+						if(importDataProxy.skeletonXML){
+							txtXML.text = importDataProxy.skeletonXML;
+						}
+						break;
+					case navTexture:
+						if(importDataProxy.textureData){
+							if(textureContainer.numChildren > 0){
+								textureContainer.removeChildAt(0);
+							}
+							textureContainer.addChild(importDataProxy.textureData.bitmap);
+							textureContainerGroup.width = importDataProxy.textureData.bitmap.width;
+							textureContainerGroup.height = importDataProxy.textureData.bitmap.height;
+						}
+						break;
+				}
+			}
+			
+			private function valueChangeHandler(_e:Event):void{
+				switch(_e.target){
+					case numFrameRate:
+						stage.frameRate = numFrameRate.value;
+						break;
+				}
+			}
+			
+			private function onUncaughtErrorHandler(_e:UncaughtErrorEvent):void{
+				Alert.show(String(_e.error));
+			}
+		]]>
+	</fx:Script>
+	<mx:TabNavigator y="10" width="100%" height="100%" tabHeight="35" tabOffset="150" paddingTop="2" paddingBottom="2" paddingLeft="2" paddingRight="2"
+					 change="navIndexChangeHandler(event)">
+		<s:NavigatorContent width="100%" height="100%" label="Skeleton">
+			<mx:VDividedBox width="100%" height="100%">
+				<view:DatasUIsGroup width="100%" height="100%"/>
+				<s:HGroup width="100%" height="250" gap="2">
+					<view:ArmatureDisplayUIsGroup width="100%" height="100%"/>
+					<view:ControlUIsGroup height="100%"/>
+				</s:HGroup>
+			</mx:VDividedBox>
+		</s:NavigatorContent>
+		<s:NavigatorContent id="navXML" width="100%" height="100%" label="XML">
+			<s:TextArea id="txtXML" left="0" right="0" top="0" bottom="0" editable="false"/>
+		</s:NavigatorContent>
+		<s:NavigatorContent id="navTexture" width="100%" height="100%" label="Texture Atlas">
+			<s:Scroller width="100%" height="100%">
+				<s:Group>
+					<s:Group id="textureContainerGroup">
+						<mx:UIComponent id="textureContainer"/>
+					</s:Group>
+				</s:Group>
+			</s:Scroller>
+		</s:NavigatorContent>
+		<s:NavigatorContent width="100%" height="100%" label="About">
+		</s:NavigatorContent>
+	</mx:TabNavigator>
+	<s:Button x="10" y="10" width="60" height="24" cornerRadius="0"
+			  label="{languageProxy.importTitle}"
+			  click="{importData()}"
+			  />
+	<s:Button x="80" y="10" width="60" height="24" cornerRadius="0"
+			  label="{languageProxy.exportTitle}"
+			  click="{exportData()}"
+			  />
+	<s:HGroup y="10" left="400" right="10" horizontalAlign="right" gap="10">
+		<s:Label width="75" height="24" text="{languageProxy.frameRateLabel}"
+				 textAlign="right" verticalAlign="middle"/>
+		<s:NumericStepper id="numFrameRate" width="60" height="24" cornerRadius="0"
+						  maximum="120" minimum="1" snapInterval="1" textAlign="right"/>
+		
+		<s:DropDownList width="120" height="24" cornerRadius="0" textAlign="right"
+						dataProvider="{LanguageProxy.getInstance().languageAC}"
+						selectedIndex="@{LanguageProxy.getInstance().languageID}"/>
+	</s:HGroup>
+</s:Application>

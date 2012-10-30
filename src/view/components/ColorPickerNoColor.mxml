@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:ColorPicker xmlns:fx="http://ns.adobe.com/mxml/2009" 
+				xmlns:s="library://ns.adobe.com/flex/spark" 
+				xmlns:mx="library://ns.adobe.com/flex/mx"
+				open="colorpickerOpenHandler(event)"
+				>
+	<fx:Script>
+		<![CDATA[
+			
+			import mx.controls.CheckBox;
+			import mx.controls.colorPickerClasses.SwatchPanel;
+			import mx.core.mx_internal;
+			import mx.events.ColorPickerEvent;
+			import mx.events.DropdownEvent;
+			
+			use namespace mx_internal;
+			
+			private var checkBox:CheckBox = new CheckBox();
+			
+			private var colorBackup:uint;
+			
+			private var __selected:Boolean = true;
+
+			public function get selected():Boolean{
+				return __selected;
+			}
+			
+			public function set selected(value:Boolean):void{
+				__selected = value;
+				checkBox.selected = __selected;
+				
+				if(__selected){
+					selectedColor = colorBackup;
+				}else{
+					colorBackup = selectedColor;
+					selectedColor = 0;
+				}
+			}
+			
+			private var __label:String = "";
+			public function get label():String{
+				return __label;
+			}
+			public function set label(value:String):void{
+				__label = value;
+				checkBox.label = __label;
+			}
+			
+			private function colorpickerChangeHandler(event:ColorPickerEvent):void{
+				__selected = true;
+				checkBox.selected = __selected;
+			}
+			
+			private function colorpickerOpenHandler(event:DropdownEvent):void{
+				if(!checkBox.hasEventListener(Event.CHANGE)){
+					checkBox.selected = true;
+					checkBox.width = 90;
+					checkBox.height = 24;
+					checkBox.x = 135;
+					checkBox.y = 3;
+					checkBox.addEventListener(Event.CHANGE, selectedChangeHandler);
+				}
+				
+				var _dropdownSwatch:SwatchPanel = getDropdown();
+				_dropdownSwatch.addChild(checkBox);
+				addEventListener(ColorPickerEvent.CHANGE, colorpickerChangeHandler);
+			}
+			
+			private function selectedChangeHandler(_e:Event):void{
+				selected = checkBox.selected;
+				close();
+				removeEventListener(ColorPickerEvent.CHANGE, colorpickerChangeHandler);
+				dispatchEvent(new ColorPickerEvent(ColorPickerEvent.CHANGE,false,false,-1,selectedColor));
+				addEventListener(ColorPickerEvent.CHANGE, colorpickerChangeHandler);
+			}
+			
+		]]>
+	</fx:Script>
+</mx:ColorPicker>
