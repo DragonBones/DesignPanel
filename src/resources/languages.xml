@@ -96,8 +96,8 @@
 	
 	<item id="boneMovementPanelTitle">
 		<item id="en-US">Bone - </item>
-		<item id="zh-CN">骨骼  - </item>
-		<item id="zh-TW">骨骼  - </item>
+		<item id="zh-CN">骨骼 - </item>
+		<item id="zh-TW">骨骼 - </item>
 	</item>
 	<item id="boneTweenScale">
 		<item id="en-US">Tween Time Scale:</item>

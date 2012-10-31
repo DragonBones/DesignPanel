@@ -39,7 +39,7 @@
 				checkLoop.addEventListener(Event.CHANGE, valueChangeHandler);
 				
 				btnPlay.addEventListener(MouseEvent.CLICK, valueChangeHandler);
-				btnPause.addEventListener(MouseEvent.CLICK, valueChangeHandler);
+				//btnPause.addEventListener(MouseEvent.CLICK, valueChangeHandler);
 				
 				sliderTweenEasing.addEventListener(Event.CHANGE, valueChangeHandler);
 				
@@ -167,6 +167,7 @@
 							updatePlayAndPauseBtn();
 						}
 						break;
+					/*
 					case btnPause:
 						//click 翻转了 selected
 						if(importDataProxy.armature){
@@ -178,6 +179,7 @@
 							updatePlayAndPauseBtn();
 						}
 						break;
+					*/
 					case sliderScale:
 						numScale.value = sliderScale.value;
 					case numScale:
@@ -196,31 +198,31 @@
 			private function updatePlayAndPauseBtn():void{
 				if(importDataProxy.armature){
 					btnPlay.enabled = true;
-					btnPause.enabled = true;
+					//btnPause.enabled = true;
 					if(importDataProxy.armature.animation.isPause){
 						btnPlay.label = languageProxy.playLabel;
-						btnPause.label = languageProxy.resumeLabel;
+						//btnPause.label = languageProxy.resumeLabel;
 						btnPlay.selected = false;
-						btnPause.selected = true;
+						//btnPause.selected = true;
 					}else if(importDataProxy.armature.animation.isComplete){
 						btnPlay.label = languageProxy.playLabel;
-						btnPause.label = languageProxy.pauseLabel;
+						//btnPause.label = languageProxy.pauseLabel;
 						btnPlay.selected = false;
-						btnPause.selected = false;
-						btnPause.enabled = false;
+						//btnPause.selected = false;
+						//btnPause.enabled = false;
 					}else{
 						btnPlay.label = languageProxy.stopLabel;
-						btnPause.label = languageProxy.pauseLabel;
+						//btnPause.label = languageProxy.pauseLabel;
 						btnPlay.selected = true;
-						btnPause.selected = false;
+						//btnPause.selected = false;
 					}
 				}else{
 					btnPlay.selected = false;
-					btnPause.selected = false;
+					//btnPause.selected = false;
 					btnPlay.enabled = false;
-					btnPause.enabled = false;
+					//btnPause.enabled = false;
 					btnPlay.label = languageProxy.playLabel;
-					btnPause.label = languageProxy.pauseLabel;
+					//btnPause.label = languageProxy.pauseLabel;
 				}
 			}
 		]]>
@@ -228,20 +230,23 @@
 	<s:VGroup width="100%" height="100%" gap="2">
 		<mx:Accordion width="300" height="155">
 			<s:NavigatorContent width="300" height="100%" label="{languageProxy.movementPanelTitle + movementName}">
-				<s:Label x="10" y="10" width="105" height="24"  textAlign="right" verticalAlign="middle"
-						 text="{languageProxy.tweenFrameLabel}"
-						 />
-				<s:Label x="10" y="40" width="105" height="24" textAlign="right" verticalAlign="middle"
+				<s:Label x="10" y="10" width="105" height="24" textAlign="right" verticalAlign="middle"
 						 text="{languageProxy.movementFrameLabel}"
 						 />
+				
+				<s:Label x="10" y="40" width="105" height="24"  textAlign="right" verticalAlign="middle"
+						 text="{languageProxy.tweenFrameLabel}"
+						 />
+
 				<s:Label x="10" y="70" width="105" height="24"  textAlign="right" verticalAlign="middle"
 						 text="{languageProxy.keyFrameEaseLabel}"
 						 />
 				
-				<s:HSlider id="sliderDurationTo" x="120" y="17" width="100" 
+				
+				<s:HSlider id="sliderDurationTween" x="120" y="17" width="100"
 						   minimum="0" maximum="100" snapInterval="1"
 						   />
-				<s:HSlider id="sliderDurationTween" x="120" y="47" width="100"
+				<s:HSlider id="sliderDurationTo" x="120" y="47" width="100" 
 						   minimum="0" maximum="100" snapInterval="1"
 						   />
 				<s:CheckBox id="checkLoop" x="170" y="100" width="120" height="24" 
@@ -250,17 +255,17 @@
 				<s:HSlider id="sliderTweenEasing" x="120" y="77" width="100"
 						   minimum="-1.1" maximum="2" snapInterval="0.05"
 						   />
-				<s:ToggleButton id="btnPlay" x="10" y="100" width="70" height="24"
-						  />
-				<s:ToggleButton id="btnPause" x="90" y="100" width="70" height="24"
+				<s:ToggleButton id="btnPlay" x="88" y="100" width="70" height="24"
 						  />
 				
-				<s:NumericStepper id="numDurationTo" x="230" y="10" width="60" height="24" cornerRadius="0" textAlign="right"
+				<s:NumericStepper id="numDurationTween" x="230" y="10" width="60" height="24" cornerRadius="0" textAlign="right"
 								  maximum="3000" minimum="0" snapInterval="1"
 								  />
-				<s:NumericStepper id="numDurationTween" x="230" y="40" width="60" height="24" cornerRadius="0" textAlign="right"
+				
+				<s:NumericStepper id="numDurationTo" x="230" y="40" width="60" height="24" cornerRadius="0" textAlign="right"
 								  maximum="3000" minimum="0" snapInterval="1"
 								  />
+
 			</s:NavigatorContent>
 		</mx:Accordion>
 		<mx:Accordion width="300" height="100%">
