@@ -10,7 +10,7 @@
 		<item id="zh-TW">骨架列錶</item>
 	</item>
 	<item id="movementList">
-		<item id="en-US">Movement List</item>
+		<item id="en-US">Behavior List</item>
 		<item id="zh-CN">动作列表</item>
 		<item id="zh-TW">動作列錶</item>
 	</item>
@@ -48,9 +48,9 @@
 	</item>
 	
 	<item id="movementPanelTitle">
-		<item id="en-US">Movement　─　</item>
-		<item id="zh-CN">动作　─　</item>
-		<item id="zh-TW">動作　─　</item>
+		<item id="en-US">Behavior - </item>
+		<item id="zh-CN">动作 - </item>
+		<item id="zh-TW">動作 - </item>
 	</item>
 	<item id="tweenFrame">
 		<item id="en-US">Tween Frame:</item>
@@ -95,9 +95,9 @@
 	</item>
 	
 	<item id="boneMovementPanelTitle">
-		<item id="en-US">Bone　─　</item>
-		<item id="zh-CN">骨骼　─　</item>
-		<item id="zh-TW">骨骼　─　</item>
+		<item id="en-US">Bone - </item>
+		<item id="zh-CN">骨骼  - </item>
+		<item id="zh-TW">骨骼  - </item>
 	</item>
 	<item id="boneTweenScale">
 		<item id="en-US">Tween Time Scale:</item>
@@ -116,17 +116,17 @@
 		<item id="zh-TW">導入:</item>
 	</item>
 	<item id="textureSort">
-		<item id="en-US">Texture Sort:</item>
-		<item id="zh-CN">贴图排序:</item>
+		<item id="en-US">Layout Algorithm:</item>
+		<item id="zh-CN">排列算法:</item>
 		<item id="zh-TW">貼圖排序:</item>
 	</item>
 	<item id="textureWidth">
-		<item id="en-US">Texture Height:</item>
-		<item id="zh-CN">贴图高度:</item>
-		<item id="zh-TW">貼圖高度:</item>
+		<item id="en-US">Size:</item>
+		<item id="zh-CN">贴图尺寸:</item>
+		<item id="zh-TW">貼圖尺寸:</item>
 	</item>
 	<item id="texturePadding">
-		<item id="en-US">Texture Padding:</item>
+		<item id="en-US">Padding:</item>
 		<item id="zh-CN">贴图间距:</item>
 		<item id="zh-TW">貼圖間距:</item>
 	</item>
@@ -174,7 +174,7 @@
 		<item id="zh-TW">Zip (XML和PNG)</item>
 	</item>
 	<item id="exportZIPXMLAndEachPNG">
-		<item id="en-US">Zip (XML and 分离的PNG)</item>
+		<item id="en-US">Zip (XML and PNGs)</item>
 		<item id="zh-CN">Zip (XML和分离的PNG)</item>
 		<item id="zh-TW">Zip (XML和分離的PNG)</item>
 	</item>

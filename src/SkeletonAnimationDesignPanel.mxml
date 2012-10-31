@@ -23,7 +23,7 @@
 			//
 			JSFLProxy.getInstance();
 			
-			public static var instance:SkeletonDesignPanel; 
+			public static var instance:SkeletonAnimationDesignPanel; 
 			
 			[Bindable]
 			private var languageProxy:LanguageProxy = LanguageProxy.getInstance();
@@ -57,13 +57,13 @@
 			
 			public function importData():void{
 				var _window:ImportWindow = new ImportWindow();
-				PopUpManager.addPopUp(_window, SkeletonDesignPanel.instance, true);
+				PopUpManager.addPopUp(_window, SkeletonAnimationDesignPanel.instance, true);
 				PopUpManager.centerPopUp(_window);
 			}
 			
 			public function exportData():void{
 				var _window:ExportWindow = new ExportWindow();
-				PopUpManager.addPopUp(_window, SkeletonDesignPanel.instance, true);
+				PopUpManager.addPopUp(_window, SkeletonAnimationDesignPanel.instance, true);
 				PopUpManager.centerPopUp(_window);
 			}
 			
