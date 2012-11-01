@@ -69,9 +69,12 @@ package model{
 			ShareObjectDataProxy.getInstance().setData("dataImportID", __dataImportID);
 		}
 		
-		public var textureMaxWidthID:int = 2;
-		public var textureMaxWidthAC:ArrayCollection = new ArrayCollection([128, 256, 512, 1024, 2048, 4096]);
+		public var textureMaxWidthID:int = 0;
+		public var textureMaxWidthAC:ArrayCollection = new ArrayCollection(["Auto size", 128, 256, 512, 1024, 2048, 4096]);
 		public function get textureMaxWidth():int{
+			if(textureMaxWidthID == 0){
+				return 0;
+			}
 			return int(textureMaxWidthAC.getItemAt(textureMaxWidthID));
 		}
 		

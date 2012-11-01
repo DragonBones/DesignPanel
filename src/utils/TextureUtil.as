@@ -16,14 +16,21 @@ package utils{
 			if (_subTextureXMLList.length() == 0) {
 				return;
 			}
+			var _dimensions:uint = 0;
 			var _subTextureList:Array = [];
 			for each(var _subTextureXML:XML in _subTextureXMLList){
+				_dimensions += int(_subTextureXML.attribute(ConstValues.A_WIDTH)) * int(_subTextureXML.attribute(ConstValues.A_HEIGHT));
 				_subTextureList.push(_subTextureXML);
 			}
 			//贴图按照大小排序
 			_subTextureList.sort(sortTextureList);
 			
-			_widthDefault = getNearest2N(Math.max(_subTextureList[0].width + _padding, _widthDefault));
+			if(_widthDefault == 0){
+				//计算 Auto size 的 width
+				_widthDefault = Math.sqrt(_dimensions);
+			}
+			
+			_widthDefault = getNearest2N(Math.max(int(_subTextureList[0].attribute(ConstValues.A_WIDTH)) + _padding, _widthDefault));
 			
 			//预置一个较高的高度
 			var _heightMax:uint = 40960;
