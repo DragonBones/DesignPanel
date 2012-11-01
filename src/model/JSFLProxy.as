@@ -27,7 +27,7 @@ package model{
 		private static const CONNECTION_METHOD_NAME:String = "connectionMethodName";
 		private static const STATUS:String = "status";
 		
-		private static const JSFL_URL:String = "SkeletonDesignPanel/skeleton.jsfl";
+		private static const JSFL_URL:String = "SkeletonAnimationDesignPanel/skeleton.jsfl";
 		
 		private static var instance:JSFLProxy;
 		public static function getInstance():JSFLProxy{

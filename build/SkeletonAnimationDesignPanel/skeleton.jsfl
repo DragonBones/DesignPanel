@@ -66,7 +66,7 @@ var NO_EASING = "^";
 var DELIM_CHAR = "|";
 var UNDERLINE_CHAR = "_";
 
-var SKELETON_PANEL = "SkeletonDesignPanel";
+var SKELETON_PANEL = "SkeletonAnimationDesignPanel";
 var ARMATURE_DATA = "armatureData";
 var ANIMATION_DATA = "animationData";
 
