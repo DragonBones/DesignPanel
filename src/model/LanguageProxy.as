@@ -73,8 +73,6 @@ package model{
 		
 		public var playLabel:String;
 		public var stopLabel:String;
-		public var pauseLabel:String;
-		public var resumeLabel:String;
 		
 		public var boneMovementPanelTitle:String;
 		public var boneTweenScaleLabel:String;
@@ -153,8 +151,6 @@ package model{
 			
 			playLabel = getItem("play");
 			stopLabel = getItem("stop");
-			pauseLabel = getItem("pause");
-			resumeLabel = getItem("resume");
 			
 			boneMovementPanelTitle = getItem("boneMovementPanelTitle");
 			boneTweenScaleLabel = getItem("boneTweenScale");

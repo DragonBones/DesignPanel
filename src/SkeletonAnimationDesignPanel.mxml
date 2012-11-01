@@ -137,8 +137,8 @@
 	<s:HGroup y="10" left="400" right="10" horizontalAlign="right" gap="10">
 		<s:Label width="75" height="24" text="{languageProxy.frameRateLabel}"
 				 textAlign="right" verticalAlign="middle"/>
-		<s:NumericStepper id="numFrameRate" width="60" height="24" cornerRadius="0"
-						  maximum="120" minimum="1" snapInterval="1" textAlign="right"/>
+		<s:NumericStepper id="numFrameRate" width="60" height="24" cornerRadius="0" textAlign="right"
+						  maximum="120" minimum="1" snapInterval="1"/>
 		
 		<s:DropDownList width="120" height="24" cornerRadius="0" textAlign="right"
 						dataProvider="{LanguageProxy.getInstance().languageAC}"

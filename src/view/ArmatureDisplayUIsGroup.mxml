@@ -6,8 +6,8 @@
 		 >
 	<fx:Script>
 		<![CDATA[
-			import dragonBones.Bone;
 			import dragonBones.Armature;
+			import dragonBones.Bone;
 			import dragonBones.objects.BoneData;
 			
 			import flash.filters.GlowFilter;
@@ -20,7 +20,6 @@
 			import model.ImportDataProxy;
 			import model.ShareObjectDataProxy;
 			
-			
 			private var importDataProxy:ImportDataProxy = ImportDataProxy.getInstance();
 			
 			private var armatureContainer:Sprite;
@@ -29,11 +28,18 @@
 			private var lineY:Shape;
 			private var boneDisplaySelected:Object;
 			private var boneDisplayRollOver:Object;
-			private var isDragedArmature:Boolean;
 			private var boneHighlightFilter:GlowFilter;
 			private var boneRolloverFilter:GlowFilter;
-			private var pointStart:Point = new Point();
+			
+			private var isDragedArmature:Boolean;
+			private var isDragging:Boolean;
+			private var pointDragInBone:Point = new Point();
+			private var pointDragGlobal:Point = new Point();
+			private var pointScrollBarDrag:Point = new Point();
+			
 			private var pointHelp:Point;
+			
+			private var armatreArea:Rectangle;
 			
 			private var link:LinkClip;
 			
@@ -54,7 +60,6 @@
 					armatureDisplay.scaleX = armatureDisplay.scaleY = __viewScale;
 				}
 				sliderScale.value = __viewScale;
-				updateTextureDisplay();
 			}
 			
 			private function get armatureDisplay():DisplayObject{
@@ -104,6 +109,9 @@
 				btnZoomOut.addEventListener(MouseEvent.CLICK, scaleHandler);
 				sliderScale.addEventListener(Event.CHANGE, scaleHandler);
 				
+				scrollerViewer.horizontalScrollBar.addEventListener(MouseEvent.MOUSE_DOWN, scrollBarHandler);
+				scrollerViewer.verticalScrollBar.addEventListener(MouseEvent.MOUSE_DOWN, scrollBarHandler);
+				
 				MessageDispatcher.addEventListener(MessageDispatcher.CHANGE_IMPORT_DATA, commandHandler);
 				MessageDispatcher.addEventListener(MessageDispatcher.CHANGE_ARMATURE_DATA, commandHandler);
 				MessageDispatcher.addEventListener(MessageDispatcher.CHANGE_MOVEMENT_DATA, commandHandler);
@@ -143,15 +151,16 @@
 							armatureContainer.addChild(bgShape);
 							armatureContainer.addChild(armatureDisplay);
 						}
-						updateTextureDisplay();
 						break;
 					case MessageDispatcher.CHANGE_BONE_DATA:
 						highlightBoneDisplay();
 						break;
 					case MessageDispatcher.CHANGE_MOVEMENT_DATA:
+						changeRenderMovement(_e.parameters[0]);
+						break;
 					case MessageDispatcher.UPDATE_MOVEMENT_DATA:
 					case MessageDispatcher.UPDATE_MOVEMENT_BONE_DATA:
-						changeRenderMovement(_e.parameters[0]);
+						changeRenderMovement(_e.parameters[0], true);
 						break;
 					case MessageDispatcher.UPDATE_BONE_PARENT:
 						updateRenderBoneParent(_e.parameters[0]);
@@ -167,28 +176,62 @@
 				importDataProxy.render();
 				var _display:Object = armatureDisplay;
 				if(_display){
-					bgShape.width = width;
-					bgShape.height = height;
-					var _rect:Rectangle = armatureContainer.getRect(armatureContainer);
-					bgShape.width = _rect.right;
-					bgShape.height = _rect.bottom;
-					if(!isDragedArmature){
-						var _x:int = bgShape.width * 0.5;
-						var _y:int = bgShape.height * 0.5;
-						if(_x > _display.x){
-							_display.x = _x;
-						}
-						if(_y > _display.y){
-							_display.y = _y;
-						}
+					
+					var _rect:Rectangle = _display.getRect(_display);
+					
+					if(armatreArea){
+						armatreArea.x = Math.min(armatreArea.x, _rect.x);
+						armatreArea.y = Math.min(armatreArea.y, _rect.y);
+						armatreArea.width = Math.max(armatreArea.width, _rect.width);
+						armatreArea.height = Math.max(armatreArea.height, _rect.height);
+					}else{
+						armatreArea = _rect;
+					}
+					
+					
+					var _width:uint = armatreArea.width * __viewScale;
+					var _height:uint = armatreArea.height * __viewScale;
+					var _smallW:Boolean;
+					var _smallH:Boolean;
+					if(_width < width){
+						_smallW = true;
+						_display.x = (width - _width) * 0.5 - armatreArea.x * __viewScale;
+					}else{
+						_width += 200;
+						_display.x = 100 - armatreArea.x * __viewScale;
+					}
+					if(_height < height){
+						_smallH = true;
+						_display.y = (height - _height) * 0.5 - armatreArea.y * __viewScale;
+					}else{
+						_height += 120;
+						_display.y = 60 - armatreArea.y * __viewScale;
+					}
+					if(_smallW && _smallH){
+						isDragedArmature = false;
 					}
 					lineX.x = _display.x;
 					lineY.y = _display.y;
 					
-					updateTextureDisplay();
+					bgShape.width = Math.max(_width, width - 40);
+					bgShape.height = Math.max(_height, height - 40);
+					viewContainerGroup.width = bgShape.width;
+					viewContainerGroup.height = bgShape.height;
 					
-					updateBoneLink();
+					if(isDragging){
+						scrollerViewer.horizontalScrollBar.value = pointDragGlobal.x - stage.mouseX + pointScrollBarDrag.x;
+						scrollerViewer.verticalScrollBar.value = pointDragGlobal.y - stage.mouseY + pointScrollBarDrag.y;
+					}else if(!isDragedArmature){
+						scrollerViewer.horizontalScrollBar.value = (_width - width) * 0.5;
+						scrollerViewer.verticalScrollBar.value = (_height - height) * 0.5;
+					}
+					
+					//updateBoneLink();
 				}
+			}
+			
+			private function scrollBarHandler(e:Event):void{
+				isDragedArmature = true;
 			}
 			
 			private function containerMouseHandler(_e:MouseEvent):void{
@@ -231,14 +274,20 @@
 							stage.addEventListener(MouseEvent.MOUSE_UP, containerMouseHandler);
 						}
 						isDragedArmature = true;
+						isDragging = true;
+						pointDragGlobal.x = stage.mouseX;
+						pointDragGlobal.y = stage.mouseY;
+						pointScrollBarDrag.x = scrollerViewer.horizontalScrollBar.value;
+						pointScrollBarDrag.y = scrollerViewer.verticalScrollBar.value;
+						
 						if(_e.target == armatureContainer){
-							_display.startDrag();
+							
 						}else{
 							selectedBoneByDisplay(_e.target);
 							
-							pointStart.x = boneDisplaySelected.mouseX;
-							pointStart.y = boneDisplaySelected.mouseY;
-							armatureContainer.addEventListener(MouseEvent.MOUSE_MOVE, containerMouseHandler);
+							//pointStart.x = boneDisplaySelected.mouseX;
+							//pointStart.y = boneDisplaySelected.mouseY;
+							//armatureContainer.addEventListener(MouseEvent.MOUSE_MOVE, containerMouseHandler);
 						}
 						break;
 					case MouseEvent.MOUSE_UP:
@@ -246,23 +295,25 @@
 						if(stage){
 							stage.removeEventListener(MouseEvent.MOUSE_UP, containerMouseHandler);
 						}
-						_display.stopDrag();
-						armatureContainer.removeEventListener(MouseEvent.MOUSE_MOVE, containerMouseHandler);
+						isDragging = false;
+						
+						/*armatureContainer.removeEventListener(MouseEvent.MOUSE_MOVE, containerMouseHandler);
 						link.visible = false;
 						if(boneDisplaySelected && boneDisplayRollOver && _e.target == boneDisplayRollOver){
 							boneAddToParent();
-						}
+						}*/
 						break;
 					case MouseEvent.MOUSE_WHEEL:
 						_e.delta > 0?(viewScale += 0.2):(viewScale -= 0.2);
 						break;
 					case MouseEvent.MOUSE_MOVE:
-						armatureContainer.removeEventListener(MouseEvent.MOUSE_MOVE, containerMouseHandler);
+						/*armatureContainer.removeEventListener(MouseEvent.MOUSE_MOVE, containerMouseHandler);
 						armatureContainer.addChild(link);
 						link.visible = true;
-						updateBoneLink();
+						updateBoneLink();*/
 						break;
 					case MouseEvent.DOUBLE_CLICK:
+						isDragedArmature = false;
 						viewScale = 1;
 						break;
 				}
@@ -282,9 +333,11 @@
 				}
 			}
 			
-			private function changeRenderMovement(_movementName:String):void{
+			private function changeRenderMovement(_movementName:String, _autoPlay:Boolean = false):void{
 				if(_movementName && importDataProxy.armature){
-					importDataProxy.armature.animation.autoPlay(_movementName);
+					if(_autoPlay?importDataProxy.armature.animation.isPlaying:true){
+						importDataProxy.armature.animation.gotoAndPlay(_movementName);
+					}
 				}
 			}
 			
@@ -298,14 +351,9 @@
 				}
 			}
 			
-			private function updateTextureDisplay():void{
-				viewContainerGroup.width = bgShape.width;
-				viewContainerGroup.height = bgShape.height;
-			}
-			
 			private function updateBoneLink():void{
 				if(link.visible){
-					pointHelp = boneDisplaySelected.localToGlobal(pointStart);
+					pointHelp = boneDisplaySelected.localToGlobal(pointDragInBone);
 					pointHelp = armatureContainer.globalToLocal(pointHelp);
 					link.x = pointHelp.x;
 					link.y = pointHelp.y;

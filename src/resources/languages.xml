@@ -83,16 +83,6 @@
 		<item id="zh-CN">停止</item>
 		<item id="zh-TW">停止</item>
 	</item>
-	<item id="pause">
-		<item id="en-US">Pause</item>
-		<item id="zh-CN">暂停</item>
-		<item id="zh-TW">暫停</item>
-	</item>
-	<item id="resume">
-		<item id="en-US">Resume</item>
-		<item id="zh-CN">继续</item>
-		<item id="zh-TW">繼續</item>
-	</item>
 	
 	<item id="boneMovementPanelTitle">
 		<item id="en-US">Bone - </item>

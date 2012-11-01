@@ -91,7 +91,7 @@ package control{
 					try{
 						_data = getSWFBytes(_textureData);
 						if(_data){
-							exportSave(compressionData(importDataProxy.skeletonXML, importDataProxy.textureAtlasXML, _data), importDataProxy.skeletonName + ".swf");
+							exportSave(compressionData(importDataProxy.skeletonXML, importDataProxy.textureAtlasXML, _data), importDataProxy.skeletonName + GlobalConstValues.OUTPUT_SUFFIX + GlobalConstValues.SWF_SUFFIX);
 							break;
 						}
 					}catch(_e:Error){
@@ -100,7 +100,7 @@ package control{
 					try{
 						_data = getPNGBytes(_textureData);
 						if(_data){
-							exportSave(compressionData(importDataProxy.skeletonXML, importDataProxy.textureAtlasXML, _data), importDataProxy.skeletonName + ".png");
+							exportSave(compressionData(importDataProxy.skeletonXML, importDataProxy.textureAtlasXML, _data), importDataProxy.skeletonName + GlobalConstValues.OUTPUT_SUFFIX + GlobalConstValues.PNG_SUFFIX);
 							break;
 						}
 					}catch(_e:Error){
@@ -116,10 +116,10 @@ package control{
 						if(_data){
 							_date = new Date();
 							_zip = new Zip();
-							_zip.add(_data, GlobalConstValues.TEXTURE_NAME + (exportType == 2?".swf":".png"), _date);
+							_zip.add(_data, GlobalConstValues.TEXTURE_NAME + (exportType == 2?GlobalConstValues.SWF_SUFFIX:GlobalConstValues.PNG_SUFFIX), _date);
 							_zip.add(importDataProxy.skeletonXML.toXMLString(), GlobalConstValues.SKELETON_XML_NAME, _date);
 							_zip.add(importDataProxy.textureAtlasXML.toXMLString(), GlobalConstValues.TEXTURE_ATLAS_XML_NAME, _date);
-							exportSave(_zip.encode(), importDataProxy.skeletonName + ".zip");
+							exportSave(_zip.encode(), importDataProxy.skeletonName + GlobalConstValues.OUTPUT_SUFFIX + GlobalConstValues.ZIP_SUFFIX);
 							_zip.clear();
 							break;
 						}
@@ -150,14 +150,14 @@ package control{
 								_subTextureName = _subTextureXML.attribute(ConstValues.A_NAME);
 								_subTextureName = _subTextureName.split("/").join("-");
 								_subTextureXML[ConstValues.AT + ConstValues.A_NAME] = _subTextureName;
-								_zip.add(PNGEncoder.encode(_bitmapData), GlobalConstValues.TEXTURE_NAME + "/" + _subTextureName + ".png", _date);
+								_zip.add(PNGEncoder.encode(_bitmapData), GlobalConstValues.TEXTURE_NAME + "/" + _subTextureName + GlobalConstValues.PNG_SUFFIX, _date);
 								_bitmapData.dispose();
 							}
 							
 							_zip.add(_skeletonXML.toXMLString(), GlobalConstValues.SKELETON_XML_NAME, _date);
 							_zip.add(_textureAtlasXML.toXMLString(), GlobalConstValues.TEXTURE_ATLAS_XML_NAME, _date);
 							
-							exportSave(_zip.encode(), importDataProxy.skeletonName + ".zip");
+							exportSave(_zip.encode(), importDataProxy.skeletonName + GlobalConstValues.OUTPUT_SUFFIX + GlobalConstValues.ZIP_SUFFIX);
 							_zip.clear();
 							break;
 						}
