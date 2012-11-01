@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<macromedia-extension name="SkeletonDesignPanel" version="1.4.0 dev" type="command">
+
+	<author name="akdcl"/>
+	<products>
+
+		<product name="Flash" version="11" primary="true"/>
+
+		<product name="Flash" version="12" primary="true"/>
+
+		<product name="Flash" version="13" primary="true"/>
+
+	</products>
+	<description>
+		<![CDATA[
+]]>
+	</description>
+	<ui-access>
+		<![CDATA[
+]]>
+	</ui-access>
+	<license-agreement>
+		<![CDATA[
+]]>
+	</license-agreement>
+
+	<files>
+		<file source="SkeletonAnimationDesignPanel/skeleton.jsfl" destination="$flash/WindowSWF/SkeletonAnimationDesignPanel"/>
+
+		<file source="SkeletonAnimationDesignPanel.swf" destination="$flash/WindowSWF"/>
+	</files>
+
+</macromedia-extension>
