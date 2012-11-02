@@ -190,14 +190,12 @@
 					case sliderScale:
 						numScale.value = sliderScale.value;
 					case numScale:
-						sliderScale.value = numScale.value;
-						importDataProxy.animationDataProxy.boneScale = numScale.value;
+						importDataProxy.animationDataProxy.boneScale = sliderScale.value = isNaN(numScale.value)?0:numScale.value;
 						break;
 					case sliderDelay:
 						numDelay.value = sliderDelay.value;
 					case numDelay:
-						sliderDelay.value = numDelay.value;
-						importDataProxy.animationDataProxy.boneDelay = numDelay.value;
+						importDataProxy.animationDataProxy.boneDelay = sliderDelay.value = isNaN(numDelay.value)?0:numDelay.value;
 						break;
 				}
 			}

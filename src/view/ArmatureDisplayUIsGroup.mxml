@@ -453,6 +453,7 @@
 						boneDisplaySelected = _bone.display || (_bone.childArmature?_bone.childArmature.display:null);
 						if(boneDisplaySelected){
 							if(boneDisplaySelected == boneDisplayRollOver){
+								boneDisplayRollOver.filters = null;
 								boneDisplayRollOver = null;
 							}
 							if(boneHighlightFilter.color){

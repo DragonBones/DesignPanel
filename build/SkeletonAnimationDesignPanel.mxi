@@ -2,7 +2,7 @@
 
 <macromedia-extension name="SkeletonAnimationDesignPanel" version="1.4.0" type="command">
 
-	<author name="akdcl"/>
+	<author name="DragonBones Team"/>
 	<products>
 
 		<product name="Flash" version="11" primary="true"/>
