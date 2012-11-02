@@ -122,6 +122,8 @@
 				MessageDispatcher.addEventListener(MessageDispatcher.UPDATE_BONE_PARENT, commandHandler);
 				
 				MessageDispatcher.addEventListener(MessageDispatcher.VIEW_BONE_HIGHLIGHT_CHANGE, commandHandler);
+				
+				MessageDispatcher.addEventListener(MessageDispatcher.MOVEMENT_CHANGE, commandHandler);
 			}
 			
 			private function commandHandler(_e:Message):void{
@@ -152,13 +154,19 @@
 							viewScale = 1;
 							armatureContainer.addChild(bgShape);
 							armatureContainer.addChild(armatureDisplay);
+							for(_i = armatureDisplay.numChildren - 1; _i >= 0;_i --){
+								var _child:Sprite = armatureDisplay.getChildAt(_i) as Sprite;
+								if(_child){
+									_child.mouseChildren = false;
+								}
+							}
 						}
 						break;
 					case MessageDispatcher.CHANGE_BONE_DATA:
 						highlightBoneDisplay();
 						break;
 					case MessageDispatcher.CHANGE_MOVEMENT_DATA:
-						changeRenderMovement(_e.parameters[0]);
+						changeRenderMovement(_e.parameters[0], false, _e.parameters[1]);
 						break;
 					case MessageDispatcher.UPDATE_MOVEMENT_DATA:
 					case MessageDispatcher.UPDATE_MOVEMENT_BONE_DATA:
@@ -170,6 +178,9 @@
 					case MessageDispatcher.VIEW_BONE_HIGHLIGHT_CHANGE:
 						boneRolloverFilter.color = boneHighlightFilter.color = _e.parameters[0];
 						highlightBoneDisplay();
+						break;
+					case MessageDispatcher.MOVEMENT_CHANGE:
+						importDataProxy.animationDataProxy.changeMovement(_e.parameters[0], true);
 						break;
 				}
 			}
@@ -273,15 +284,6 @@
 						pointDragGlobal.y = stage.mouseY;
 						pointScrollBarDrag.x = scrollerViewer.horizontalScrollBar.value;
 						pointScrollBarDrag.y = scrollerViewer.verticalScrollBar.value;
-						
-						if(_e.target == armatureContainer){
-							
-						}else{
-							selectedBoneByDisplay(_e.target);
-							
-							//pointStart.x = boneDisplaySelected.mouseX;
-							//pointStart.y = boneDisplaySelected.mouseY;
-						}
 						break;
 					case MouseEvent.MOUSE_UP:
 						isMouseDown = false;
@@ -290,6 +292,11 @@
 							stage.removeEventListener(MouseEvent.MOUSE_UP, containerMouseHandler);
 						}
 						
+						if(boneDisplayRollOver){
+							selectedBoneByDisplay(boneDisplayRollOver);
+							//pointStart.x = boneDisplaySelected.mouseX;
+							//pointStart.y = boneDisplaySelected.mouseY;
+						}
 						/*
 						link.visible = false;
 						if(boneDisplaySelected && boneDisplayRollOver && _e.target == boneDisplayRollOver){
@@ -320,8 +327,8 @@
 				}
 			}
 			
-			private function changeRenderMovement(_movementName:String, _autoPlay:Boolean = false):void{
-				if(_movementName && importDataProxy.armature){
+			private function changeRenderMovement(_movementName:String, _autoPlay:Boolean = false, _isChangedByArmature:Boolean = false):void{
+				if(_movementName && importDataProxy.armature && !_isChangedByArmature){
 					if(_autoPlay?importDataProxy.armature.animation.isPlaying:true){
 						importDataProxy.armature.animation.gotoAndPlay(_movementName);
 					}
@@ -343,19 +350,22 @@
 				if(isMouseIn){
 					pointHelp.x = _display.mouseX;
 					pointHelp.y = _display.mouseY;
-					
-					var _mouseTarget:DisplayObject = getPointTarget(_display, pointHelp, 1);
+					var _filtersBackup:Array = _display.filters;
+					var _mouseTarget:DisplayObject = getPointTarget(_display, pointHelp, 2);
+					_display.filters = _filtersBackup;
 					if(_mouseTarget){
-						if(_mouseTarget != boneDisplaySelected){
+						if(_mouseTarget == boneDisplayRollOver){
+							
+						}else if(_mouseTarget != boneDisplaySelected){
 							if(boneDisplayRollOver){
 								boneDisplayRollOver.filters = null;
 								boneDisplayRollOver = null;
 							}
-							/*if(boneDisplaySelected && isMouseDown){
-							if(!checkBoneParent(boneDisplaySelected, _mouseTarget)){
-							return;
-							}
-							}*/
+							//if(boneDisplaySelected && isMouseDown){
+								//if(!checkBoneParent(boneDisplaySelected, _mouseTarget)){
+									//return;
+								//}
+							//}
 							boneDisplayRollOver = _mouseTarget;
 							boneDisplayRollOver.filters = [boneRolloverFilter];
 						}

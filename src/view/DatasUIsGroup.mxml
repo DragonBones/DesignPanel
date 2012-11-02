@@ -64,9 +64,8 @@
 				MessageDispatcher.addEventListener(MessageDispatcher.EXPORT_ERROR, onCommandHandler);
 				MessageDispatcher.addEventListener(MessageDispatcher.EXPORT_COMPLETE, onCommandHandler);
 				
-				MessageDispatcher.addEventListener(MessageDispatcher.CHANGE_IMPORT_DATA, onCommandHandler);
 				MessageDispatcher.addEventListener(MessageDispatcher.CHANGE_ARMATURE_DATA, onCommandHandler);
-				MessageDispatcher.addEventListener(MessageDispatcher.CHANGE_ANIMATION_DATA, onCommandHandler);
+				MessageDispatcher.addEventListener(MessageDispatcher.CHANGE_MOVEMENT_DATA, onCommandHandler);
 				MessageDispatcher.addEventListener(MessageDispatcher.CHANGE_BONE_DATA, onCommandHandler);
 				
 				MessageDispatcher.addEventListener(MessageDispatcher.UPDATE_BONE_PARENT, onCommandHandler);
@@ -131,11 +130,9 @@
 					case MessageDispatcher.EXPORT_COMPLETE:
 						clearAlert();
 						break;
-					case MessageDispatcher.CHANGE_IMPORT_DATA:
-						armatureList.selectedIndex = -1;
-						armatureList.selectedIndex = 0;
-						break;
 					case MessageDispatcher.CHANGE_ARMATURE_DATA:
+						armatureList.selectedItem = getListItemByName(armatureList, _e.parameters[0]);
+						//
 					case MessageDispatcher.UPDATE_BONE_PARENT:
 						boneTree.dataProvider = importDataProxy.armatureDataProxy.bonesMC;
 						boneTree.validateNow();
@@ -146,9 +143,8 @@
 							boneTree.selectItemByName(_e.parameters[0]);
 						}
 						break;
-					case MessageDispatcher.CHANGE_ANIMATION_DATA:
-						movementList.selectedIndex = -1;
-						movementList.selectedIndex = 0;
+					case MessageDispatcher.CHANGE_MOVEMENT_DATA:
+						movementList.selectedItem = getListItemByName(movementList, _e.parameters[0]);
 						break;
 					case MessageDispatcher.CHANGE_BONE_DATA:
 						boneTree.selectItemByName(_e.parameters[0]);
@@ -188,6 +184,15 @@
 			private function boneDisplayHighlightChangeHandler(event:ColorPickerEvent):void{
 				ShareObjectDataProxy.getInstance().setData("boneHighlightColor", event.color);
 				MessageDispatcher.dispatchEvent(MessageDispatcher.VIEW_BONE_HIGHLIGHT_CHANGE, event.color);
+			}
+			
+			private function getListItemByName(_list:DataGrid, _itemName:String):XML{
+				for each(var _eachItem:XML in _list.dataProvider){
+					if(ImportDataProxy.getElementName(_eachItem) == _itemName){
+						return _eachItem;
+					}
+				}
+				return null;
 			}
 		]]>
 	</fx:Script>

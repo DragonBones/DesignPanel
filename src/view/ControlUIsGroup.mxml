@@ -38,12 +38,11 @@
 				sliderDurationTween.addEventListener(Event.CHANGE, valueChangeHandler);
 				numDurationTween.addEventListener(Event.CHANGE, valueChangeHandler);
 				
-				checkLoop.addEventListener(Event.CHANGE, valueChangeHandler);
+				sliderTweenEasing.addEventListener(Event.CHANGE, valueChangeHandler);
+				//numKeyFrameEase.addEventListener(Event.CHANGE, valueChangeHandler);
 				
 				btnPlay.addEventListener(MouseEvent.CLICK, valueChangeHandler);
-				//btnPause.addEventListener(MouseEvent.CLICK, valueChangeHandler);
-				
-				sliderTweenEasing.addEventListener(Event.CHANGE, valueChangeHandler);
+				checkLoop.addEventListener(Event.CHANGE, valueChangeHandler);
 				
 				sliderScale.addEventListener(Event.CHANGE, valueChangeHandler);
 				numScale.addEventListener(Event.CHANGE, valueChangeHandler);
@@ -75,9 +74,7 @@
 						var _durationTo:int = importDataProxy.animationDataProxy.durationTo;
 						var _durationTween:int = importDataProxy.animationDataProxy.durationTween;
 						if(_durationTo < 0){
-							numDurationTo.value = 0;
 							numDurationTo.enabled = false;
-							sliderDurationTo.value = 0;
 							sliderDurationTo.enabled = false;
 						}else{
 							numDurationTo.value = _durationTo;
@@ -86,14 +83,12 @@
 							sliderDurationTo.enabled = true;
 						}
 						if(_durationTween < 0){
-							numDurationTween.value = 0;
 							numDurationTween.enabled = false;
-							sliderDurationTween.value = 0;
 							sliderDurationTween.enabled = false;
 							checkLoop.selected = false;
 							checkLoop.enabled = false;
-							sliderTweenEasing.value = 0;
 							sliderTweenEasing.enabled = false;
+							//numKeyFrameEase.enabled = false;
 						}else{
 							numDurationTween.value = _durationTween;
 							numDurationTween.enabled = true;
@@ -101,8 +96,9 @@
 							sliderDurationTween.enabled = true;
 							checkLoop.selected = importDataProxy.animationDataProxy.loop;
 							checkLoop.enabled = true;
-							sliderTweenEasing.value = importDataProxy.animationDataProxy.tweenEasing;
+							//numKeyFrameEase.value = sliderTweenEasing.value = importDataProxy.animationDataProxy.tweenEasing;
 							sliderTweenEasing.enabled = true;
+							//numKeyFrameEase.enabled = true;
 						}
 						break;
 					case MessageDispatcher.CHANGE_MOVEMENT_BONE_DATA:
@@ -161,11 +157,16 @@
 						sliderDurationTween.value = numDurationTween.value;
 						importDataProxy.animationDataProxy.durationTween = numDurationTween.value;
 						break;
+					//case numKeyFrameEase:
+						//sliderDurationTo.value = numDurationTo.value;
 					case sliderTweenEasing:
+						if(sliderDurationTo.value < -1){
+							//trace(1);
+							//numKeyFrameEase.textDisplay.text = "NaN";
+						}else{
+							//numKeyFrameEase.value = sliderDurationTo.value;
+						}
 						importDataProxy.animationDataProxy.tweenEasing = sliderTweenEasing.value;
-						break;
-					case checkLoop:
-						importDataProxy.animationDataProxy.loop = checkLoop.selected;
 						break;
 					case btnPlay:
 						//翻转了 selected
@@ -182,6 +183,9 @@
 							updatePlayAndPauseBtn();
 							movementUpdated = false;
 						}
+						break;
+					case checkLoop:
+						importDataProxy.animationDataProxy.loop = checkLoop.selected;
 						break;
 					case sliderScale:
 						numScale.value = sliderScale.value;
@@ -257,7 +261,6 @@
 				<s:NumericStepper id="numDurationTo" x="240" y="40" width="60" height="24" cornerRadius="0" textAlign="right"
 								  maximum="3000" minimum="0" snapInterval="1"
 								  />
-
 			</s:NavigatorContent>
 		</mx:Accordion>
 		<mx:Accordion width="100%" height="100%">

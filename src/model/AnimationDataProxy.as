@@ -132,7 +132,7 @@ package model{
 			changeMovement();
 		}
 		
-		public function changeMovement(_movementName:String = null):void{
+		public function changeMovement(_movementName:String = null, _isChangedByArmature:Boolean = false):void{
 			movementXML = ImportDataProxy.getElementByName(movementsXMLList, _movementName, true);
 			if(movementXML){
 				movementBonesXMLList = movementXML.elements(ConstValues.BONE);
@@ -140,7 +140,7 @@ package model{
 				movementBonesXMLList = null;
 			}
 			
-			MessageDispatcher.dispatchEvent(MessageDispatcher.CHANGE_MOVEMENT_DATA, movementName);
+			MessageDispatcher.dispatchEvent(MessageDispatcher.CHANGE_MOVEMENT_DATA, movementName, _isChangedByArmature);
 			
 			changeMovementBone(ImportDataProxy.getInstance().armatureDataProxy.boneName);
 		}

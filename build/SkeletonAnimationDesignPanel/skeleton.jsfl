@@ -275,7 +275,11 @@ function getMovementXML(_movementName, _duration, _item){
 	}
 	if(_duration > 1){
 		if(_movementXML){
-			_xml[AT + A_DURATION_TWEEN] = _movementXML[AT + A_DURATION_TWEEN];
+			if(_xml[AT + A_DURATION] == _movementXML[AT + A_DURATION]){
+				_xml[AT + A_DURATION_TWEEN] = _movementXML[AT + A_DURATION_TWEEN];
+			}else{
+				_xml[AT + A_DURATION_TWEEN] = _duration;
+			}
 			_xml[AT + A_LOOP] = _movementXML[AT + A_LOOP];
 			_xml[AT + A_TWEEN_EASING] = _movementXML[AT + A_TWEEN_EASING].length()?_movementXML[AT + A_TWEEN_EASING]:NaN;
 		}else{
@@ -376,7 +380,7 @@ function generateMovement(_item, _mainFrame, _layers){
 	
 	for each(var _layer in _layers){
 		_boneName = formatName(_layer);
-		_boneZDic[_boneName] = [];
+		_boneZDic[_boneName] = _boneZDic[_boneName] || [];
 		_movementBoneXML = null;
 		for each(var _frame in filterKeyFrames(_layer.frames.slice(_start, _start + _duration))){
 			if(_frame.startFrame < _start){
@@ -407,6 +411,7 @@ function generateMovement(_item, _mainFrame, _layers){
 			_boneList = _boneZDic[_boneName];
 			for(_i = _frameStart;_i < _frameStart + _frameDuration;_i ++){
 				if(!isNaN(_boneList[_i])){
+					_boneNameDic[_boneName] = true;
 					_boneName = formatSameName(_layer, _boneNameDic);
 					_boneList = _boneZDic[_boneName] = [];
 					_movementBoneXML = getMovementBoneXML(_movementXML, _boneName, _item);
@@ -419,23 +424,20 @@ function generateMovement(_item, _mainFrame, _layers){
 				break;
 			}
 			_frameXML = generateFrame(_frame, _boneName, _symbol, _z, _layers, Math.max(_frame.startFrame, _start));
-			_frameXML[AT + A_START] = _frameStart;
-			_frameXML[AT + A_DURATION] = _frameDuration;
-			_movementBoneXML.appendChild(_frameXML);
+			addFrameToMovementBone(_frameXML, _frameStart, _frameDuration, _movementBoneXML);
 		}
 	}
 	
-	var _prevFrameXML;
 	var _prevStart;
 	var _prevDuration;
 	var _frameIndex;
 	
 	for each(var _movementBoneXML in _movementXML[BONE]){
 		_boneName = _movementBoneXML[AT + A_NAME];
+		var _prevFrameXML = null;
 		for each(_frameXML in _movementBoneXML[FRAME]){
 			_frameStart = Number(_frameXML[AT + A_START]);
-			_frameIndex = _frameXML.childIndex();
-			if(_frameIndex == 0){
+			if(_frameXML.childIndex() == 0){
 				if(_frameStart > 0){
 					_movementBoneXML.prependChild(<{FRAME} {A_DURATION} = {_frameStart} {A_DISPLAY_INDEX} = "-1"/>);
 				}
@@ -446,7 +448,7 @@ function generateMovement(_item, _mainFrame, _layers){
 					_movementBoneXML.insertChildBefore(_frameXML, <{FRAME} {A_DURATION} = {_frameStart - _prevStart - _prevDuration} {A_DISPLAY_INDEX} = "-1"/>);
 				}
 			}
-			if(_frameIndex == _movementBoneXML[FRAME].length() - 1){
+			if(_frameXML.childIndex() == _movementBoneXML[FRAME].length() - 1){
 				_frameStart = Number(_frameXML[AT + A_START]);
 				_prevDuration = Number(_frameXML[AT + A_DURATION]);
 				if(_frameStart + _prevDuration < _duration){
@@ -606,6 +608,18 @@ function generateMovementEventFrames(_movementXML, _mainFrame){
 	}
 }
 
+function addFrameToMovementBone(_frameXML, _start, _duration, _movementBoneXML){
+	_frameXML[AT + A_START] = _start;
+	_frameXML[AT + A_DURATION] = _duration;
+	for each(var _eachFrameXML in _movementBoneXML[FRAME]){
+		if(Number(_eachFrameXML[AT + A_START]) > _start){
+			_movementBoneXML.insertChildBefore(_eachFrameXML, _frameXML);
+			return;
+		}
+	}
+	_movementBoneXML.appendChild(_frameXML);
+}
+
 Skeleton.getArmatureList = function(_isSelected){
 	fl.outputPanel.clear();
 	currentDom = fl.getDocumentDOM();
@@ -733,9 +747,15 @@ Skeleton.addTextureToSWFItem = function(_textureName, _isLast){
 	
 	_timeline.currentFrame = 0;
 	helpPoint.x = helpPoint.y = 0;
-	if(!currentLibrary.addItemToDocument(helpPoint, _textureName)){
-		trace("可能内存不足，再次尝试放置贴图！");
-		currentLibrary.addItemToDocument(helpPoint, _textureName);
+	var _putSuccess;
+	var _tryTimes = 0;
+	do{
+		_putSuccess = currentLibrary.addItemToDocument(helpPoint, _textureName);
+		_tryTimes ++;
+	}while(!_putSuccess && _tryTimes < 5);
+	if(!_putSuccess){
+		trace("内存不足导致放置贴图失败！请尝试重新导入。");
+		return false;
 	}
 	
 	_symbol = currentDom.selection[0];

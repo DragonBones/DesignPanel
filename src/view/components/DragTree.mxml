@@ -40,6 +40,7 @@
 						}
 					}
 					selectedItem = _item;
+					scrollToIndex(getItemIndex(selectedItem));
 				}
 			}
 			
