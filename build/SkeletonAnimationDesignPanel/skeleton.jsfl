@@ -40,6 +40,7 @@ var A_EVENT = "evt";
 var A_SOUND = "sd";
 var A_SOUND_EFFECT = "sdE";
 var A_TWEEN_EASING ="twE";
+var A_TWEEN_ROTATE_ ="twR_";
 var A_TWEEN_ROTATE ="twR";
 var A_IS_ARMATURE = "isArmature";
 var A_MOVEMENT = "mov";
@@ -457,7 +458,7 @@ function generateMovement(_item, _mainFrame, _layers){
 			}
 			//tweenRotate property is for the end point of tween instead of start point
 			//sometimes, x0 need to be ingored
-			if(_prevFrameXML && _prevFrameXML[AT + A_TWEEN_ROTATE][0]){
+			if(_prevFrameXML && _prevFrameXML[AT + A_TWEEN_ROTATE_][0]){
 				var _dSkY = Number(_frameXML[AT + A_SKEW_Y]) - Number(_prevFrameXML[AT + A_SKEW_Y]);
 				if(_dSkY < -180){
 					_dSkY += 360;
@@ -465,7 +466,7 @@ function generateMovement(_item, _mainFrame, _layers){
 				if(_dSkY > 180){
 					_dSkY -= 360;
 				}
-				_tweenRotate = Number(_prevFrameXML[AT + A_TWEEN_ROTATE]);
+				_tweenRotate = Number(_prevFrameXML[AT + A_TWEEN_ROTATE_]);
 				if(_dSkY !=0){
 					if(_dSkY < 0){
 						if(_tweenRotate >= 0){
@@ -478,7 +479,7 @@ function generateMovement(_item, _mainFrame, _layers){
 					}
 				}
 				_frameXML[AT + A_TWEEN_ROTATE] = _tweenRotate;
-				delete _prevFrameXML[AT + A_TWEEN_ROTATE];
+				delete _prevFrameXML[AT + A_TWEEN_ROTATE_];
 			}
 			
 			_prevFrameXML = _frameXML;
@@ -544,7 +545,7 @@ function generateFrame(_frame, _boneName, _symbol, _z){
 				break;
 		}
 		if(!isNaN(_tweenRotate)){
-			_frameXML[AT + A_TWEEN_ROTATE] = _tweenRotate;
+			_frameXML[AT + A_TWEEN_ROTATE_] = _tweenRotate;
 		}
 	}
 	

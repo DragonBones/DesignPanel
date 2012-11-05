@@ -7,3 +7,6 @@ bin-release/
 .flexProperties
 .settings/
 .project
+
+
+build/SkeletonAnimationDesignPanel.swf
