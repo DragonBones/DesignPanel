@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8" ?>
+﻿<?xml version="1.0" encoding="UTF-8" ?>
 <root>
 	<language name="English" id="en-US"/>
 	<language name="中文(简体)" id="zh-CN"/>
@@ -181,12 +181,12 @@
 	</item>
 	
 	<item id="importFLAWaitting">
-		<item id="en-US">导入中请稍后。&#xA;请勿操作 Flash Pro 或 剪切板，以防影响导入过程！</item>
+		<item id="en-US">Importing... &#xA; Please wait until importing finished.</item>
 		<item id="zh-CN">导入中请稍后。&#xA;请勿操作 Flash Pro 或 剪切板，以防影响导入过程！</item>
 		<item id="zh-TW">導入中請稍後。&#xA;請勿操作 Flash Pro 或 剪切板，以防影響導入過程！</item>
 	</item>
 	<item id="importNoElement">
-		<item id="en-US">未在 Fla {0} 库中找到符合骨架结构的元件！</item>
+		<item id="en-US">Cannot find any armature item in the library of Fla {0}!</item>
 		<item id="zh-CN">未在 Fla {0} 库中找到符合骨架结构的元件！</item>
 		<item id="zh-TW">未在 Fla {0} 庫中找到符合骨架結構的元件！</item>
 	</item>
@@ -201,12 +201,12 @@
 		<item id="zh-TW">導入貼圖： {0} / {1}</item>
 	</item>
 	<item id="importFileWaitting">
-		<item id="en-US">导入中请稍后。</item>
+		<item id="en-US">Importing...</item>
 		<item id="zh-CN">导入中请稍后。</item>
 		<item id="zh-TW">導入中請稍後。</item>
 	</item>
 	<item id="importFileError">
-		<item id="en-US">导入失败。&#xA;未知的数据格式或读取错误！</item>
+		<item id="en-US">Import failed! &#xA; Unknown data format error！</item>
 		<item id="zh-CN">导入失败。&#xA;未知的数据格式或读取错误！</item>
 		<item id="zh-TW">導入失敗。&#xA;未知的數據格式或讀取錯誤！</item>
 	</item>
@@ -216,12 +216,12 @@
 		<item id="zh-TW">導入進度：{0} %</item>
 	</item>
 	<item id="exportWaitting">
-		<item id="en-US">导出中请稍后。&#xA;请勿操作 Flash Pro 或 剪切板，以防影响导出过程！</item>
+		<item id="en-US">Exporting... &#xA; Please wait until exporting finished.</item>
 		<item id="zh-CN">导出中请稍后。&#xA;请勿操作 Flash Pro 或 剪切板，以防影响导出过程！</item>
 		<item id="zh-TW">導出中請稍後。&#xA;請勿操作 Flash Pro 或 剪切板，以防影響導出過程！</item>
 	</item>
 	<item id="exportError">
-		<item id="en-US">导出失败。&#xA;无法从当前格式导出到指定格式或文件写入错误！</item>
+		<item id="en-US">Export failed! &#xA; Unknown error on data writing！</item>
 		<item id="zh-CN">导出失败。&#xA;无法从当前格式导出到指定格式或文件写入错误！</item>
 		<item id="zh-TW">導出失敗。&#xA;無法從當前格式導出到指定格式或文件寫入錯誤！</item>
 	</item>
