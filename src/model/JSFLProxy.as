@@ -132,7 +132,7 @@ package model{
 			}
 		}
 		
-		private function runJSFLCode(_type:String, _code:String):void{
+		public function runJSFLCode(_type:String, _code:String):void{
 			helpByteArray.position = 0;
 			helpByteArray.length = 0;
 			helpByteArray.writeUTFBytes(_code);
@@ -151,7 +151,7 @@ package model{
 			);
 		}
 		
-		private function runJSFLMethod(_type:String, _method:String, ...args):void{
+		public function runJSFLMethod(_type:String, _method:String, ...args):void{
 			var _code:String = _method + "(";
 			for each(var _arg:Object in args){
 				if(_arg is Number || _arg is Boolean){

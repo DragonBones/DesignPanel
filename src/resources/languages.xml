@@ -1,228 +1,228 @@
 ﻿<?xml version="1.0" encoding="UTF-8" ?>
 <root>
-	<language name="English" id="en-US"/>
-	<language name="中文(简体)" id="zh-CN"/>
-	<language name="中文(繁體)" id="zh-TW"/>
+	<language name="English" id="en_US"/>
+	<language name="中文(简体)" id="zh_CN"/>
+	<language name="中文(繁體)" id="zh_TW"/>
 	
 	<item id="armatureList">
-		<item id="en-US">Armature List</item>
-		<item id="zh-CN">骨架列表</item>
-		<item id="zh-TW">骨架列錶</item>
+		<item id="en_US">Armature List</item>
+		<item id="zh_CN">骨架列表</item>
+		<item id="zh_TW">骨架列錶</item>
 	</item>
 	<item id="movementList">
-		<item id="en-US">Behavior List</item>
-		<item id="zh-CN">动作列表</item>
-		<item id="zh-TW">動作列錶</item>
+		<item id="en_US">Behavior List</item>
+		<item id="zh_CN">动作列表</item>
+		<item id="zh_TW">動作列錶</item>
 	</item>
 	<item id="boneTree">
-		<item id="en-US">Bone Tree</item>
-		<item id="zh-CN">骨骼树</item>
-		<item id="zh-TW">骨骼樹</item>
+		<item id="en_US">Bone Tree</item>
+		<item id="zh_CN">骨骼树</item>
+		<item id="zh_TW">骨骼樹</item>
 	</item>
 	<item id="textureList">
-		<item id="en-US">Texture List</item>
-		<item id="zh-CN">贴图列表</item>
-		<item id="zh-TW">貼圖列錶</item>
+		<item id="en_US">Texture List</item>
+		<item id="zh_CN">贴图列表</item>
+		<item id="zh_TW">貼圖列錶</item>
 	</item>
 	
 	<item id="boneHighlight">
-		<item id="en-US">Bone Highlight</item>
-		<item id="zh-CN">骨骼高亮</item>
-		<item id="zh-TW">骨骼高亮</item>
+		<item id="en_US">Bone Highlight</item>
+		<item id="zh_CN">骨骼高亮</item>
+		<item id="zh_TW">骨骼高亮</item>
 	</item>
 	
 	<item id="importTitle">
-		<item id="en-US">Import</item>
-		<item id="zh-CN">导入</item>
-		<item id="zh-TW">導入</item>
+		<item id="en_US">Import</item>
+		<item id="zh_CN">导入</item>
+		<item id="zh_TW">導入</item>
 	</item>
 	<item id="exportTitle">
-		<item id="en-US">Export</item>
-		<item id="zh-CN">导出</item>
-		<item id="zh-TW">導出</item>
+		<item id="en_US">Export</item>
+		<item id="zh_CN">导出</item>
+		<item id="zh_TW">導出</item>
 	</item>
 	<item id="frameRate">
-		<item id="en-US">Frame Rate:</item>
-		<item id="zh-CN">帧频:</item>
-		<item id="zh-TW">幀頻:</item>
+		<item id="en_US">Frame Rate:</item>
+		<item id="zh_CN">帧频:</item>
+		<item id="zh_TW">幀頻:</item>
 	</item>
 	
 	<item id="movementPanelTitle">
-		<item id="en-US">Behavior - </item>
-		<item id="zh-CN">动作 - </item>
-		<item id="zh-TW">動作 - </item>
+		<item id="en_US">Behavior - </item>
+		<item id="zh_CN">动作 - </item>
+		<item id="zh_TW">動作 - </item>
 	</item>
 	<item id="tweenFrame">
-		<item id="en-US">Tween Frame:</item>
-		<item id="zh-CN">动作切换帧数:</item>
-		<item id="zh-TW">動作切換幀數:</item>
+		<item id="en_US">Tween Frame:</item>
+		<item id="zh_CN">动作切换帧数:</item>
+		<item id="zh_TW">動作切換幀數:</item>
 	</item>
 	<item id="movementFrame">
-		<item id="en-US">Total Frame:</item>
-		<item id="zh-CN">播放帧数:</item>
-		<item id="zh-TW">播放幀數:</item>
+		<item id="en_US">Total Frame:</item>
+		<item id="zh_CN">播放帧数:</item>
+		<item id="zh_TW">播放幀數:</item>
 	</item>
 	<item id="keyFrameEase">
-		<item id="en-US">Keyframe Ease:</item>
-		<item id="zh-CN">关键帧缓动:</item>
-		<item id="zh-TW">關鍵幀緩動:</item>
+		<item id="en_US">Keyframe Ease:</item>
+		<item id="zh_CN">关键帧缓动:</item>
+		<item id="zh_TW">關鍵幀緩動:</item>
 	</item>
 	<item id="movementLoop">
-		<item id="en-US">Loop</item>
-		<item id="zh-CN">循环</item>
-		<item id="zh-TW">循環</item>
+		<item id="en_US">Loop</item>
+		<item id="zh_CN">循环</item>
+		<item id="zh_TW">循環</item>
 	</item>
 	
 	<item id="play">
-		<item id="en-US">Play</item>
-		<item id="zh-CN">播放</item>
-		<item id="zh-TW">播放</item>
+		<item id="en_US">Play</item>
+		<item id="zh_CN">播放</item>
+		<item id="zh_TW">播放</item>
 	</item>
 	<item id="stop">
-		<item id="en-US">Stop</item>
-		<item id="zh-CN">停止</item>
-		<item id="zh-TW">停止</item>
+		<item id="en_US">Stop</item>
+		<item id="zh_CN">停止</item>
+		<item id="zh_TW">停止</item>
 	</item>
 	
 	<item id="boneMovementPanelTitle">
-		<item id="en-US">Bone - </item>
-		<item id="zh-CN">骨骼 - </item>
-		<item id="zh-TW">骨骼 - </item>
+		<item id="en_US">Bone - </item>
+		<item id="zh_CN">骨骼 - </item>
+		<item id="zh_TW">骨骼 - </item>
 	</item>
 	<item id="boneTweenScale">
-		<item id="en-US">Tween Time Scale:</item>
-		<item id="zh-CN">缓动时间缩放:</item>
-		<item id="zh-TW">緩動時間縮放:</item>
+		<item id="en_US">Tween Time Scale:</item>
+		<item id="zh_CN">缓动时间缩放:</item>
+		<item id="zh_TW">緩動時間縮放:</item>
 	</item>
 	<item id="boneTweenDelay">
-		<item id="en-US">Tween Time Delay:</item>
-		<item id="zh-CN">缓动时间延时:</item>
-		<item id="zh-TW">緩動時間延時:</item>
+		<item id="en_US">Tween Time Delay:</item>
+		<item id="zh_CN">缓动时间延时:</item>
+		<item id="zh_TW">緩動時間延時:</item>
 	</item>
 	
 	<item id="importLabel">
-		<item id="en-US">Import:</item>
-		<item id="zh-CN">导入:</item>
-		<item id="zh-TW">導入:</item>
+		<item id="en_US">Import:</item>
+		<item id="zh_CN">导入:</item>
+		<item id="zh_TW">導入:</item>
 	</item>
 	<item id="textureSort">
-		<item id="en-US">Layout Algorithm:</item>
-		<item id="zh-CN">排列算法:</item>
-		<item id="zh-TW">貼圖排序:</item>
+		<item id="en_US">Layout Algorithm:</item>
+		<item id="zh_CN">排列算法:</item>
+		<item id="zh_TW">貼圖排序:</item>
 	</item>
 	<item id="textureWidth">
-		<item id="en-US">Size:</item>
-		<item id="zh-CN">贴图尺寸:</item>
-		<item id="zh-TW">貼圖尺寸:</item>
+		<item id="en_US">Size:</item>
+		<item id="zh_CN">贴图尺寸:</item>
+		<item id="zh_TW">貼圖尺寸:</item>
 	</item>
 	<item id="texturePadding">
-		<item id="en-US">Padding:</item>
-		<item id="zh-CN">贴图间距:</item>
-		<item id="zh-TW">貼圖間距:</item>
+		<item id="en_US">Padding:</item>
+		<item id="zh_CN">贴图间距:</item>
+		<item id="zh_TW">貼圖間距:</item>
 	</item>
 	
 	<item id="exportLabel">
-		<item id="en-US">Export:</item>
-		<item id="zh-CN">导出:</item>
-		<item id="zh-TW">導出:</item>
+		<item id="en_US">Export:</item>
+		<item id="zh_CN">导出:</item>
+		<item id="zh_TW">導出:</item>
 	</item>
 	
 	<item id="importFLAAllItem">
-		<item id="en-US">All Library Items</item>
-		<item id="zh-CN">所有库元件</item>
-		<item id="zh-TW">所有庫元件</item>
+		<item id="en_US">All Library Items</item>
+		<item id="zh_CN">所有库元件</item>
+		<item id="zh_TW">所有庫元件</item>
 	</item>
 	<item id="importFLASelectedItem">
-		<item id="en-US">Selected Items</item>
-		<item id="zh-CN">选中的库元件</item>
-		<item id="zh-TW">選中的庫元件</item>
+		<item id="en_US">Selected Items</item>
+		<item id="zh_CN">选中的库元件</item>
+		<item id="zh_TW">選中的庫元件</item>
 	</item>
 	<item id="importExportedData">
-		<item id="en-US">Exported Data(SWF/PNG/Zip)</item>
-		<item id="zh-CN">导出的数据(SWF/PNG/Zip)</item>
-		<item id="zh-TW">導出的數據(SWF/PNG/Zip)</item>
+		<item id="en_US">Exported Data(SWF/PNG/Zip)</item>
+		<item id="zh_CN">导出的数据(SWF/PNG/Zip)</item>
+		<item id="zh_TW">導出的數據(SWF/PNG/Zip)</item>
 	</item>
 	
 	<item id="exportSWFwithXML">
-		<item id="en-US">SWF (XML Merged)</item>
-		<item id="zh-CN">SWF (混合XML的)</item>
-		<item id="zh-TW">SWF (混合XML的)</item>
+		<item id="en_US">SWF (XML Merged)</item>
+		<item id="zh_CN">SWF (混合XML的)</item>
+		<item id="zh_TW">SWF (混合XML的)</item>
 	</item>
 	<item id="exportPNGwithXML">
-		<item id="en-US">PNG (XML Merged)</item>
-		<item id="zh-CN">PNG (混合XML的)</item>
-		<item id="zh-TW">PNG (混合XML的)</item>
+		<item id="en_US">PNG (XML Merged)</item>
+		<item id="zh_CN">PNG (混合XML的)</item>
+		<item id="zh_TW">PNG (混合XML的)</item>
 	</item>
 	<item id="exportZIPXMLAndSWF">
-		<item id="en-US">Zip (XML and SWF)</item>
-		<item id="zh-CN">Zip (XML和SWF)</item>
-		<item id="zh-TW">Zip (XML和SWF)</item>
+		<item id="en_US">Zip (XML and SWF)</item>
+		<item id="zh_CN">Zip (XML和SWF)</item>
+		<item id="zh_TW">Zip (XML和SWF)</item>
 	</item>
 	<item id="exportZIPXMLAndPNG">
-		<item id="en-US">Zip (XML and PNG)</item>
-		<item id="zh-CN">Zip (XML和PNG)</item>
-		<item id="zh-TW">Zip (XML和PNG)</item>
+		<item id="en_US">Zip (XML and PNG)</item>
+		<item id="zh_CN">Zip (XML和PNG)</item>
+		<item id="zh_TW">Zip (XML和PNG)</item>
 	</item>
 	<item id="exportZIPXMLAndEachPNG">
-		<item id="en-US">Zip (XML and PNGs)</item>
-		<item id="zh-CN">Zip (XML和分离的PNG)</item>
-		<item id="zh-TW">Zip (XML和分離的PNG)</item>
+		<item id="en_US">Zip (XML and PNGs)</item>
+		<item id="zh_CN">Zip (XML和分离的PNG)</item>
+		<item id="zh_TW">Zip (XML和分離的PNG)</item>
 	</item>
 	
 	<item id="ok">
-		<item id="en-US">OK</item>
-		<item id="zh-CN">确定</item>
-		<item id="zh-TW">確定</item>
+		<item id="en_US">OK</item>
+		<item id="zh_CN">确定</item>
+		<item id="zh_TW">確定</item>
 	</item>
 	<item id="cancel">
-		<item id="en-US">Cancel</item>
-		<item id="zh-CN">取消</item>
-		<item id="zh-TW">取消</item>
+		<item id="en_US">Cancel</item>
+		<item id="zh_CN">取消</item>
+		<item id="zh_TW">取消</item>
 	</item>
 	
 	<item id="importFLAWaitting">
-		<item id="en-US">Importing... &#xA; Please wait until importing finished.</item>
-		<item id="zh-CN">导入中请稍后。&#xA;请勿操作 Flash Pro 或 剪切板，以防影响导入过程！</item>
-		<item id="zh-TW">導入中請稍後。&#xA;請勿操作 Flash Pro 或 剪切板，以防影響導入過程！</item>
+		<item id="en_US">Importing... &#xA; Please wait until importing finished.</item>
+		<item id="zh_CN">导入中请稍后。&#xA;请勿操作 Flash Pro 或 剪切板，以防影响导入过程！</item>
+		<item id="zh_TW">導入中請稍後。&#xA;請勿操作 Flash Pro 或 剪切板，以防影響導入過程！</item>
 	</item>
 	<item id="importNoElement">
-		<item id="en-US">Cannot find any armature item in the library of Fla {0}!</item>
-		<item id="zh-CN">未在 Fla {0} 库中找到符合骨架结构的元件！</item>
-		<item id="zh-TW">未在 Fla {0} 庫中找到符合骨架結構的元件！</item>
+		<item id="en_US">Cannot find any armature item in the library of Fla {0}!</item>
+		<item id="zh_CN">未在 Fla {0} 库中找到符合骨架结构的元件！</item>
+		<item id="zh_TW">未在 Fla {0} 庫中找到符合骨架結構的元件！</item>
 	</item>
 	<item id="importArmatureProgress">
-		<item id="en-US">Import Armature: {0} / {1}</item>
-		<item id="zh-CN">导入骨架: {0} / {1}</item>
-		<item id="zh-TW">導入骨架: {0} / {1}</item>
+		<item id="en_US">Import Armature: {0} / {1}</item>
+		<item id="zh_CN">导入骨架: {0} / {1}</item>
+		<item id="zh_TW">導入骨架: {0} / {1}</item>
 	</item>
 	<item id="importTextureProgress">
-		<item id="en-US">Import Texture： {0} / {1}</item>
-		<item id="zh-CN">导入贴图： {0} / {1}</item>
-		<item id="zh-TW">導入貼圖： {0} / {1}</item>
+		<item id="en_US">Import Texture： {0} / {1}</item>
+		<item id="zh_CN">导入贴图： {0} / {1}</item>
+		<item id="zh_TW">導入貼圖： {0} / {1}</item>
 	</item>
 	<item id="importFileWaitting">
-		<item id="en-US">Importing...</item>
-		<item id="zh-CN">导入中请稍后。</item>
-		<item id="zh-TW">導入中請稍後。</item>
+		<item id="en_US">Importing...</item>
+		<item id="zh_CN">导入中请稍后。</item>
+		<item id="zh_TW">導入中請稍後。</item>
 	</item>
 	<item id="importFileError">
-		<item id="en-US">Import failed! &#xA; Unknown data format error！</item>
-		<item id="zh-CN">导入失败。&#xA;未知的数据格式或读取错误！</item>
-		<item id="zh-TW">導入失敗。&#xA;未知的數據格式或讀取錯誤！</item>
+		<item id="en_US">Import failed! &#xA; Unknown data format error！</item>
+		<item id="zh_CN">导入失败。&#xA;未知的数据格式或读取错误！</item>
+		<item id="zh_TW">導入失敗。&#xA;未知的數據格式或讀取錯誤！</item>
 	</item>
 	<item id="importFileProgress">
-		<item id="en-US">Import Progress：{0} %</item>
-		<item id="zh-CN">导入进度：{0} %</item>
-		<item id="zh-TW">導入進度：{0} %</item>
+		<item id="en_US">Import Progress：{0} %</item>
+		<item id="zh_CN">导入进度：{0} %</item>
+		<item id="zh_TW">導入進度：{0} %</item>
 	</item>
 	<item id="exportWaitting">
-		<item id="en-US">Exporting... &#xA; Please wait until exporting finished.</item>
-		<item id="zh-CN">导出中请稍后。&#xA;请勿操作 Flash Pro 或 剪切板，以防影响导出过程！</item>
-		<item id="zh-TW">導出中請稍後。&#xA;請勿操作 Flash Pro 或 剪切板，以防影響導出過程！</item>
+		<item id="en_US">Exporting... &#xA; Please wait until exporting finished.</item>
+		<item id="zh_CN">导出中请稍后。&#xA;请勿操作 Flash Pro 或 剪切板，以防影响导出过程！</item>
+		<item id="zh_TW">導出中請稍後。&#xA;請勿操作 Flash Pro 或 剪切板，以防影響導出過程！</item>
 	</item>
 	<item id="exportError">
-		<item id="en-US">Export failed! &#xA; Unknown error on data writing！</item>
-		<item id="zh-CN">导出失败。&#xA;无法从当前格式导出到指定格式或文件写入错误！</item>
-		<item id="zh-TW">導出失敗。&#xA;無法從當前格式導出到指定格式或文件寫入錯誤！</item>
+		<item id="en_US">Export failed! &#xA; Unknown error on data writing！</item>
+		<item id="zh_CN">导出失败。&#xA;无法从当前格式导出到指定格式或文件写入错误！</item>
+		<item id="zh_TW">導出失敗。&#xA;無法從當前格式導出到指定格式或文件寫入錯誤！</item>
 	</item>
 </root>

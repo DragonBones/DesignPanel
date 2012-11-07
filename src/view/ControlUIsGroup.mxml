@@ -96,7 +96,8 @@
 							sliderDurationTween.enabled = true;
 							checkLoop.selected = importDataProxy.animationDataProxy.loop;
 							checkLoop.enabled = true;
-							//numKeyFrameEase.value = sliderTweenEasing.value = importDataProxy.animationDataProxy.tweenEasing;
+							//numKeyFrameEase.value = 
+							sliderTweenEasing.value = importDataProxy.animationDataProxy.tweenEasing;
 							sliderTweenEasing.enabled = true;
 							//numKeyFrameEase.enabled = true;
 						}

@@ -1,6 +1,7 @@
 package model{
 	import flash.errors.IllegalOperationError;
 	
+	import message.Message;
 	import message.MessageDispatcher;
 	
 	import mx.collections.ArrayCollection;
@@ -42,6 +43,8 @@ package model{
 		public static const IMPORT_FLA_ALL_ITEM:String = "importFLAAllItem";
 		public static const IMPORT_FLA_SELECTED_ITEM:String = "importFLASelectedItem";
 		public static const IMPORT_EXPORTED_DATA:String = "importExportedData";
+		
+		private static const JSFL_LANGUAGE_CODE:String = "languageCode";
 		
 		private static var instance:LanguageProxy;
 		public static function getInstance():LanguageProxy{
@@ -100,8 +103,28 @@ package model{
 				languageAC.addItem(String(_languageXML.@name));
 			}
 			
-			__languageID = ShareObjectDataProxy.getInstance().getOrSetData("languageID", 0);
+			var _languangeID:* = ShareObjectDataProxy.getInstance().getData("languageID");
+			if(_languangeID != null){
+				__languageID = int(_languangeID);
+			}else{
+				MessageDispatcher.addEventListener(JSFL_LANGUAGE_CODE, jsflProxyHandler);
+				JSFLProxy.getInstance().runJSFLCode(JSFL_LANGUAGE_CODE, "fl.languageCode;");
+			}
+			
 			update();
+		}
+		
+		private function jsflProxyHandler(_e:Message):void{
+			switch(_e.type){
+				case JSFL_LANGUAGE_CODE:
+					MessageDispatcher.removeEventListener(JSFL_LANGUAGE_CODE, jsflProxyHandler);
+					try{
+						languageID = xml.language.(@id == _e.parameters[0])[0].childIndex();
+					}catch(_e:Error){
+						languageID = 0;
+					}
+					break;
+			}
 		}
 		
 		
@@ -111,7 +134,7 @@ package model{
 		public function getItem(_id:String, ...args):String{
 			var _xml:XML = xml.item.(@id == _id)[0];
 			if(_xml){
-				var _id:String = xml.language[languageID].@id;
+				var _id:String = xml.language[__languageID].@id;
 				var _item:XML = _xml.item.(@id == _id)[0];
 				if(!_item){
 					_item = _xml.item[0];
