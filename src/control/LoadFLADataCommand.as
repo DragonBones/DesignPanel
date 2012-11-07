@@ -1,4 +1,4 @@
-package control{
+﻿package control{
 	import dragonBones.utils.ConstValues;
 	
 	import flash.events.Event;
@@ -47,7 +47,7 @@ package control{
 			if(isLoading){
 				return;
 			}
-			//读取 Flash Pro 中符合骨骼结构的 element 列表
+			//Load bone elements from Flash Pro
 			jsflProxy.getArmatureList(_isSelected);
 		}
 		
@@ -56,7 +56,7 @@ package control{
 				addSkeletonXML(_skeletonXML);
 			}
 			if(armatureNameList.length == 0){
-				//骨骼读取完毕，放置贴图
+				//load texture complete, start to place texture
 				MessageDispatcher.dispatchEvent(MessageDispatcher.LOAD_ARMATURE_DATA_COMPLETE);
 				jsflProxy.clearTextureSWFItem();
 				return;
@@ -71,7 +71,7 @@ package control{
 				textureAtlasXML.appendChild(_subTextureXML);
 			}
 			if(subTextureAddedIndex < 0){
-				//贴图放置完毕，排序贴图
+				//load texture complete, start to place texture
 				MessageDispatcher.dispatchEvent(MessageDispatcher.LOAD_TEXTURE_DATA_COMPLETE);
 				MessageDispatcher.addEventListener(JSFLProxy.PACK_TEXTURES, jsflProxyHandler);
 				TextureUtil.packTextures(ImportDataProxy.getInstance().textureMaxWidth, ImportDataProxy.getInstance().texturePadding, textureAtlasXML);
@@ -90,10 +90,10 @@ package control{
 			switch(_e.type){
 				case JSFLProxy.GET_ARMATURE_LIST:
 					if(_result == "false"){
-						//没有符合骨骼结构的 element
+						//no armature element
 						MessageDispatcher.dispatchEvent(MessageDispatcher.LOAD_FLADATA, 0);
 					}else{
-						//开始逐个读取骨骼
+						//start load armature data
 						armatureNameList = _result.split(",");
 						totalCount = armatureNameList.length - 1;
 						MessageDispatcher.dispatchEvent(MessageDispatcher.LOAD_FLADATA, totalCount, armatureNameList.shift());
@@ -105,7 +105,7 @@ package control{
 					}
 					break;
 				case JSFLProxy.GENERATE_ARMATURE:
-					//逐个读取骨骼
+					//read next Armature data
 					addAndReadNextArmature(_result != "false"?XML(_result):null);
 					break;
 				case JSFLProxy.CLEAR_TEXTURE_SWFITEM:
@@ -115,21 +115,21 @@ package control{
 					subTextureXMLList = textureAtlasXML.elements(ConstValues.SUB_TEXTURE);
 					totalCount = subTextureXMLList.length();
 					subTextureAddedIndex = totalCount - 1;
-					//开始逐个放置贴图
+					//start to place texture
 					addAndReadNextSubTexture();
 					break;
 				case JSFLProxy.ADD_TEXTURE_TO_SWFITEM:
-					//逐个放置贴图
+					//place texture one by one
 					addAndReadNextSubTexture(_result != "false"?XML(_result):null);
 					break;
 				case JSFLProxy.PACK_TEXTURES:
-					//贴图排序完毕，从 Flash Pro 导出贴图 SWF
+					//placed textures finished and then export
 					MessageDispatcher.removeEventListener(JSFLProxy.PACK_TEXTURES, jsflProxyHandler);
 					MessageDispatcher.addEventListener(JSFLProxy.EXPORT_SWF, jsflProxyHandler);
 					jsflProxy.exportSWF();
 					break;
 				case JSFLProxy.EXPORT_SWF:
-					//导出 SWF 完毕，读取 SWF
+					//export swf finised, then load
 					MessageDispatcher.removeEventListener(JSFLProxy.EXPORT_SWF, jsflProxyHandler);
 					MessageDispatcher.dispatchEvent(MessageDispatcher.LOAD_SWF);
 					urlLoader.addEventListener(Event.COMPLETE, onURLLoaderCompleteHandler);
