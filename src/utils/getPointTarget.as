@@ -1,4 +1,4 @@
-package utils{
+﻿package utils{
 	import flash.display.BitmapData;
 	import flash.display.DisplayObject;
 	import flash.display.DisplayObjectContainer;
@@ -6,10 +6,10 @@ package utils{
 	import flash.geom.Point;
 	
 	/**
-	 * @param _container 容器
-	 * @param _point 点
-	 * @param _size 菱形大小
-	 * @param _maxAlpha alpha阈值(0~1)
+	 * @param _container container
+	 * @param _point point
+	 * @param _size size
+	 * @param _maxAlpha alpha data(0~1)
 	 */
 	
 	public function getPointTarget(_container:DisplayObjectContainer, _point:Point, _size:int = 1, _maxAlpha:Number = 0):DisplayObject {

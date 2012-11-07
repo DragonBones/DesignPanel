@@ -1,9 +1,9 @@
-package model{
+﻿package model{
 	import flash.errors.IllegalOperationError;
 	import flash.net.SharedObject;
 	
 	/**
-	 * 管理面板ShareObject
+	 * Manage UI Panel's SharedObject
 	 */
 	public class ShareObjectDataProxy{
 		private static const SHARE_LOCAL:String = "DragonBones/SkeletonDesignPanel/V1";
@@ -27,21 +27,21 @@ package model{
 		}
 		
 		/**
-		 * 判断 ShareObject 中是否设置过指定的值
+		 * Determine if key is exist
 		 */
 		public function hasData(_key:String):Boolean{
 			return Boolean(_key in shareObject.data);
 		}
 		
 		/**
-		 * 从 ShareObject 中获取指定的值
+		 * Get data by key
 		 */
 		public function getData(_key:String):*{
 			return shareObject.data[_key];
 		}
 		
 		/**
-		 * 设置 ShareObject 中指定的值
+		 * Set data by key and value
 		 */
 		public function setData(_key:String, _value:*):void{
 			shareObject.data[_key] = _value;
@@ -49,7 +49,7 @@ package model{
 		}
 		
 		/**
-		 * 从 ShareObject 中获取指定的值，如果未赋值，则向 ShareObject 添加值
+		 * Get key or Set key
 		 */
 		public function getOrSetData(_key:String, _value:*):*{
 			if(hasData(_key)){

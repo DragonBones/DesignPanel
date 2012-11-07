@@ -1,4 +1,4 @@
-package model{
+﻿package model{
 	import dragonBones.utils.ConstValues;
 	import dragonBones.utils.generateBoneData;
 	
@@ -9,7 +9,7 @@ package model{
 	import mx.collections.XMLListCollection;
 	
 	/**
-	 * 当前面板选中的 armatureXML 数据
+	 * Manage selected armature data
 	 */
 	public class ArmatureDataProxy{
 		public var bonesMC:XMLListCollection;

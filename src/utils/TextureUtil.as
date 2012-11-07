@@ -1,15 +1,15 @@
-package utils{
+﻿package utils{
 	import dragonBones.utils.ConstValues;
 	
 	import flash.geom.Rectangle;
 	
 	/**
-	 * 贴图排序工具
+	 * For place texture
 	 */
 	public final class TextureUtil{
 		
 		/**
-		 * 整理排序 textureAtlasXML
+		 * Place textures by textureAtlasXML data
 		 */
 		public static function packTextures(_widthDefault:uint, _padding:uint, _textureAtlasXML:XML, _verticalSide:Boolean = false):void{
 			var _subTextureXMLList:XMLList = _textureAtlasXML.elements(ConstValues.SUB_TEXTURE);
@@ -22,17 +22,16 @@ package utils{
 				_dimensions += int(_subTextureXML.attribute(ConstValues.A_WIDTH)) * int(_subTextureXML.attribute(ConstValues.A_HEIGHT));
 				_subTextureList.push(_subTextureXML);
 			}
-			//贴图按照大小排序
+			//sort texture by size
 			_subTextureList.sort(sortTextureList);
 			
 			if(_widthDefault == 0){
-				//计算 Auto size 的 width
+				//calculate width for Auto size
 				_widthDefault = Math.sqrt(_dimensions);
 			}
 			
 			_widthDefault = getNearest2N(Math.max(int(_subTextureList[0].attribute(ConstValues.A_WIDTH)) + _padding, _widthDefault));
 			
-			//预置一个较高的高度
 			var _heightMax:uint = 40960;
 			var _remainRectList:Vector.<Rectangle> = new Vector.<Rectangle>;
 			_remainRectList.push(new Rectangle(0, 0, _widthDefault, _heightMax));
@@ -49,17 +48,17 @@ package utils{
 			var _rectID:int;
 			
 			do {
-				//寻找最高的空白区域
+				//Find highest blank area
 				_rect = getHighestRect(_remainRectList);
 				_rectID = _remainRectList.indexOf(_rect);
 				_isFit = false;
 				for(var _iT:String in _subTextureList) {
-					//逐个比较贴图对象是否适合该区域
+					//check if the texture is fit
 					_subTextureXML = _subTextureList[_iT];
 					_width = int(_subTextureXML.attribute(ConstValues.A_WIDTH)) + _padding;
 					_height = int(_subTextureXML.attribute(ConstValues.A_HEIGHT)) + _padding;
 					if (_rect.width >= _width && _rect.height >= _height) {
-						//考虑竖直贴图的合理摆放
+						//place portrait texture
 						if (_verticalSide?(_height > _width * 4?(_rectID > 0?(_rect.height - _height >= _remainRectList[_rectID - 1].height):true):true):true){
 							_isFit = true;
 							break;
@@ -67,7 +66,7 @@ package utils{
 					}
 				}
 				if(_isFit){
-					//如果合适，放置贴图，并将矩形区域再次分区
+					//place texture if size is fit
 					_subTextureXML[ConstValues.AT + ConstValues.A_X] = _rect.x;
 					_subTextureXML[ConstValues.AT + ConstValues.A_Y] = _rect.y;
 					_subTextureList.splice(int(_iT), 1);
@@ -76,7 +75,7 @@ package utils{
 					_rect.width = _width;
 					_rect.height -= _height;
 				}else{
-					//不合适，则放弃这个矩形区域，把这个区域将与他相邻的矩形区域合并（与较高的一边合并）
+					//not fit, don't place it, merge blank area to others toghther
 					if(_rectID == 0){
 						_rectNext = _remainRectList[_rectID + 1];
 					}else if(_rectID == _remainRectList.length - 1){
@@ -94,7 +93,7 @@ package utils{
 				}
 			}while (_subTextureList.length > 0);
 			
-			//计算_heightMax
+			//calculate heightMax
 			_heightMax = getNearest2N(_heightMax - getLowestRect(_remainRectList).height);
 			_textureAtlasXML[ConstValues.AT + ConstValues.A_WIDTH] = _widthDefault;
 			_textureAtlasXML[ConstValues.AT + ConstValues.A_HEIGHT] = _heightMax;

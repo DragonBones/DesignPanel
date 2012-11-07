@@ -1,9 +1,9 @@
-package model{
+﻿package model{
 	import flash.errors.IllegalOperationError;
 	
 	[Bindable]
 	/**
-	 * 管理导出的数据
+	 * Manage data to export
 	 */
 	public class ExportDataProxy{
 		private static var instance:ExportDataProxy;

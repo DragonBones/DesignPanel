@@ -1,4 +1,4 @@
-package model{
+﻿package model{
 	import flash.errors.IllegalOperationError;
 	
 	import message.Message;
@@ -8,7 +8,7 @@ package model{
 	
 	[Bindable]
 	/**
-	 * 管理面板Language
+	 * Manage UI Panel's Language
 	 */
 	public class LanguageProxy{
 		[Embed(source="./resources/languages.xml", mimeType="application/octet-stream")]
@@ -129,7 +129,7 @@ package model{
 		
 		
 		/**
-		 * 从 languages.xml 中获取当前语言的指定 item
+		 * get string from languages.xml 
 		 */
 		public function getItem(_id:String, ...args):String{
 			var _xml:XML = xml.item.(@id == _id)[0];

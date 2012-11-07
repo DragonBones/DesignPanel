@@ -1,4 +1,4 @@
-package model{
+﻿package model{
 	import dragonBones.objects.AnimationData;
 	import dragonBones.objects.MovementBoneData;
 	import dragonBones.objects.MovementData;
@@ -12,7 +12,7 @@ package model{
 	import mx.collections.XMLListCollection;
 	
 	/**
-	 * 管理当前选中的动画数据
+	 * Manage selected animation data
 	 */
 	public class AnimationDataProxy{
 		public var movementsMC:XMLListCollection;

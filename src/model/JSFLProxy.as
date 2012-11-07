@@ -1,4 +1,4 @@
-package model{
+﻿package model{
 	import adobe.utils.MMExecute;
 	
 	import flash.errors.IllegalOperationError;
@@ -13,7 +13,7 @@ package model{
 	import message.MessageDispatcher;
 	
 	/**
-	 * 面板与JSFL通信代理
+	 * Delegate of communicate between UI panel and JSFL
 	 */
 	public class JSFLProxy{
 		public static const GET_ARMATURE_LIST:String = "getArmatureList";
@@ -61,7 +61,7 @@ package model{
 		private var helpByteArray:ByteArray;
 		
 		/**
-		 * JSFLAPI 是否可用
+		 * Determine if JSFLAPI isAvailable
 		 */
 		public function get isAvailable():Boolean{
 			try{
@@ -229,56 +229,56 @@ package model{
 		}
 		
 		/**
-		 * 获取 Flash pro 当前活动的 fla 档案中符合骨骼结构的库元件（选中的或是全部的）的列表
+		 * Get armatures from current fla file's library
 		 */
 		public function getArmatureList(_isSelected:Boolean):void{
 			runJSFLMethod(GET_ARMATURE_LIST, "Skeleton.getArmatureList", _isSelected);
 		}
 		
 		/**
-		 * 解析 fla 库中指定元件的骨骼数据
+		 * Get armature data by name
 		 */
 		public function generateArmature(_armatureName:String):void{
 			runJSFLMethod(GENERATE_ARMATURE, "Skeleton.generateArmature", _armatureName, true);
 		}
 		
 		/**
-		 * 初始化 fla 库中用于放置贴图的库元件
+		 * Clear texture container for texture placement 
 		 */
 		public function clearTextureSWFItem():void{
 			runJSFLMethod(CLEAR_TEXTURE_SWFITEM, "Skeleton.clearTextureSWFItem");
 		}
 		
 		/**
-		 * 添加 fla 库中指定的贴图元件到场景
+		 * Place texture to swfitem by name
 		 */
 		public function addTextureToSWFItem(_textureName:String, _isLast:Boolean = false):void{
 			runJSFLMethod(ADD_TEXTURE_TO_SWFITEM, "Skeleton.addTextureToSWFItem", _textureName, _isLast);
 		}
 		
 		/**
-		 * 根据 textureAtlasXML 为 fla 场景上放置的贴图排序
+		 * Place texture by textureAtlasXML data
 		 */
 		public function packTextures(_textureAtlasXML:XML):void{
 			runJSFLMethod(PACK_TEXTURES, "Skeleton.packTextures", _textureAtlasXML);
 		}
 		
 		/**
-		 * 导出 fla 所有用到的贴图元件为 SWF
+		 * Export textures to swf
 		 */
 		public function exportSWF():void{
 			runJSFLMethod(EXPORT_SWF, "Skeleton.exportSWF");
 		}
 		
 		/**
-		 * 将骨骼从属关系的变更同步到 fla 档案中
+		 * Update skeleton structure data from XML to fla file
 		 */
 		public function changeArmatureConnection(_armatureName:String, _armatureXML:XML):void{
 			runJSFLMethod(null, "Skeleton.changeArmatureConnection", _armatureName, _armatureXML);
 		}
 		
 		/**
-		 * 将动作、骨骼动画的数据变更同步到 fla 档案中
+		 * Update movement data from XML data to fla file
 		 */
 		public function changeMovement(_armatureName:String, _movementName:String, _movementXML:XML):void{
 			runJSFLMethod(null, "Skeleton.changeMovement", _armatureName, _movementName, _movementXML);

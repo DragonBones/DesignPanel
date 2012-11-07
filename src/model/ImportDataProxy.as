@@ -1,4 +1,4 @@
-package model{
+﻿package model{
 	import dragonBones.Armature;
 	import dragonBones.Bone;
 	import dragonBones.events.Event;
@@ -21,7 +21,7 @@ package model{
 	
 	[Bindable]
 	/**
-	 * 管理导入的数据
+	 * Manage imported data
 	 */
 	public class ImportDataProxy{
 		private static var instance:ImportDataProxy
