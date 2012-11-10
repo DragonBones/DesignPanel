@@ -7,6 +7,7 @@ package model{
 	import dragonBones.objects.SkeletonData;
 	import dragonBones.objects.TextureData;
 	import dragonBones.utils.ConstValues;
+	import dragonBones.utils.dragonBones_internal;
 	
 	import flash.errors.IllegalOperationError;
 	import flash.utils.ByteArray;
@@ -18,6 +19,8 @@ package model{
 	
 	import utils.GlobalConstValues;
 	import utils.TextureUtil;
+	
+	use namespace dragonBones_internal;
 	
 	[Bindable]
 	/**
@@ -174,9 +177,6 @@ package model{
 			if(!__armature){
 				armatures[_armatureName] = __armature = baseFactory.buildArmature(_armatureName);
 			}
-
-			//
-			__armature.eachChild(updateOrigin, null, true);
 			
 			__armature.addEventListener(dragonBones.events.Event.MOVEMENT_CHANGE, aramtureEventHandler);
 			__armature.addEventListener(dragonBones.events.Event.START, aramtureEventHandler);
@@ -210,6 +210,13 @@ package model{
 			return getElementByName(animationsXMLList, _name, true);
 		}
 		
+		public function updateArmatureBoneOrigin(_boneName:String):void{
+			var _armatureName:String = armatureDataProxy.armatureName;
+			for each(var _armature:Armature in armatures){
+				updateOrigin(_armature, _armatureName, _boneName);
+			}
+		}
+		
 		private function onUpdateHandler():void{
 			__skeletonData = new SkeletonData(__skeletonXML);
 			baseFactory.skeletonData = __skeletonData;
@@ -233,16 +240,18 @@ package model{
 			}
 		}
 		
-		private function updateOrigin(_bone:Bone, _args:Array):Boolean{
-			//_bone.origin update
-			if(_bone is Armature){
-				_bone.eachChild(updateOrigin, null, true);
-			}else{
-				var _boneData:BoneData = __skeletonData.getArmatureData(_bone.armature.origin.name).getData(_bone.origin.name);
-				_bone.origin.copy(_boneData);
-				_bone.armature.addBone(_bone, _bone.origin.name, _boneData.parent);
+		private function updateOrigin(_armature:Armature, _armatureName:String, _boneName:String):void{
+			if(_armature){
+				if(_armature.originName == _armatureName){
+					var _boneData:BoneData = __skeletonData.getArmatureData(_armatureName).getData(_boneName);
+					var _bone:Bone = _armature.getBone(_boneName);
+					_bone.origin.copy(_boneData);
+					_armature.addBone(_bone, _boneData.parent);
+				}
+				for each(_bone in _armature._boneDepthList){
+					updateOrigin(_bone.childArmature, _armatureName, _boneName);
+				}
 			}
-			return false;
 		}
 	}
 }
