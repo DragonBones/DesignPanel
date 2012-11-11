@@ -1,6 +1,6 @@
 package model{
+	import dragonBones.objects.XMLDataParser;
 	import dragonBones.utils.ConstValues;
-	import dragonBones.utils.generateBoneData;
 	
 	import flash.events.Event;
 	
@@ -110,12 +110,11 @@ package model{
 			}
 			
 			if(_isChange){
-				generateBoneData(
-					_name, 
-					_boneXML, 
+				XMLDataParser.parseBoneData(
+					_boneXML,
 					_parentXML, 
-					ImportDataProxy.getInstance().skeletonData.getArmatureData(armatureName).getData(_name)
-				);
+					ImportDataProxy.getInstance().skeletonData.getArmatureData(armatureName).getBoneData(_name)
+				)
 				
 				if(!ImportDataProxy.getInstance().isExportedSource){
 					JSFLProxy.getInstance().changeArmatureConnection(armatureName, xml);

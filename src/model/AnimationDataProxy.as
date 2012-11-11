@@ -2,8 +2,8 @@ package model{
 	import dragonBones.objects.AnimationData;
 	import dragonBones.objects.MovementBoneData;
 	import dragonBones.objects.MovementData;
+	import dragonBones.objects.XMLDataParser;
 	import dragonBones.utils.ConstValues;
-	import dragonBones.utils.generateAnimationData;
 	
 	import flash.events.Event;
 	
@@ -155,17 +155,12 @@ package model{
 		}
 		
 		internal function updateBoneParent(_boneName:String):void{
-			generateAnimationData(
-				animationName, 
-				xml, 
-				ImportDataProxy.getInstance().skeletonData.getArmatureData(animationName),
-				ImportDataProxy.getInstance().skeletonData.getAnimationData(animationName)
-			);
+			XMLDataParser.parseAnimationData(xml, ImportDataProxy.getInstance().skeletonData);
 		}
 		
 		private function updateMovement():void{
 			var _animationData:AnimationData = ImportDataProxy.getInstance().skeletonData.getAnimationData(animationName);
-			var _movementData:MovementData = _animationData.getData(movementName);
+			var _movementData:MovementData = _animationData.getMovementData(movementName);
 			
 			_movementData.durationTo = durationTo;
 			_movementData.durationTween = durationTween;
@@ -181,8 +176,8 @@ package model{
 		
 		private function updateMovementBone():void{
 			var _animationData:AnimationData = ImportDataProxy.getInstance().skeletonData.getAnimationData(animationName);
-			var _movementData:MovementData = _animationData.getData(movementName);
-			var _movementBoneData:MovementBoneData = _movementData.getData(boneName);
+			var _movementData:MovementData = _animationData.getMovementData(movementName);
+			var _movementBoneData:MovementBoneData = _movementData.getMovementBoneData(boneName);
 			
 			_movementBoneData.scale = boneScale * 0.01;
 			_movementBoneData.delay = boneDelay * 0.01;

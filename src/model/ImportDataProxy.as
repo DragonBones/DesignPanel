@@ -6,6 +6,7 @@ package model{
 	import dragonBones.objects.BoneData;
 	import dragonBones.objects.SkeletonData;
 	import dragonBones.objects.TextureData;
+	import dragonBones.objects.XMLDataParser;
 	import dragonBones.utils.ConstValues;
 	import dragonBones.utils.dragonBones_internal;
 	
@@ -218,7 +219,7 @@ package model{
 		}
 		
 		private function onUpdateHandler():void{
-			__skeletonData = new SkeletonData(__skeletonXML);
+			__skeletonData = XMLDataParser.parseSkeletonData(__skeletonXML);
 			baseFactory.skeletonData = __skeletonData;
 			baseFactory.textureData = __textureData;
 			MessageDispatcher.dispatchEvent(MessageDispatcher.CHANGE_IMPORT_DATA, skeletonName);
@@ -242,8 +243,8 @@ package model{
 		
 		private function updateOrigin(_armature:Armature, _armatureName:String, _boneName:String):void{
 			if(_armature){
-				if(_armature.originName == _armatureName){
-					var _boneData:BoneData = __skeletonData.getArmatureData(_armatureName).getData(_boneName);
+				if(_armature.name == _armatureName){
+					var _boneData:BoneData = __skeletonData.getArmatureData(_armatureName).getBoneData(_boneName);
 					var _bone:Bone = _armature.getBone(_boneName);
 					_bone.origin.copy(_boneData);
 					_armature.addBone(_bone, _boneData.parent);

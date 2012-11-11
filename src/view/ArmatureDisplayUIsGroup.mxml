@@ -403,11 +403,11 @@
 			private function checkBoneParent(_boneDisplay:Object, _boneParentDisplay:Object):Boolean{
 				var _bone:Bone = importDataProxy.armature.getBoneByDisplay(_boneDisplay);
 				if(_bone){
-					var _boneName:String = _bone.originName;
+					var _boneName:String = _bone.name;
 				}
 				_bone = importDataProxy.armature.getBoneByDisplay(_boneParentDisplay);
 				if(_bone){
-					var _boneParentName:String = _bone.originName;
+					var _boneParentName:String = _bone.name;
 				}
 				
 				return importDataProxy.armatureDataProxy.checkParent(_boneName, _boneParentName);
@@ -416,11 +416,11 @@
 			private function boneAddToParent():void{
 				var _bone:Bone = importDataProxy.armature.getBoneByDisplay(boneDisplaySelected);
 				if(_bone){
-					var _boneName:String = _bone.originName;
+					var _boneName:String = _bone.name;
 				}
 				_bone = importDataProxy.armature.getBoneByDisplay(boneDisplayRollOver);
 				if(_bone){
-					var _boneParentName:String = _bone.originName;
+					var _boneParentName:String = _bone.name;
 				}
 				importDataProxy.armatureDataProxy.updateBoneParent(_boneName, _boneParentName);
 			}
@@ -428,8 +428,8 @@
 			private function selectedBoneByDisplay(_display:Object):void{
 				var _bone:Bone = importDataProxy.armature.getBoneByDisplay(_display);
 				if(_bone){
-					importDataProxy.armatureDataProxy.changeBone(_bone.originName);
-					importDataProxy.animationDataProxy.changeMovementBone(_bone.originName);
+					importDataProxy.armatureDataProxy.changeBone(_bone.name);
+					importDataProxy.animationDataProxy.changeMovementBone(_bone.name);
 				}
 			}
 			private function highlightBoneDisplay(_color:uint = 0):void{
