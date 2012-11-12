@@ -1,8 +1,8 @@
 package control{
 	import dragonBones.objects.SkeletonAndTextureAtlasData;
+	import dragonBones.objects.XMLDataParser;
 	import dragonBones.utils.BytesType;
 	import dragonBones.utils.ConstValues;
-	import dragonBones.utils.uncompressionData;
 	
 	import flash.display.Bitmap;
 	import flash.display.BitmapData;
@@ -109,7 +109,7 @@ package control{
 				case BytesType.PNG:
 				case BytesType.JPG:
 					try{
-						_sat = dragonBones.utils.uncompressionData(_data);
+						_sat = XMLDataParser.parseXMLData(_data);
 						MessageDispatcher.dispatchEvent(MessageDispatcher.LOAD_FILEDATA_COMPLETE, true, _sat.skeletonData, _sat.textureAtlasData);
 						_sat.dispose();
 						break;

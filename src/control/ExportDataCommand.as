@@ -3,7 +3,6 @@ package control{
 	import dragonBones.objects.XMLDataParser;
 	import dragonBones.utils.BytesType;
 	import dragonBones.utils.ConstValues;
-	import dragonBones.utils.compressionData;
 	
 	import flash.display.Bitmap;
 	import flash.display.BitmapData;
@@ -93,7 +92,7 @@ package control{
 					try{
 						_data = getSWFBytes(_textureData);
 						if(_data){
-							exportSave(compressionData(importDataProxy.skeletonXML, importDataProxy.textureAtlasXML, _data), importDataProxy.skeletonName + GlobalConstValues.OUTPUT_SUFFIX + GlobalConstValues.SWF_SUFFIX);
+							exportSave(XMLDataParser.compressionData(importDataProxy.skeletonXML, importDataProxy.textureAtlasXML, _data), importDataProxy.skeletonName + GlobalConstValues.OUTPUT_SUFFIX + GlobalConstValues.SWF_SUFFIX);
 							break;
 						}
 					}catch(_e:Error){
@@ -102,7 +101,7 @@ package control{
 					try{
 						_data = getPNGBytes(_textureData);
 						if(_data){
-							exportSave(compressionData(importDataProxy.skeletonXML, importDataProxy.textureAtlasXML, _data), importDataProxy.skeletonName + GlobalConstValues.OUTPUT_SUFFIX + GlobalConstValues.PNG_SUFFIX);
+							exportSave(XMLDataParser.compressionData(importDataProxy.skeletonXML, importDataProxy.textureAtlasXML, _data), importDataProxy.skeletonName + GlobalConstValues.OUTPUT_SUFFIX + GlobalConstValues.PNG_SUFFIX);
 							break;
 						}
 					}catch(_e:Error){
