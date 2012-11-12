@@ -1,16 +1,17 @@
 package model{
 	import dragonBones.Armature;
 	import dragonBones.Bone;
-	import dragonBones.events.Event;
+	import dragonBones.events.AnimationEvent;
 	import dragonBones.factorys.BaseFactory;
 	import dragonBones.objects.BoneData;
 	import dragonBones.objects.SkeletonData;
-	import dragonBones.objects.TextureData;
+	import dragonBones.objects.TextureAtlasData;
 	import dragonBones.objects.XMLDataParser;
 	import dragonBones.utils.ConstValues;
 	import dragonBones.utils.dragonBones_internal;
 	
 	import flash.errors.IllegalOperationError;
+	import flash.events.Event;
 	import flash.utils.ByteArray;
 	
 	import message.MessageDispatcher;
@@ -120,8 +121,8 @@ package model{
 			return __skeletonData;
 		}
 		
-		private var __textureData:TextureData;
-		public function get textureData():TextureData{
+		private var __textureData:TextureAtlasData;
+		public function get textureData():TextureAtlasData{
 			return __textureData;
 		}
 		
@@ -170,7 +171,8 @@ package model{
 				__textureData.dispose();
 			}
 			
-			__textureData = new TextureData(__textureAtlasXML, _textureData, onUpdateHandler);
+			__textureData = XMLDataParser.parseTextureAtlasData(__textureAtlasXML, _textureData);
+			__textureData.addEventListener(Event.COMPLETE, textureCompleteHandler);
 		}
 		
 		public function changeRenderArmature(_armatureName:String):void{
@@ -179,9 +181,9 @@ package model{
 				armatures[_armatureName] = __armature = baseFactory.buildArmature(_armatureName);
 			}
 			
-			__armature.addEventListener(dragonBones.events.Event.MOVEMENT_CHANGE, aramtureEventHandler);
-			__armature.addEventListener(dragonBones.events.Event.START, aramtureEventHandler);
-			__armature.addEventListener(dragonBones.events.Event.COMPLETE, aramtureEventHandler);
+			__armature.addEventListener(dragonBones.events.AnimationEvent.MOVEMENT_CHANGE, aramtureEventHandler);
+			__armature.addEventListener(dragonBones.events.AnimationEvent.START, aramtureEventHandler);
+			__armature.addEventListener(dragonBones.events.AnimationEvent.COMPLETE, aramtureEventHandler);
 		}
 		
 		public function render():void{
@@ -218,25 +220,25 @@ package model{
 			}
 		}
 		
-		private function onUpdateHandler():void{
+		private function textureCompleteHandler(e:Event):void{
 			__skeletonData = XMLDataParser.parseSkeletonData(__skeletonXML);
 			baseFactory.skeletonData = __skeletonData;
-			baseFactory.textureData = __textureData;
+			baseFactory.textureAtlasData = __textureData;
 			MessageDispatcher.dispatchEvent(MessageDispatcher.CHANGE_IMPORT_DATA, skeletonName);
 			
 			armatureDataProxy.setData(getArmatureXMLByName());
 		}
 		
-		private function aramtureEventHandler(_e:dragonBones.events.Event):void{
+		private function aramtureEventHandler(_e:AnimationEvent):void{
 			switch(_e.type){
-				case dragonBones.events.Event.MOVEMENT_CHANGE:
-					MessageDispatcher.dispatchEvent(MessageDispatcher.MOVEMENT_CHANGE, _e.data);
+				case dragonBones.events.AnimationEvent.MOVEMENT_CHANGE:
+					MessageDispatcher.dispatchEvent(MessageDispatcher.MOVEMENT_CHANGE, _e.movementID);
 					break;
-				case dragonBones.events.Event.START:
-					MessageDispatcher.dispatchEvent(MessageDispatcher.MOVEMENT_START, _e.data);
+				case dragonBones.events.AnimationEvent.START:
+					MessageDispatcher.dispatchEvent(MessageDispatcher.MOVEMENT_START, _e.movementID);
 					break;
-				case dragonBones.events.Event.COMPLETE:
-					MessageDispatcher.dispatchEvent(MessageDispatcher.MOVEMENT_COMPLETE, _e.data);
+				case dragonBones.events.AnimationEvent.COMPLETE:
+					MessageDispatcher.dispatchEvent(MessageDispatcher.MOVEMENT_COMPLETE, _e.movementID);
 					break;
 			}
 		}
