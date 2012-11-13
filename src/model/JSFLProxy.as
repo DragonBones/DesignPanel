@@ -43,7 +43,7 @@
 		
 		private static function jsflTrace(...arg):String{
 			var _str:String = "";
-			for(var _i:uint = 0;_i < arg.length;_i ++){
+			for(var _i:int = 0;_i < arg.length;_i ++){
 				if(_i!=0){
 					_str += ", ";
 				}

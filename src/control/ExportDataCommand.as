@@ -1,8 +1,8 @@
 package control{
-	import dragonBones.objects.TextureData;
+	import dragonBones.objects.TextureAtlasData;
+	import dragonBones.objects.XMLDataParser;
 	import dragonBones.utils.BytesType;
 	import dragonBones.utils.ConstValues;
-	import dragonBones.utils.compressionData;
 	
 	import flash.display.Bitmap;
 	import flash.display.BitmapData;
@@ -39,7 +39,7 @@ package control{
 		private var urlLoader:URLLoader;
 		
 		private var importDataProxy:ImportDataProxy;
-		private var textureData:TextureData;
+		private var textureAtlasData:TextureAtlasData;
 		
 		public function ExportDataCommand(){
 			fileREF = new FileReference();
@@ -54,10 +54,10 @@ package control{
 			}
 			isExporting = true;
 			exportType = _exportType;
-			if(textureData){
-				textureData.dispose();
+			if(textureAtlasData){
+				textureAtlasData.dispose();
 			}
-			textureData = null;
+			textureAtlasData = null;
 			if(importDataProxy.isTextureChanged){
 				MessageDispatcher.addEventListener(JSFLProxy.EXPORT_SWF, jsflProxyHandler);
 				JSFLProxy.getInstance().exportSWF();
@@ -76,11 +76,12 @@ package control{
 		
 		private function onURLLoaderCompleteHandler(_e:Event):void{
 			urlLoader.removeEventListener(Event.COMPLETE, onURLLoaderCompleteHandler);
-			textureData = new TextureData(importDataProxy.textureAtlasXML, make(_e.target.data, importDataProxy.textureAtlasXML), exportStart);
+			textureAtlasData = dragonBones.objects.XMLDataParser.parseTextureAtlasData(importDataProxy.textureAtlasXML, make(_e.target.data, importDataProxy.textureAtlasXML));
+			textureAtlasData.addEventListener(Event.COMPLETE, exportStart);
 		}
 		
-		private function exportStart():void{
-			var _textureData:TextureData = textureData || importDataProxy.textureData;
+		private function exportStart(e:Event = null):void{
+			var _textureData:TextureAtlasData = textureAtlasData || importDataProxy.textureData;
 			var _data:ByteArray;
 			var _bitmap:Bitmap;
 			var _zip:Zip;
@@ -91,7 +92,7 @@ package control{
 					try{
 						_data = getSWFBytes(_textureData);
 						if(_data){
-							exportSave(compressionData(importDataProxy.skeletonXML, importDataProxy.textureAtlasXML, _data), importDataProxy.skeletonName + GlobalConstValues.OUTPUT_SUFFIX + GlobalConstValues.SWF_SUFFIX);
+							exportSave(XMLDataParser.compressionData(importDataProxy.skeletonXML, importDataProxy.textureAtlasXML, _data), importDataProxy.skeletonName + GlobalConstValues.OUTPUT_SUFFIX + GlobalConstValues.SWF_SUFFIX);
 							break;
 						}
 					}catch(_e:Error){
@@ -100,7 +101,7 @@ package control{
 					try{
 						_data = getPNGBytes(_textureData);
 						if(_data){
-							exportSave(compressionData(importDataProxy.skeletonXML, importDataProxy.textureAtlasXML, _data), importDataProxy.skeletonName + GlobalConstValues.OUTPUT_SUFFIX + GlobalConstValues.PNG_SUFFIX);
+							exportSave(XMLDataParser.compressionData(importDataProxy.skeletonXML, importDataProxy.textureAtlasXML, _data), importDataProxy.skeletonName + GlobalConstValues.OUTPUT_SUFFIX + GlobalConstValues.PNG_SUFFIX);
 							break;
 						}
 					}catch(_e:Error){
@@ -170,14 +171,14 @@ package control{
 			}
 		}
 		
-		private function getSWFBytes(_textureData:TextureData):ByteArray{
+		private function getSWFBytes(_textureData:TextureAtlasData):ByteArray{
 			if(_textureData.dataType == BytesType.SWF){
 				return _textureData.rawData;
 			}
 			return null;
 		}
 		
-		private function getPNGBytes(_textureData:TextureData):ByteArray{
+		private function getPNGBytes(_textureData:TextureAtlasData):ByteArray{
 			if(_textureData.dataType == BytesType.SWF){
 				return PNGEncoder.encode(_textureData.bitmap.bitmapData);
 			}else if(_textureData.dataType != BytesType.ATF){

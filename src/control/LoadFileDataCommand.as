@@ -1,8 +1,8 @@
 package control{
-	import dragonBones.objects.SkeletonAndTextureRawData;
+	import dragonBones.objects.SkeletonAndTextureAtlasData;
+	import dragonBones.objects.XMLDataParser;
 	import dragonBones.utils.BytesType;
 	import dragonBones.utils.ConstValues;
-	import dragonBones.utils.uncompressionData;
 	
 	import flash.display.Bitmap;
 	import flash.display.BitmapData;
@@ -103,14 +103,14 @@ package control{
 		private function setData(_data:ByteArray):void{
 			isLoading = false;
 			var _dataType:String = BytesType.getType(_data);
-			var _sat:SkeletonAndTextureRawData;
+			var _sat:SkeletonAndTextureAtlasData;
 			switch(_dataType){
 				case BytesType.SWF:
 				case BytesType.PNG:
 				case BytesType.JPG:
 					try{
-						_sat = dragonBones.utils.uncompressionData(_data);
-						MessageDispatcher.dispatchEvent(MessageDispatcher.LOAD_FILEDATA_COMPLETE, _sat.skeletonXML, _sat.textureAtlasXML, _sat.textureBytes, true);
+						_sat = XMLDataParser.parseXMLData(_data);
+						MessageDispatcher.dispatchEvent(MessageDispatcher.LOAD_FILEDATA_COMPLETE, true, _sat.skeletonData, _sat.textureAtlasData);
 						_sat.dispose();
 						break;
 					}catch(_e:Error){
@@ -146,8 +146,8 @@ package control{
 						}
 						_zip.clear();
 						if(_textureBytes){
-							_sat = new SkeletonAndTextureRawData(_skeletonXML, _textureAtlasXML, _textureBytes);
-							MessageDispatcher.dispatchEvent(MessageDispatcher.LOAD_FILEDATA_COMPLETE, _sat.skeletonXML, _sat.textureAtlasXML, _sat.textureBytes, true);
+							_sat = new SkeletonAndTextureAtlasData(_skeletonXML, _textureAtlasXML, _textureBytes);
+							MessageDispatcher.dispatchEvent(MessageDispatcher.LOAD_FILEDATA_COMPLETE, true, _sat.skeletonData, _sat.textureAtlasData);
 							_sat.dispose();
 							break;
 						}else if(_images){
@@ -210,9 +210,9 @@ package control{
 			}
 			if(!_imageData){
 				try{
-					var _sat:SkeletonAndTextureRawData = new SkeletonAndTextureRawData(tempSkeletonXML, tempTextureAtlasXML, PNGEncoder.encode(tempBitmapData));
+					var _sat:SkeletonAndTextureAtlasData = new SkeletonAndTextureAtlasData(tempSkeletonXML, tempTextureAtlasXML, PNGEncoder.encode(tempBitmapData));
 					tempBitmapData.dispose();
-					MessageDispatcher.dispatchEvent(MessageDispatcher.LOAD_FILEDATA_COMPLETE, _sat.skeletonXML, _sat.textureAtlasXML, _sat.textureBytes, true);
+					MessageDispatcher.dispatchEvent(MessageDispatcher.LOAD_FILEDATA_COMPLETE, true, _sat.skeletonData, _sat.textureAtlasData);
 					_sat.dispose();
 				}catch(_e:Error){
 					MessageDispatcher.dispatchEvent(MessageDispatcher.LOAD_FILEDATA_ERROR);

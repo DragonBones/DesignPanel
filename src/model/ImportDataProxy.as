@@ -1,14 +1,17 @@
 ﻿package model{
 	import dragonBones.Armature;
 	import dragonBones.Bone;
-	import dragonBones.events.Event;
+	import dragonBones.events.AnimationEvent;
 	import dragonBones.factorys.BaseFactory;
 	import dragonBones.objects.BoneData;
 	import dragonBones.objects.SkeletonData;
-	import dragonBones.objects.TextureData;
+	import dragonBones.objects.TextureAtlasData;
+	import dragonBones.objects.XMLDataParser;
 	import dragonBones.utils.ConstValues;
+	import dragonBones.utils.dragonBones_internal;
 	
 	import flash.errors.IllegalOperationError;
+	import flash.events.Event;
 	import flash.utils.ByteArray;
 	
 	import message.MessageDispatcher;
@@ -18,6 +21,8 @@
 	
 	import utils.GlobalConstValues;
 	import utils.TextureUtil;
+	
+	use namespace dragonBones_internal;
 	
 	[Bindable]
 	/**
@@ -116,8 +121,8 @@
 			return __skeletonData;
 		}
 		
-		private var __textureData:TextureData;
-		public function get textureData():TextureData{
+		private var __textureData:TextureAtlasData;
+		public function get textureData():TextureAtlasData{
 			return __textureData;
 		}
 		
@@ -166,7 +171,8 @@
 				__textureData.dispose();
 			}
 			
-			__textureData = new TextureData(__textureAtlasXML, _textureData, onUpdateHandler);
+			__textureData = XMLDataParser.parseTextureAtlasData(__textureAtlasXML, _textureData);
+			__textureData.addEventListener(Event.COMPLETE, textureCompleteHandler);
 		}
 		
 		public function changeRenderArmature(_armatureName:String):void{
@@ -174,13 +180,10 @@
 			if(!__armature){
 				armatures[_armatureName] = __armature = baseFactory.buildArmature(_armatureName);
 			}
-
-			//
-			__armature.eachChild(updateOrigin, null, true);
 			
-			__armature.addEventListener(dragonBones.events.Event.MOVEMENT_CHANGE, aramtureEventHandler);
-			__armature.addEventListener(dragonBones.events.Event.START, aramtureEventHandler);
-			__armature.addEventListener(dragonBones.events.Event.COMPLETE, aramtureEventHandler);
+			__armature.addEventListener(dragonBones.events.AnimationEvent.MOVEMENT_CHANGE, aramtureEventHandler);
+			__armature.addEventListener(dragonBones.events.AnimationEvent.START, aramtureEventHandler);
+			__armature.addEventListener(dragonBones.events.AnimationEvent.COMPLETE, aramtureEventHandler);
 		}
 		
 		public function render():void{
@@ -210,39 +213,48 @@
 			return getElementByName(animationsXMLList, _name, true);
 		}
 		
-		private function onUpdateHandler():void{
-			__skeletonData = new SkeletonData(__skeletonXML);
+		public function updateArmatureBoneOrigin(_boneName:String):void{
+			var _armatureName:String = armatureDataProxy.armatureName;
+			for each(var _armature:Armature in armatures){
+				updateOrigin(_armature, _armatureName, _boneName);
+			}
+		}
+		
+		private function textureCompleteHandler(e:Event):void{
+			__skeletonData = XMLDataParser.parseSkeletonData(__skeletonXML);
 			baseFactory.skeletonData = __skeletonData;
-			baseFactory.textureData = __textureData;
+			baseFactory.textureAtlasData = __textureData;
 			MessageDispatcher.dispatchEvent(MessageDispatcher.CHANGE_IMPORT_DATA, skeletonName);
 			
 			armatureDataProxy.setData(getArmatureXMLByName());
 		}
 		
-		private function aramtureEventHandler(_e:dragonBones.events.Event):void{
+		private function aramtureEventHandler(_e:AnimationEvent):void{
 			switch(_e.type){
-				case dragonBones.events.Event.MOVEMENT_CHANGE:
-					MessageDispatcher.dispatchEvent(MessageDispatcher.MOVEMENT_CHANGE, _e.data);
+				case dragonBones.events.AnimationEvent.MOVEMENT_CHANGE:
+					MessageDispatcher.dispatchEvent(MessageDispatcher.MOVEMENT_CHANGE, _e.movementID);
 					break;
-				case dragonBones.events.Event.START:
-					MessageDispatcher.dispatchEvent(MessageDispatcher.MOVEMENT_START, _e.data);
+				case dragonBones.events.AnimationEvent.START:
+					MessageDispatcher.dispatchEvent(MessageDispatcher.MOVEMENT_START, _e.movementID);
 					break;
-				case dragonBones.events.Event.COMPLETE:
-					MessageDispatcher.dispatchEvent(MessageDispatcher.MOVEMENT_COMPLETE, _e.data);
+				case dragonBones.events.AnimationEvent.COMPLETE:
+					MessageDispatcher.dispatchEvent(MessageDispatcher.MOVEMENT_COMPLETE, _e.movementID);
 					break;
 			}
 		}
 		
-		private function updateOrigin(_bone:Bone, _args:Array):Boolean{
-			//_bone.origin update
-			if(_bone is Armature){
-				_bone.eachChild(updateOrigin, null, true);
-			}else{
-				var _boneData:BoneData = __skeletonData.getArmatureData(_bone.armature.origin.name).getData(_bone.origin.name);
-				_bone.origin.copy(_boneData);
-				_bone.armature.addBone(_bone, _bone.origin.name, _boneData.parent);
+		private function updateOrigin(_armature:Armature, _armatureName:String, _boneName:String):void{
+			if(_armature){
+				if(_armature.name == _armatureName){
+					var _boneData:BoneData = __skeletonData.getArmatureData(_armatureName).getBoneData(_boneName);
+					var _bone:Bone = _armature.getBone(_boneName);
+					_bone.origin.copy(_boneData);
+					_armature.addBone(_bone, _boneData.parent);
+				}
+				for each(_bone in _armature._boneDepthList){
+					updateOrigin(_bone.childArmature, _armatureName, _boneName);
+				}
 			}
-			return false;
 		}
 	}
 }

@@ -1,12 +1,15 @@
-﻿package model{
+package model{
+	import dragonBones.objects.XMLDataParser;
 	import dragonBones.utils.ConstValues;
-	import dragonBones.utils.generateBoneData;
+	import dragonBones.utils.dragonBones_internal;
 	
 	import flash.events.Event;
 	
 	import message.MessageDispatcher;
 	
 	import mx.collections.XMLListCollection;
+	
+	use namespace dragonBones_internal;
 	
 	/**
 	 * Manage selected armature data
@@ -110,12 +113,11 @@
 			}
 			
 			if(_isChange){
-				generateBoneData(
-					_name, 
-					_boneXML, 
-					_parentXML, 
-					ImportDataProxy.getInstance().skeletonData.getArmatureData(armatureName).getData(_name)
-				);
+				XMLDataParser.parseBoneData(
+					_boneXML,
+					_parentXML,
+					ImportDataProxy.getInstance().skeletonData.getArmatureData(armatureName).getBoneData(_name)
+				)
 				
 				if(!ImportDataProxy.getInstance().isExportedSource){
 					JSFLProxy.getInstance().changeArmatureConnection(armatureName, xml);

@@ -6,13 +6,14 @@
 		 >
 	<fx:Script>
 		<![CDATA[
-			import dragonBones.Armature;
-			import dragonBones.Bone;
-			import dragonBones.objects.BoneData;
-			
 			import flash.filters.GlowFilter;
 			import flash.ui.Mouse;
 			import flash.ui.MouseCursor;
+			
+			import dragonBones.Armature;
+			import dragonBones.Bone;
+			import dragonBones.objects.BoneData;
+			import dragonBones.utils.dragonBones_internal;
 			
 			import message.Message;
 			import message.MessageDispatcher;
@@ -21,6 +22,8 @@
 			import model.ShareObjectDataProxy;
 			
 			import utils.getPointTarget;
+			
+			use namespace dragonBones_internal;
 			
 			private var importDataProxy:ImportDataProxy = ImportDataProxy.getInstance();
 			
@@ -337,10 +340,7 @@
 			
 			private function updateRenderBoneParent(_boneName:String):void{
 				if(importDataProxy.armature){
-					var _boneData:BoneData = importDataProxy.skeletonData.getArmatureData(importDataProxy.armatureDataProxy.armatureName).getData(_boneName);
-					var _bone:Bone = importDataProxy.armature.getBone(_boneName);
-					_bone.origin.copy(_boneData);
-					importDataProxy.armature.addBone(_bone, _boneName, _boneData.parent);
+					importDataProxy.updateArmatureBoneOrigin(_boneName);
 					changeRenderMovement(importDataProxy.animationDataProxy.movementName);
 				}
 			}
@@ -401,43 +401,35 @@
 			}
 			
 			private function checkBoneParent(_boneDisplay:Object, _boneParentDisplay:Object):Boolean{
-				var _bone:Bone = getBoneByDisplay(_boneDisplay);
+				var _bone:Bone = importDataProxy.armature.getBoneByDisplay(_boneDisplay);
 				if(_bone){
-					var _boneName:String = _bone.origin.name;
+					var _boneName:String = _bone.name;
 				}
-				_bone = getBoneByDisplay(_boneParentDisplay);
+				_bone = importDataProxy.armature.getBoneByDisplay(_boneParentDisplay);
 				if(_bone){
-					var _boneParentName:String = _bone.origin.name;
+					var _boneParentName:String = _bone.name;
 				}
 				
 				return importDataProxy.armatureDataProxy.checkParent(_boneName, _boneParentName);
 			}
 			
-			private function getBoneByDisplay(_display:Object):Bone{
-				var _bone:Bone = importDataProxy.armature.getChildByDisplay(_display, true);
-				if(_bone && _bone is Armature){
-					_bone = _bone.parent;
-				}
-				return _bone;
-			}
-			
 			private function boneAddToParent():void{
-				var _bone:Bone = getBoneByDisplay(boneDisplaySelected);
+				var _bone:Bone = importDataProxy.armature.getBoneByDisplay(boneDisplaySelected);
 				if(_bone){
-					var _boneName:String = _bone.origin.name;
+					var _boneName:String = _bone.name;
 				}
-				_bone = getBoneByDisplay(boneDisplayRollOver);
+				_bone = importDataProxy.armature.getBoneByDisplay(boneDisplayRollOver);
 				if(_bone){
-					var _boneParentName:String = _bone.origin.name;
+					var _boneParentName:String = _bone.name;
 				}
 				importDataProxy.armatureDataProxy.updateBoneParent(_boneName, _boneParentName);
 			}
 			
 			private function selectedBoneByDisplay(_display:Object):void{
-				var _bone:Bone = getBoneByDisplay(_display);
+				var _bone:Bone = importDataProxy.armature.getBoneByDisplay(_display);
 				if(_bone){
-					importDataProxy.armatureDataProxy.changeBone(_bone.origin.name);
-					importDataProxy.animationDataProxy.changeMovementBone(_bone.origin.name);
+					importDataProxy.armatureDataProxy.changeBone(_bone.name);
+					importDataProxy.animationDataProxy.changeMovementBone(_bone.name);
 				}
 			}
 			private function highlightBoneDisplay(_color:uint = 0):void{
