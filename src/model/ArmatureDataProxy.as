@@ -1,12 +1,15 @@
 package model{
 	import dragonBones.objects.XMLDataParser;
 	import dragonBones.utils.ConstValues;
+	import dragonBones.utils.dragonBones_internal;
 	
 	import flash.events.Event;
 	
 	import message.MessageDispatcher;
 	
 	import mx.collections.XMLListCollection;
+	
+	use namespace dragonBones_internal;
 	
 	/**
 	 * 当前面板选中的 armatureXML 数据
