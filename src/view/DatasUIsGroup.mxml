@@ -113,11 +113,11 @@
 						break;
 					case MessageDispatcher.LOAD_SWF_COMPLETE:
 						clearAlert();
-						importDataProxy.setData(_e.parameters[0], _e.parameters[1], _e.parameters[2], true);
+						importDataProxy.setData(_e.parameters[0], _e.parameters[1], _e.parameters[2], false);
 						break;
 					case MessageDispatcher.LOAD_FILEDATA_COMPLETE:
 						clearAlert();
-						importDataProxy.setData(_e.parameters[0], _e.parameters[1], _e.parameters[2], false);
+						importDataProxy.setData(_e.parameters[0], _e.parameters[1], _e.parameters[2], true);
 						break;
 					case MessageDispatcher.EXPORT:
 						alert = Alert.show(languageProxy.getItem(LanguageProxy.EXPORT_WAITTING));
