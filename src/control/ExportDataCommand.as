@@ -93,7 +93,7 @@ package control{
 						_data = getSWFBytes(_textureData);
 						if(_data){
 							exportSave(XMLDataParser.compressionData(importDataProxy.skeletonXML, importDataProxy.textureAtlasXML, _data), importDataProxy.skeletonName + GlobalConstValues.OUTPUT_SUFFIX + GlobalConstValues.SWF_SUFFIX);
-							break;
+							return;
 						}
 					}catch(_e:Error){
 					}
@@ -102,7 +102,7 @@ package control{
 						_data = getPNGBytes(_textureData);
 						if(_data){
 							exportSave(XMLDataParser.compressionData(importDataProxy.skeletonXML, importDataProxy.textureAtlasXML, _data), importDataProxy.skeletonName + GlobalConstValues.OUTPUT_SUFFIX + GlobalConstValues.PNG_SUFFIX);
-							break;
+							return;
 						}
 					}catch(_e:Error){
 					}
@@ -122,7 +122,7 @@ package control{
 							_zip.add(importDataProxy.textureAtlasXML.toXMLString(), GlobalConstValues.TEXTURE_ATLAS_XML_NAME, _date);
 							exportSave(_zip.encode(), importDataProxy.skeletonName + GlobalConstValues.OUTPUT_SUFFIX + GlobalConstValues.ZIP_SUFFIX);
 							_zip.clear();
-							break;
+							return;
 						}
 					}catch(_e:Error){
 					}
@@ -160,15 +160,15 @@ package control{
 							
 							exportSave(_zip.encode(), importDataProxy.skeletonName + GlobalConstValues.OUTPUT_SUFFIX + GlobalConstValues.ZIP_SUFFIX);
 							_zip.clear();
-							break;
+							return;
 						}
 					}catch(_e:Error){
 					}
 				default:
-					isExporting = false;
-					MessageDispatcher.dispatchEvent(MessageDispatcher.EXPORT_ERROR);
 					break;
 			}
+			isExporting = false;
+			MessageDispatcher.dispatchEvent(MessageDispatcher.EXPORT_ERROR);
 		}
 		
 		private function getSWFBytes(_textureData:TextureAtlasData):ByteArray{

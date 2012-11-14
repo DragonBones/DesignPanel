@@ -188,7 +188,7 @@
 			isLoading = false;
 			urlLoader.removeEventListener(Event.COMPLETE, onURLLoaderCompleteHandler);
 			skeletonXML[ConstValues.AT + ConstValues.A_VERSION] = ConstValues.VERSION;
-			MessageDispatcher.dispatchEvent(MessageDispatcher.LOAD_SWF_COMPLETE, skeletonXML, textureAtlasXML, make(_e.target.data, textureAtlasXML), false);
+			MessageDispatcher.dispatchEvent(MessageDispatcher.LOAD_SWF_COMPLETE, skeletonXML, textureAtlasXML, make(_e.target.data, textureAtlasXML));
 		}
 	}
 }

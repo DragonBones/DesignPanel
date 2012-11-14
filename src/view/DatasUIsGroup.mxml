@@ -112,9 +112,12 @@
 						}
 						break;
 					case MessageDispatcher.LOAD_SWF_COMPLETE:
+						clearAlert();
+						importDataProxy.setData(_e.parameters[0], _e.parameters[1], _e.parameters[2], true);
+						break;
 					case MessageDispatcher.LOAD_FILEDATA_COMPLETE:
 						clearAlert();
-						importDataProxy.setData(_e.parameters[0], _e.parameters[1], _e.parameters[2], _e.parameters[3]);
+						importDataProxy.setData(_e.parameters[0], _e.parameters[1], _e.parameters[2], false);
 						break;
 					case MessageDispatcher.EXPORT:
 						alert = Alert.show(languageProxy.getItem(LanguageProxy.EXPORT_WAITTING));

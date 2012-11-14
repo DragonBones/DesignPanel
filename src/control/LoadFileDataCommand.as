@@ -110,7 +110,7 @@ package control{
 				case BytesType.JPG:
 					try{
 						_sat = XMLDataParser.parseXMLData(_data);
-						MessageDispatcher.dispatchEvent(MessageDispatcher.LOAD_FILEDATA_COMPLETE, true, _sat.skeletonData, _sat.textureAtlasData);
+						MessageDispatcher.dispatchEvent(MessageDispatcher.LOAD_FILEDATA_COMPLETE, _sat.skeletonXML, _sat.textureAtlasXML, _sat.textureAtlasData.rawData);
 						_sat.dispose();
 						break;
 					}catch(_e:Error){
@@ -147,7 +147,7 @@ package control{
 						_zip.clear();
 						if(_textureBytes){
 							_sat = new SkeletonAndTextureAtlasData(_skeletonXML, _textureAtlasXML, _textureBytes);
-							MessageDispatcher.dispatchEvent(MessageDispatcher.LOAD_FILEDATA_COMPLETE, true, _sat.skeletonData, _sat.textureAtlasData);
+							MessageDispatcher.dispatchEvent(MessageDispatcher.LOAD_FILEDATA_COMPLETE, _sat.skeletonXML, _sat.textureAtlasXML, _sat.textureAtlasData.rawData);
 							_sat.dispose();
 							break;
 						}else if(_images){
@@ -210,9 +210,10 @@ package control{
 			}
 			if(!_imageData){
 				try{
-					var _sat:SkeletonAndTextureAtlasData = new SkeletonAndTextureAtlasData(tempSkeletonXML, tempTextureAtlasXML, PNGEncoder.encode(tempBitmapData));
+					var _bytes:ByteArray = PNGEncoder.encode(tempBitmapData);
+					var _sat:SkeletonAndTextureAtlasData = new SkeletonAndTextureAtlasData(tempSkeletonXML, tempTextureAtlasXML, _bytes);
 					tempBitmapData.dispose();
-					MessageDispatcher.dispatchEvent(MessageDispatcher.LOAD_FILEDATA_COMPLETE, true, _sat.skeletonData, _sat.textureAtlasData);
+					MessageDispatcher.dispatchEvent(MessageDispatcher.LOAD_FILEDATA_COMPLETE, _sat.skeletonXML, _sat.textureAtlasXML, _sat.textureAtlasData.rawData);
 					_sat.dispose();
 				}catch(_e:Error){
 					MessageDispatcher.dispatchEvent(MessageDispatcher.LOAD_FILEDATA_ERROR);
