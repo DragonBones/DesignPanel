@@ -30,8 +30,26 @@
 			
 			private var importDataProxy:ImportDataProxy = ImportDataProxy.getInstance();
 			
+			[Bindable]
+			private var aboutXML:XML =
+				<root>
+					<br/>
+					<br/>
+					<b>DragonBones Version 1.4</b>
+					<br/>
+					<br/>
+					<a href="http://dragonbones.github.com/">http://dragonbones.github.com/</a>
+					<br/>
+					<br/>
+					Contact us by　<a href="mailto:dragonbonesteam@gmail.com">dragonbonesteam@gmail.com</a>
+					<br/>
+					<br/>
+					Copyright 2012 The DragonBones team and other contributors
+				</root>
+			
 			private function addedToStageHandler():void{
 				instance = this;
+				XML.prettyIndent = -1;
 				removeEventListener(Event.ADDED_TO_STAGE, addedToStageHandler);
 				if(loaderInfo){
 					loaderInfo.uncaughtErrorEvents.addEventListener(UncaughtErrorEvent.UNCAUGHT_ERROR, onUncaughtErrorHandler);
@@ -124,6 +142,8 @@
 			</s:Scroller>
 		</s:NavigatorContent>
 		<s:NavigatorContent width="100%" height="100%" label="About">
+			<mx:TextArea id="txtAbout" left="0" right="0" top="0" bottom="0" editable="false"
+						 htmlText="{aboutXML}" textAlign="center"/>
 		</s:NavigatorContent>
 	</mx:TabNavigator>
 	<s:Button x="10" y="10" width="60" height="24" cornerRadius="0"
