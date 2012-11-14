@@ -2,7 +2,7 @@ SkeletonAnimationDesignPanel
 ======================
 http://dragonbones.github.com/ 
 
-In this project you can find the source code of DragonBones' Flash Pro based design panel.  
+In this project you can find the source code of DragonBones' Flash Pro based design panel, which is a visual editer for skeleton animation editing. With the design panel, designers can easily convert flash timeline based animation to skeleton animation, edit it and export it to texture file for developers. 
 
 Following steps show you how to use the source code:  
 1. Make sure you have installed Flash Builder with Flex SDK 4.0 or later version.  
