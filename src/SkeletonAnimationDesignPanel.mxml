@@ -13,8 +13,9 @@
 			
 			import model.ImportDataProxy;
 			import model.JSFLProxy;
-			import model.LanguageProxy;
+			import model.ShareObjectDataProxy;
 			
+			import mx.collections.ArrayCollection;
 			import mx.controls.Alert;
 			import mx.managers.PopUpManager;
 			
@@ -24,11 +25,17 @@
 			JSFLProxy.getInstance();
 			
 			public static var instance:SkeletonAnimationDesignPanel; 
-			
-			[Bindable]
-			private var languageProxy:LanguageProxy = LanguageProxy.getInstance();
-			
+			private static const JSFL_LANGUAGE_CODE:String = "languageCode";
+
 			private var importDataProxy:ImportDataProxy = ImportDataProxy.getInstance();
+			[Bindable]
+			private var languageArrayCollection:ArrayCollection = new ArrayCollection([
+				{label:"English", value:"en_US"}, 
+				{label:"Chinese", value:"zh_CN"},
+				{label:"French", value:"fr_FR"},
+				{label:"Japanese", value:"ja_JP"}
+			]);
+			private var _selectedLanguageIndex:int = 0;
 			
 			[Bindable]
 			private var aboutXML:XML =
@@ -46,7 +53,16 @@
 					Copyright 2012 The DragonBones team and other contributors
 				</root>
 			
-			private function addedToStageHandler():void{
+			private function addedToStageHandler():void
+			{	
+				var languageID:* = ShareObjectDataProxy.getInstance().getData("languageID");
+				if(languageID != null){
+					selectedLanguageIndex = int(languageID);
+				}else{
+					MessageDispatcher.addEventListener(JSFL_LANGUAGE_CODE, jsflProxyHandler);
+					JSFLProxy.getInstance().runJSFLCode(JSFL_LANGUAGE_CODE, "fl.languageCode;");
+				}
+				
 				instance = this;
 				XML.prettyIndent = -1;
 				removeEventListener(Event.ADDED_TO_STAGE, addedToStageHandler);
@@ -68,6 +84,33 @@
 				switch(_e.type){
 					case MessageDispatcher.CHANGE_IMPORT_DATA:
 						numFrameRate.value = stage.frameRate = importDataProxy.frameRate;
+						break;
+				}
+			}
+			
+			private function jsflProxyHandler(_e:Message):void
+			{
+				switch(_e.type)
+				{
+					case JSFL_LANGUAGE_CODE:
+						
+						var lanCode:String = String(_e.parameters[0]);
+						MessageDispatcher.removeEventListener(JSFL_LANGUAGE_CODE, jsflProxyHandler);
+						var len:int = languageArrayCollection.length;
+						for(var i:int = 0; i < len; i++)
+						{
+							if(languageArrayCollection[i].value == lanCode)
+							{
+								selectedLanguageIndex = i;
+								break;
+							}
+						}
+						if(i == len)
+						{
+							selectedLanguageIndex = 0;
+						}
+						break;
+					default:
 						break;
 				}
 			}
@@ -115,11 +158,26 @@
 			private function onUncaughtErrorHandler(_e:UncaughtErrorEvent):void{
 				Alert.show(String(_e.error));
 			}
+			
+			[Bindable]
+			private function get selectedLanguageIndex():int
+			{
+				return _selectedLanguageIndex;
+			}
+			private function set selectedLanguageIndex(value:int):void
+			{
+				_selectedLanguageIndex = value;
+				ShareObjectDataProxy.getInstance().setData("languageID", _selectedLanguageIndex);
+				resourceManager.localeChain = [languageArrayCollection[_selectedLanguageIndex].value];
+			}
 		]]>
 	</fx:Script>
+	<fx:Metadata>
+		[ResourceBundle("resources")]
+	</fx:Metadata>
 	<mx:TabNavigator y="10" width="100%" height="100%" tabHeight="35" tabOffset="150" paddingTop="2" paddingBottom="2" paddingLeft="2" paddingRight="2"
 					 change="navIndexChangeHandler(event)">
-		<s:NavigatorContent width="100%" height="100%" label="Skeleton">
+		<s:NavigatorContent width="100%" height="100%" label="{resourceManager.getString('resources','editor')}">
 			<mx:VDividedBox width="100%" height="100%">
 				<view:DatasUIsGroup width="100%" height="100%"/>
 				<s:HGroup width="100%" height="250" gap="2">
@@ -128,10 +186,10 @@
 				</s:HGroup>
 			</mx:VDividedBox>
 		</s:NavigatorContent>
-		<s:NavigatorContent id="navXML" width="100%" height="100%" label="XML">
+		<s:NavigatorContent id="navXML" width="100%" height="100%" label="{resourceManager.getString('resources','xml')}">
 			<s:TextArea id="txtXML" left="0" right="0" top="0" bottom="0" editable="false"/>
 		</s:NavigatorContent>
-		<s:NavigatorContent id="navTexture" width="100%" height="100%" label="Texture Atlas">
+		<s:NavigatorContent id="navTexture" width="100%" height="100%" label="{resourceManager.getString('resources','textureAtlas')}">
 			<s:Scroller width="100%" height="100%">
 				<s:Group>
 					<s:Group id="textureContainerGroup">
@@ -140,27 +198,27 @@
 				</s:Group>
 			</s:Scroller>
 		</s:NavigatorContent>
-		<s:NavigatorContent width="100%" height="100%" label="About">
+		<s:NavigatorContent width="100%" height="100%" label="{resourceManager.getString('resources','about')}">
 			<mx:TextArea id="txtAbout" left="0" right="0" top="0" bottom="0" editable="false"
 						 htmlText="{aboutXML}" textAlign="left"/>
 		</s:NavigatorContent>
 	</mx:TabNavigator>
 	<s:Button x="10" y="10" width="60" height="24" cornerRadius="0"
-			  label="{languageProxy.importTitle}"
+			  label="{resourceManager.getString('resources','import')}"
 			  click="{importData()}"
 			  />
 	<s:Button x="80" y="10" width="60" height="24" cornerRadius="0"
-			  label="{languageProxy.exportTitle}"
+			  label="{resourceManager.getString('resources','export')}"
 			  click="{exportData()}"
 			  />
 	<s:HGroup y="10" left="400" right="10" horizontalAlign="right" gap="10">
-		<s:Label width="75" height="24" text="{languageProxy.frameRateLabel}"
+		<s:Label width="75" height="24" text="{resourceManager.getString('resources','frameRate')}"
 				 textAlign="right" verticalAlign="middle"/>
 		<s:NumericStepper id="numFrameRate" width="60" height="24" cornerRadius="0" textAlign="right"
 						  maximum="120" minimum="1" snapInterval="1"/>
 		
 		<s:DropDownList width="120" height="24" cornerRadius="0" textAlign="right"
-						dataProvider="{LanguageProxy.getInstance().languageAC}"
-						selectedIndex="@{LanguageProxy.getInstance().languageID}"/>
+						dataProvider="{languageArrayCollection}"
+						selectedIndex="@{selectedLanguageIndex}"/>
 	</s:HGroup>
 </s:Application>

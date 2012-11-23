@@ -13,10 +13,6 @@
 			import message.MessageDispatcher;
 			
 			import model.ImportDataProxy;
-			import model.LanguageProxy;
-			
-			[Bindable]
-			private var languageProxy:LanguageProxy = LanguageProxy.getInstance();
 			
 			private var importDataProxy:ImportDataProxy = ImportDataProxy.getInstance();
 			
@@ -50,7 +46,6 @@
 				sliderDelay.addEventListener(Event.CHANGE, valueChangeHandler);
 				numDelay.addEventListener(Event.CHANGE, valueChangeHandler);
 				
-				MessageDispatcher.addEventListener(MessageDispatcher.LANGUAGE_CHANGE, commandHandler);
 				MessageDispatcher.addEventListener(MessageDispatcher.CHANGE_MOVEMENT_DATA, commandHandler);
 				MessageDispatcher.addEventListener(MessageDispatcher.CHANGE_MOVEMENT_BONE_DATA, commandHandler);
 				
@@ -66,9 +61,6 @@
 			
 			private function commandHandler(_e:Message):void{
 				switch(_e.type){
-					case MessageDispatcher.LANGUAGE_CHANGE:
-						updatePlayAndPauseBtn();
-						break;
 					case MessageDispatcher.CHANGE_MOVEMENT_DATA:
 						movementName = _e.parameters[0];
 						var _durationTo:int = importDataProxy.animationDataProxy.durationTo;
@@ -204,36 +196,36 @@
 				if(importDataProxy.armature){
 					btnPlay.enabled = true;
 					if(importDataProxy.armature.animation.isPause){
-						btnPlay.label = languageProxy.playLabel;
+						btnPlay.label = resourceManager.getString('resources','play');
 						btnPlay.selected = false;
 					}else if(importDataProxy.armature.animation.isComplete){
-						btnPlay.label = languageProxy.playLabel;
+						btnPlay.label = resourceManager.getString('resources','play');
 						btnPlay.selected = false;
 					}else{
-						btnPlay.label = languageProxy.stopLabel;
+						btnPlay.label = resourceManager.getString('resources','stop');
 						btnPlay.selected = true;
 					}
 				}else{
 					btnPlay.selected = false;
 					btnPlay.enabled = false;
-					btnPlay.label = languageProxy.playLabel;
+					btnPlay.label = resourceManager.getString('resources','play');
 				}
 			}
 		]]>
 	</fx:Script>
 	<s:VGroup width="100%" height="100%" gap="2">
 		<mx:Accordion width="100%" height="155">
-			<s:NavigatorContent width="100%" height="100%" label="{languageProxy.movementPanelTitle + movementName}">
+			<s:NavigatorContent width="100%" height="100%" label="{resourceManager.getString('resources','behaviorPanelTitle') + movementName}">
 				<s:Label x="10" y="10" width="110" height="24" textAlign="right" verticalAlign="middle"
-						 text="{languageProxy.movementFrameLabel}"
+						 text="{resourceManager.getString('resources','totalFrames')}"
 						 />
 				
 				<s:Label x="10" y="40" width="110" height="24"  textAlign="right" verticalAlign="middle"
-						 text="{languageProxy.tweenFrameLabel}"
+						 text="{resourceManager.getString('resources','switchTweenFrames')}"
 						 />
 
 				<s:Label x="10" y="70" width="110" height="24"  textAlign="right" verticalAlign="middle"
-						 text="{languageProxy.keyFrameEaseLabel}"
+						 text="{resourceManager.getString('resources','keyFrameEase')}"
 						 />
 				
 				
@@ -244,7 +236,7 @@
 						   minimum="0" maximum="100" snapInterval="1"
 						   />
 				<s:CheckBox id="checkLoop" x="130" y="100" width="100" height="24" 
-							label="{languageProxy.movementLoopLabel}"
+							label="{resourceManager.getString('resources','loop')}"
 							/>
 				<s:HSlider id="sliderTweenEasing" x="130" y="77" width="100"
 						   minimum="-1.1" maximum="2" snapInterval="0.05"
@@ -262,12 +254,12 @@
 			</s:NavigatorContent>
 		</mx:Accordion>
 		<mx:Accordion width="100%" height="100%">
-			<s:NavigatorContent width="100%" height="100%" label="{languageProxy.boneMovementPanelTitle + movementBoneName}">
+			<s:NavigatorContent width="100%" height="100%" label="{resourceManager.getString('resources','bonePanelTitle') + movementBoneName}">
 				<s:Label x="10" y="10" width="110" height="24" textAlign="right" verticalAlign="middle"
-						 text="{languageProxy.boneTweenScaleLabel}"
+						 text="{resourceManager.getString('resources','totalFramesScale')}"
 						 />
 				<s:Label x="10" y="40" width="110" height="24" textAlign="right" verticalAlign="middle"
-						 text="{languageProxy.boneTweenDelayLabel}"
+						 text="{resourceManager.getString('resources','playDelay')}"
 						 />
 				<s:HSlider id="sliderScale" x="130" y="17" width="100"
 						   minimum="0" maximum="200" snapInterval="5"

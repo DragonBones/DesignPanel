@@ -2,32 +2,31 @@
 <s:TitleWindow xmlns:fx="http://ns.adobe.com/mxml/2009"
 		 xmlns:s="library://ns.adobe.com/flex/spark"
 		 xmlns:mx="library://ns.adobe.com/flex/mx"
-		 width="310" height="250" title="{LanguageProxy.getInstance().exportTitle}"
+		 width="310" height="250" title="{resourceManager.getString('resources','export')}"
 		 close="closeWindow()"
 		 >
 	<fx:Script>
 		<![CDATA[
-			import mx.events.CloseEvent;
-			import mx.managers.PopUpManager;
-			
-			import mx.collections.ArrayCollection;
+			import control.ExportDataCommand;
 			
 			import message.Message;
 			import message.MessageDispatcher;
 			
-			import control.ExportDataCommand;
-			
-			import model.ImportDataProxy;
 			import model.ExportDataProxy;
-			import model.LanguageProxy;
+			import model.ImportDataProxy;
+			
+			import mx.collections.ArrayCollection;
+			import mx.events.CloseEvent;
+			import mx.managers.PopUpManager;
+			import mx.resources.ResourceManager;
 			
 			[Bindable]
 			private var dataExportAC:ArrayCollection = new ArrayCollection([
-				LanguageProxy.getInstance().getItem(LanguageProxy.EXPORT_SWF_WITH_XML), 
-				LanguageProxy.getInstance().getItem(LanguageProxy.EXPORT_PNG_WITH_XML), 
-				LanguageProxy.getInstance().getItem(LanguageProxy.EXPORT_ZIP_XML_AND_SWF), 
-				LanguageProxy.getInstance().getItem(LanguageProxy.EXPORT_ZIP_XML_AND_PNG), 
-				LanguageProxy.getInstance().getItem(LanguageProxy.EXPORT_ZIP_XML_AND_EACH_PNG)
+				ResourceManager.getInstance().getString('resources','SWFwithXML'),
+				ResourceManager.getInstance().getString('resources','PNGwithXML'),
+				ResourceManager.getInstance().getString('resources','ZIPwithXMLAndSWF'),
+				ResourceManager.getInstance().getString('resources','ZIPwithXMLAndPNG'),
+				ResourceManager.getInstance().getString('resources','ZIPwithXMLAndPNGs')
 			]);
 			
 			private function exportData():void{
@@ -50,7 +49,7 @@
 	</fx:Script>
 	<s:VGroup x="10" y="10" width="100" height="150" gap="6" horizontalAlign="right">
 		<s:Label width="100%" height="24" textAlign="right" verticalAlign="middle"
-				 text="{LanguageProxy.getInstance().getItem(LanguageProxy.EXPORT_LABEL)}"
+				 text="{resourceManager.getString('resources','exportLabel')}"
 				 />
 	</s:VGroup>
 	<s:VGroup x="118" y="10" width="170" height="150" gap="6">
@@ -60,11 +59,11 @@
 					/>
 	</s:VGroup>
 	<s:Button right="140" bottom="20" width="100" height="24" cornerRadius="0"
-			  label="{LanguageProxy.getInstance().getItem(LanguageProxy.OK)}"
+			  label="{resourceManager.getString('resources','ok')}"
 			  click="exportData()"
 			  />
 	<s:Button right="20" bottom="20" width="100" height="24" cornerRadius="0"
-			  label="{LanguageProxy.getInstance().getItem(LanguageProxy.CANCEL)}" 
+			  label="{resourceManager.getString('resources','cancel')}" 
 			  click="closeWindow()"
 			  />
 </s:TitleWindow>

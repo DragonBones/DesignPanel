@@ -9,9 +9,9 @@
 		 dragOver="onDragOver(event)" 
 		 dragExit="onDragExit(event)" 
 		 dragDrop="onDragDrop(event)"
-		 folderClosedIcon="@Embed(source='./resources/armature_icon.png')"
-		 folderOpenIcon="@Embed(source='./resources/armature_open_icon.png')"
-		 defaultLeafIcon="@Embed(source='./resources/bone_icon.png')"
+		 folderClosedIcon="@Embed(source='./assets/armature_icon.png')"
+		 folderOpenIcon="@Embed(source='./assets/armature_open_icon.png')"
+		 defaultLeafIcon="@Embed(source='./assets/bone_icon.png')"
 		 >
 	<fx:Script>
 		<![CDATA[

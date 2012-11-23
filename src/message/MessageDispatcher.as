@@ -4,7 +4,6 @@ package message{
 	import flash.events.IEventDispatcher;
 	
 	public class MessageDispatcher extends EventDispatcher{
-		static public const LANGUAGE_CHANGE:String = "languageChange";
 		
 		static public const LOAD_FLADATA:String = "loadFladata";
 		static public const LOAD_ARMATURE_DATA:String = "loadSkeletonData";

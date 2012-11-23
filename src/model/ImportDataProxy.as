@@ -18,6 +18,7 @@
 	
 	import mx.collections.ArrayCollection;
 	import mx.collections.XMLListCollection;
+	import mx.resources.ResourceManager;
 	
 	import utils.GlobalConstValues;
 	import utils.TextureUtil;
@@ -70,12 +71,14 @@
 			return __dataImportID;
 		}
 		public function set dataImportID(value:int):void{
+			value = value < 0 ? 0 : value;
 			__dataImportID = value;
 			ShareObjectDataProxy.getInstance().setData("dataImportID", __dataImportID);
 		}
 		
 		public var textureMaxWidthID:int = 0;
-		public var textureMaxWidthAC:ArrayCollection = new ArrayCollection(["Auto size", 128, 256, 512, 1024, 2048, 4096]);
+		
+		public var textureMaxWidthAC:ArrayCollection = new ArrayCollection(["Autosize", 128, 256, 512, 1024, 2048, 4096]);
 		public function get textureMaxWidth():int{
 			if(textureMaxWidthID == 0){
 				return 0;
@@ -141,7 +144,7 @@
 			__animationDataProxy = new AnimationDataProxy();
 			baseFactory = new BaseFactory();
 			
-			__dataImportID = ShareObjectDataProxy.getInstance().getOrSetData("dataImportID", 0);
+			dataImportID = ShareObjectDataProxy.getInstance().getOrSetData("dataImportID", 0);
 		}
 		
 		public function setData(_skeletonXML:XML, _textureAtlasXML:XML, _textureData:ByteArray, _isSWFSource:Boolean):void{

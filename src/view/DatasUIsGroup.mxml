@@ -14,7 +14,6 @@
 			import message.MessageDispatcher;
 			
 			import model.ImportDataProxy;
-			import model.LanguageProxy;
 			import model.ShareObjectDataProxy;
 			
 			import mx.controls.Alert;
@@ -27,14 +26,12 @@
 			
 			private static const AT_NAME:String = ConstValues.AT + ConstValues.A_NAME;
 			
-			[Bindable]
-			private var languageProxy:LanguageProxy = LanguageProxy.getInstance();
-			
 			private var importDataProxy:ImportDataProxy = ImportDataProxy.getInstance();
 			
 			private var alert:Alert;
 			
 			private function addedToStageHandler():void{
+				
 				colorBoneHighlight.selectedColor = ShareObjectDataProxy.getInstance().getOrSetData("boneHighlightColor", 0xFF0000);
 				//colorBoneHighlight.label = languageProxy.boneHighlightLabel;
 				
@@ -82,33 +79,33 @@
 				switch(_e.type){
 					case MessageDispatcher.LOAD_FLADATA:
 						if(_e.parameters[0] > 0){
-							alert = Alert.show(languageProxy.getItem(LanguageProxy.IMPORT_FLA_WAITTING, _e.parameters[1]));
+							alert = Alert.show(resourceManager.getString('resources','importFLAWaitting', [_e.parameters[1]]));
 							//alert.mouseChildren = false;
 						}else{
-							alert = Alert.show(languageProxy.getItem(LanguageProxy.IMPORT_NO_ELEMENT, _e.parameters[1]));
+							alert = Alert.show(resourceManager.getString('resources',"importNoElement", [_e.parameters[1]]));
 						}
 						break;
 					case MessageDispatcher.LOAD_ARMATURE_DATA:
 						if(alert){
-							alert.title = languageProxy.getItem(LanguageProxy.IMPORT_ARMATURE_PROGRESS, _e.parameters[1], _e.parameters[2]);
+							alert.title = resourceManager.getString('resources', 'importSkeletonProgress', _e.parameters[1], _e.parameters[2]);
 						}
 						break;
 					case MessageDispatcher.LOAD_TEXTURE_DATA:
 						if(alert){
-							alert.title = languageProxy.getItem(LanguageProxy.IMPORT_TEXTURE_PROGRESS, _e.parameters[1], _e.parameters[2]);
+							alert.title = resourceManager.getString('resources', 'importTextureProgress', [_e.parameters[1], _e.parameters[2]]);
 						}
 						break;
 					case MessageDispatcher.LOAD_FILEDATA:
-						alert = Alert.show(languageProxy.getItem(LanguageProxy.IMPORT_FILE_WAITTING));
+						alert = Alert.show(resourceManager.getString('resources', 'importFileWaitting'));
 						//alert.mouseChildren = false;
 						break;
 					case MessageDispatcher.LOAD_FILEDATA_ERROR:
 						clearAlert();
-						alert = Alert.show(languageProxy.getItem(LanguageProxy.IMPORT_FILE_ERROR));
+						alert = Alert.show(resourceManager.getString('resources', 'importFileError'));
 						break;
 					case MessageDispatcher.LOAD_FILEDATA_PROGRESS:
 						if(alert){
-							alert.title = languageProxy.getItem(LanguageProxy.IMPORT_FILE_PROGRESS, Math.round(_e.parameters[0] * 100));
+							alert.title = resourceManager.getString('resources', 'importFileProgress', [Math.round(_e.parameters[0] * 100)]);
 						}
 						break;
 					case MessageDispatcher.LOAD_SWF_COMPLETE:
@@ -120,7 +117,7 @@
 						importDataProxy.setData(_e.parameters[0], _e.parameters[1], _e.parameters[2], true);
 						break;
 					case MessageDispatcher.EXPORT:
-						alert = Alert.show(languageProxy.getItem(LanguageProxy.EXPORT_WAITTING));
+						alert = Alert.show(resourceManager.getString('resources', 'exportWaitting'));
 						//alert.mouseChildren = false;
 						break;
 					case MessageDispatcher.EXPORT_CANCEL:
@@ -128,7 +125,7 @@
 						break;
 					case MessageDispatcher.EXPORT_ERROR:
 						clearAlert();
-						alert = Alert.show(languageProxy.getItem(LanguageProxy.EXPORT_ERROR));
+						alert = Alert.show(resourceManager.getString('resources', 'exportError'));
 						break;
 					case MessageDispatcher.EXPORT_COMPLETE:
 						clearAlert();
@@ -202,23 +199,23 @@
 		<s:DataGrid id="armatureList" maxWidth="200" width="100%" height="100%">
 			<s:columns>
 				<s:ArrayList>
-					<s:GridColumn dataField="{AT_NAME}" headerText="{languageProxy.armatureListLabel}"/>
+					<s:GridColumn dataField="{AT_NAME}" headerText="{resourceManager.getString('resources','skeletonList')}"/>
 				</s:ArrayList>
 			</s:columns>
 		</s:DataGrid>
 		<s:DataGrid id="movementList" maxWidth="150" width="100%" height="100%" sortableColumns="false">
 			<s:columns>
 				<s:ArrayList>
-					<s:GridColumn dataField="{AT_NAME}" headerText="{languageProxy.movementListLabel}"/>
+					<s:GridColumn dataField="{AT_NAME}" headerText="{resourceManager.getString('resources','behaviorList')}"/>
 				</s:ArrayList>
 			</s:columns>
 		</s:DataGrid>
 		<s:Group width="100%" height="100%">
 			<s:HGroup width="100%" height="100%" gap="0">
-				<s:Button width="100%" height="24" label="{languageProxy.boneTreeLabel}"
+				<s:Button width="100%" height="24" label="{resourceManager.getString('resources','boneTree')}"
 					 	 cornerRadius="0" fontWeight="bold"/>
 				<components:ColorPickerNoColor id="colorBoneHighlight" width="24" height="24"
-											   label="{languageProxy.boneHighlightLabel}"
+											   label="{resourceManager.getString('resources','boneHighlight')}"
 											   change="boneDisplayHighlightChangeHandler(event)"/>
 			</s:HGroup>
 			<components:DragTree id="boneTree" y="23" width="100%" height="100%" dragEnabled="true"
@@ -228,7 +225,7 @@
 		<s:DataGrid id="displayList" maxWidth="350" width="100%" height="100%" sortableColumns="false">
 			<s:columns>
 				<s:ArrayList>
-					<s:GridColumn dataField="{AT_NAME}" headerText="{languageProxy.textureListLabel}"/>
+					<s:GridColumn dataField="{AT_NAME}" headerText="{resourceManager.getString('resources','textureList')}"/>
 				</s:ArrayList>
 			</s:columns>
 		</s:DataGrid>
