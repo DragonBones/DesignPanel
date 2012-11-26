@@ -353,11 +353,11 @@
 						 htmlText="{aboutXML}" textAlign="left"/>
 		</s:NavigatorContent>
 	</mx:TabNavigator>
-	<s:Button x="10" y="10" width="60" height="24" cornerRadius="0"
+	<s:Button x="5" y="10" width="68" height="24" cornerRadius="0"
 			  label="{resourceManager.getString('resources','import')}"
 			  click="{importData()}"
 			  />
-	<s:Button x="80" y="10" width="60" height="24" cornerRadius="0"
+	<s:Button x="77" y="10" width="68" height="24" cornerRadius="0"
 			  label="{resourceManager.getString('resources','export')}"
 			  click="{exportData()}"
 			  />
