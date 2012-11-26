@@ -330,7 +330,7 @@
 		<s:NavigatorContent width="100%" height="100%" label="{resourceManager.getString('resources','editor')}">
 			<mx:VDividedBox width="100%" height="100%">
 				<view:DatasUIsGroup width="100%" height="100%"/>
-				<s:HGroup width="100%" height="250" gap="2">
+				<s:HGroup width="100%" height="265" gap="2">
 					<view:ArmatureDisplayUIsGroup width="100%" height="100%"/>
 					<view:ControlUIsGroup height="100%"/>
 				</s:HGroup>
@@ -361,7 +361,7 @@
 			  label="{resourceManager.getString('resources','export')}"
 			  click="{exportData()}"
 			  />
-	<s:HGroup y="10" left="400" right="10" horizontalAlign="right" gap="10">
+	<s:HGroup y="10" left="450" right="10" horizontalAlign="right" gap="10">
 		<s:Label height="24" text="{resourceManager.getString('resources','frameRate')}"
 				 textAlign="right" verticalAlign="middle"/>
 		<s:NumericStepper id="numFrameRate" width="60" height="24" cornerRadius="0" textAlign="right"
