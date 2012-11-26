@@ -16,180 +16,112 @@
 			import model.ImportDataProxy;
 			import model.ShareObjectDataProxy;
 			
-			import mx.controls.Alert;
 			import mx.events.ColorPickerEvent;
 			import mx.events.DragEvent;
 			import mx.events.ListEvent;
-			import mx.managers.PopUpManager;
 			
 			import spark.events.GridSelectionEvent;
 			
 			private static const AT_NAME:String = ConstValues.AT + ConstValues.A_NAME;
 			
-			private var importDataProxy:ImportDataProxy = ImportDataProxy.getInstance();
+			private var _importDataProxy:ImportDataProxy = ImportDataProxy.getInstance();
 			
-			private var alert:Alert;
-			
-			private function addedToStageHandler():void{
-				
+			private function addedToStageHandler():void
+			{
 				colorBoneHighlight.selectedColor = ShareObjectDataProxy.getInstance().getOrSetData("boneHighlightColor", 0xFF0000);
-				//colorBoneHighlight.label = languageProxy.boneHighlightLabel;
 				
-				armatureList.dataProvider = importDataProxy.armaturesMC;
-				movementList.dataProvider = importDataProxy.animationDataProxy.movementsMC;
-				displayList.dataProvider = importDataProxy.armatureDataProxy.displaysMC;
+				armatureList.dataProvider = _importDataProxy.armaturesMC;
+				movementList.dataProvider = _importDataProxy.animationDataProxy.movementsMC;
+				displayList.dataProvider = _importDataProxy.armatureDataProxy.displaysMC;
 				
 				armatureList.addEventListener(GridSelectionEvent.SELECTION_CHANGE, onArmatureChangeHandler);
 				movementList.addEventListener(GridSelectionEvent.SELECTION_CHANGE, onMovementChangeHandler);
-				//displayList.addEventListener(GridSelectionEvent.SELECTION_CHANGE, onTextureChangeHandler);
 				
 				boneTree.addEventListener(ListEvent.CHANGE, onBoneChangeHandler);
 				boneTree.addEventListener(DragEvent.DRAG_COMPLETE, onBoneDragCompleteHandler);
 				
-				MessageDispatcher.addEventListener(MessageDispatcher.LOAD_FLADATA, onCommandHandler);
-				MessageDispatcher.addEventListener(MessageDispatcher.LOAD_ARMATURE_DATA, onCommandHandler);
-				MessageDispatcher.addEventListener(MessageDispatcher.LOAD_TEXTURE_DATA, onCommandHandler);
-				MessageDispatcher.addEventListener(MessageDispatcher.LOAD_SWF_COMPLETE, onCommandHandler);
+				MessageDispatcher.addEventListener(MessageDispatcher.CHANGE_ARMATURE_DATA, commandHandler);
+				MessageDispatcher.addEventListener(MessageDispatcher.CHANGE_MOVEMENT_DATA, commandHandler);
+				MessageDispatcher.addEventListener(MessageDispatcher.CHANGE_BONE_DATA, commandHandler);
 				
-				MessageDispatcher.addEventListener(MessageDispatcher.LOAD_FILEDATA, onCommandHandler);
-				MessageDispatcher.addEventListener(MessageDispatcher.LOAD_FILEDATA_ERROR, onCommandHandler);
-				MessageDispatcher.addEventListener(MessageDispatcher.LOAD_FILEDATA_PROGRESS, onCommandHandler);
-				MessageDispatcher.addEventListener(MessageDispatcher.LOAD_FILEDATA_COMPLETE, onCommandHandler);
-				
-				MessageDispatcher.addEventListener(MessageDispatcher.EXPORT, onCommandHandler);
-				MessageDispatcher.addEventListener(MessageDispatcher.EXPORT_CANCEL, onCommandHandler);
-				MessageDispatcher.addEventListener(MessageDispatcher.EXPORT_ERROR, onCommandHandler);
-				MessageDispatcher.addEventListener(MessageDispatcher.EXPORT_COMPLETE, onCommandHandler);
-				
-				MessageDispatcher.addEventListener(MessageDispatcher.CHANGE_ARMATURE_DATA, onCommandHandler);
-				MessageDispatcher.addEventListener(MessageDispatcher.CHANGE_MOVEMENT_DATA, onCommandHandler);
-				MessageDispatcher.addEventListener(MessageDispatcher.CHANGE_BONE_DATA, onCommandHandler);
-				
-				MessageDispatcher.addEventListener(MessageDispatcher.UPDATE_BONE_PARENT, onCommandHandler);
+				MessageDispatcher.addEventListener(MessageDispatcher.UPDATE_BONE_PARENT, commandHandler);
 			}
 			
-			private function clearAlert():void{
-				if(alert){
-					PopUpManager.removePopUp(alert);
-					alert = null;
-				}
-			}
-			
-			private function onCommandHandler(_e:Message):void{
-				switch(_e.type){
-					case MessageDispatcher.LOAD_FLADATA:
-						if(_e.parameters[0] > 0){
-							alert = Alert.show(resourceManager.getString('resources','importFLAWaitting', [_e.parameters[1]]));
-							//alert.mouseChildren = false;
-						}else{
-							alert = Alert.show(resourceManager.getString('resources',"importNoElement", [_e.parameters[1]]));
-						}
-						break;
-					case MessageDispatcher.LOAD_ARMATURE_DATA:
-						if(alert){
-							alert.title = resourceManager.getString('resources', 'importSkeletonProgress', _e.parameters[1], _e.parameters[2]);
-						}
-						break;
-					case MessageDispatcher.LOAD_TEXTURE_DATA:
-						if(alert){
-							alert.title = resourceManager.getString('resources', 'importTextureProgress', [_e.parameters[1], _e.parameters[2]]);
-						}
-						break;
-					case MessageDispatcher.LOAD_FILEDATA:
-						alert = Alert.show(resourceManager.getString('resources', 'importFileWaitting'));
-						//alert.mouseChildren = false;
-						break;
-					case MessageDispatcher.LOAD_FILEDATA_ERROR:
-						clearAlert();
-						alert = Alert.show(resourceManager.getString('resources', 'importFileError'));
-						break;
-					case MessageDispatcher.LOAD_FILEDATA_PROGRESS:
-						if(alert){
-							alert.title = resourceManager.getString('resources', 'importFileProgress', [Math.round(_e.parameters[0] * 100)]);
-						}
-						break;
-					case MessageDispatcher.LOAD_SWF_COMPLETE:
-						clearAlert();
-						importDataProxy.setData(_e.parameters[0], _e.parameters[1], _e.parameters[2], false);
-						break;
-					case MessageDispatcher.LOAD_FILEDATA_COMPLETE:
-						clearAlert();
-						importDataProxy.setData(_e.parameters[0], _e.parameters[1], _e.parameters[2], true);
-						break;
-					case MessageDispatcher.EXPORT:
-						alert = Alert.show(resourceManager.getString('resources', 'exportWaitting'));
-						//alert.mouseChildren = false;
-						break;
-					case MessageDispatcher.EXPORT_CANCEL:
-						clearAlert();
-						break;
-					case MessageDispatcher.EXPORT_ERROR:
-						clearAlert();
-						alert = Alert.show(resourceManager.getString('resources', 'exportError'));
-						break;
-					case MessageDispatcher.EXPORT_COMPLETE:
-						clearAlert();
-						break;
+			private function commandHandler(e:Message):void
+			{
+				switch(e.type)
+				{
 					case MessageDispatcher.CHANGE_ARMATURE_DATA:
-						armatureList.selectedItem = getListItemByName(armatureList, _e.parameters[0]);
-						//
+						armatureList.selectedItem = getListItemByName(armatureList, e.parameters[0]);
 					case MessageDispatcher.UPDATE_BONE_PARENT:
-						boneTree.dataProvider = importDataProxy.armatureDataProxy.bonesMC;
+						boneTree.dataProvider = _importDataProxy.armatureDataProxy.bonesMC;
 						boneTree.validateNow();
-						for each(var _item:Object in boneTree.dataProvider){
+						for each(var _item:Object in boneTree.dataProvider)
+						{
 							boneTree.expandChildrenOf(_item, true);
 						}
-						if(_e.type == MessageDispatcher.UPDATE_BONE_PARENT){
-							boneTree.selectItemByName(_e.parameters[0]);
+						if(e.type == MessageDispatcher.UPDATE_BONE_PARENT)
+						{
+							boneTree.selectItemByName(e.parameters[0]);
 						}
 						break;
 					case MessageDispatcher.CHANGE_MOVEMENT_DATA:
-						movementList.selectedItem = getListItemByName(movementList, _e.parameters[0]);
+						movementList.selectedItem = getListItemByName(movementList, e.parameters[0]);
 						break;
 					case MessageDispatcher.CHANGE_BONE_DATA:
-						boneTree.selectItemByName(_e.parameters[0]);
+						boneTree.selectItemByName(e.parameters[0]);
 						break;
 				}
 			}
 			
-			private function onArmatureChangeHandler(_e:Event):void{
-				var _armatureName:String = ImportDataProxy.getElementName(armatureList.selectedItem as XML);
-				importDataProxy.armatureDataProxy.setData(importDataProxy.getArmatureXMLByName(_armatureName));
+			private function onArmatureChangeHandler(e:Event):void
+			{
+				var armatureName:String = ImportDataProxy.getElementName(armatureList.selectedItem as XML);
+				_importDataProxy.armatureDataProxy.setData(_importDataProxy.getArmatureXMLByName(armatureName));
 			}
 			
-			private function onMovementChangeHandler(_e:Event):void{
-				var _movementName:String = ImportDataProxy.getElementName(movementList.selectedItem as XML);
-				importDataProxy.animationDataProxy.changeMovement(_movementName);
+			private function onMovementChangeHandler(e:Event):void
+			{
+				var movementName:String = ImportDataProxy.getElementName(movementList.selectedItem as XML);
+				_importDataProxy.animationDataProxy.changeMovement(movementName);
 			}
 			
-			private function onBoneChangeHandler(_e:Event):void{
-				var _boneName:String = ImportDataProxy.getElementName(boneTree.selectedItem as XML);
-				importDataProxy.armatureDataProxy.changeBone(_boneName);
-				importDataProxy.animationDataProxy.changeMovementBone(_boneName);
+			private function onBoneChangeHandler(e:Event):void
+			{
+				var boneName:String = ImportDataProxy.getElementName(boneTree.selectedItem as XML);
+				_importDataProxy.armatureDataProxy.changeBone(boneName);
+				_importDataProxy.animationDataProxy.changeMovementBone(boneName);
 			}
 			
-			private function onBoneDragCompleteHandler(_e:DragEvent):void{
-				if(boneTree.lastMoveNode){
-					var _name:String = ImportDataProxy.getElementName(boneTree.lastMoveNode);
-					var _parentXML:XML = boneTree.lastMoveNode.parent();
-					var _parentName:String = ImportDataProxy.getElementName(_parentXML);
-					if(_parentXML.name() != boneTree.lastMoveNode.name()){
-						_parentName = null;
+			private function onBoneDragCompleteHandler(e:DragEvent):void
+			{
+				if(boneTree.lastMoveNode)
+				{
+					var boneName:String = ImportDataProxy.getElementName(boneTree.lastMoveNode);
+					var parentXML:XML = boneTree.lastMoveNode.parent();
+					var parentName:String = ImportDataProxy.getElementName(parentXML);
+					if(parentXML.name() != boneTree.lastMoveNode.name())
+					{
+						parentName = null;
 					}
 					
-					importDataProxy.armatureDataProxy.updateBoneParent(_name, _parentName);
+					_importDataProxy.armatureDataProxy.updateBoneParent(boneName, parentName);
 				}
 			}
 			
-			private function boneDisplayHighlightChangeHandler(event:ColorPickerEvent):void{
+			private function boneDisplayHighlightChangeHandler(event:ColorPickerEvent):void
+			{
 				ShareObjectDataProxy.getInstance().setData("boneHighlightColor", event.color);
 				MessageDispatcher.dispatchEvent(MessageDispatcher.VIEW_BONE_HIGHLIGHT_CHANGE, event.color);
 			}
 			
-			private function getListItemByName(_list:DataGrid, _itemName:String):XML{
-				for each(var _eachItem:XML in _list.dataProvider){
-					if(ImportDataProxy.getElementName(_eachItem) == _itemName){
-						return _eachItem;
+			private function getListItemByName(list:DataGrid, itemName:String):XML
+			{
+				for each(var eachItem:XML in list.dataProvider)
+				{
+					if(ImportDataProxy.getElementName(eachItem) == itemName)
+					{
+						return eachItem;
 					}
 				}
 				return null;
@@ -203,7 +135,7 @@
 				</s:ArrayList>
 			</s:columns>
 		</s:DataGrid>
-		<s:DataGrid id="movementList" maxWidth="150" width="100%" height="100%" sortableColumns="false">
+		<s:DataGrid id="movementList" maxWidth="200" width="100%" height="100%" sortableColumns="false">
 			<s:columns>
 				<s:ArrayList>
 					<s:GridColumn dataField="{AT_NAME}" headerText="{resourceManager.getString('resources','behaviorList')}"/>

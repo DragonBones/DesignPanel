@@ -35,11 +35,12 @@ package message{
 		public static const UPDATE_MOVEMENT_DATA:String = "updateMovementData";
 		public static const UPDATE_MOVEMENT_BONE_DATA:String = "updateMovementBoneData";
 		
-		public static const VIEW_BONE_HIGHLIGHT_CHANGE:String = "viewBoneHighlightChange";
-		
 		public static const MOVEMENT_CHANGE:String = "movementChange";
 		public static const MOVEMENT_START:String = "movementStart";
 		public static const MOVEMENT_COMPLETE:String = "movementComplete";
+		
+		public static const VIEW_BONE_HIGHLIGHT_CHANGE:String = "viewBoneHighlightChange";
+		public static const FLA_TEXTURE_ATLAS_SWF_LOADED:String = "flaTextureAtlasSWFLoaded";
 		
 		private static var instance:MessageDispatcher = new MessageDispatcher();
 		

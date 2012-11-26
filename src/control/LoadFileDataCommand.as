@@ -1,4 +1,5 @@
-package control{
+package control
+{
 	import dragonBones.objects.SkeletonAndTextureAtlasData;
 	import dragonBones.objects.XMLDataParser;
 	import dragonBones.utils.BytesType;
@@ -28,19 +29,20 @@ package control{
 	import zero.zip.Zip;
 	import zero.zip.ZipFile;
 
-	public class LoadFileDataCommand{
+	public class LoadFileDataCommand
+	{
 		private static const FILE_FILTER_ARRAY:Array = [new FileFilter("Exported data", "*." + String(["swf", "png", "zip"]).replace(/\,/g, ";*."))];
-		private static var helpMatirx:Matrix = new Matrix();
-		private static var helpRect:Rectangle = new Rectangle();
+		private static var _helpMatirx:Matrix = new Matrix();
+		private static var _helpRect:Rectangle = new Rectangle();
 		
 		public static var instance:LoadFileDataCommand = new LoadFileDataCommand();
 		
-		private var fileREF:FileReference;
+		private var _fileREF:FileReference;
 		private var urlLoader:URLLoader;
 		private var isLoading:Boolean;
 		
 		public function LoadFileDataCommand(){
-			fileREF = new FileReference();
+			_fileREF = new FileReference();
 			urlLoader = new URLLoader();
 		}
 		
@@ -57,8 +59,8 @@ package control{
 				urlLoader.dataFormat = URLLoaderDataFormat.BINARY;
 				urlLoader.load(new URLRequest(_url));
 			}else{
-				fileREF.addEventListener(Event.SELECT, onFileHaneler);
-				fileREF.browse(FILE_FILTER_ARRAY);
+				_fileREF.addEventListener(Event.SELECT, onFileHaneler);
+				_fileREF.browse(FILE_FILTER_ARRAY);
 			}
 		}
 	
@@ -89,13 +91,13 @@ package control{
 				case Event.SELECT:
 					isLoading = true;
 					MessageDispatcher.dispatchEvent(MessageDispatcher.LOAD_FILEDATA);
-					fileREF.removeEventListener(Event.SELECT, onFileHaneler);
-					fileREF.addEventListener(Event.COMPLETE, onFileHaneler);
-					fileREF.load();
+					_fileREF.removeEventListener(Event.SELECT, onFileHaneler);
+					_fileREF.addEventListener(Event.COMPLETE, onFileHaneler);
+					_fileREF.load();
 					break;
 				case Event.COMPLETE:
-					fileREF.removeEventListener(Event.COMPLETE, onFileHaneler);
-					setData(fileREF.data);
+					_fileREF.removeEventListener(Event.COMPLETE, onFileHaneler);
+					setData(_fileREF.data);
 					break;
 			}
 		}
@@ -192,13 +194,13 @@ package control{
 				if (_bitmap) {
 					var _subTextureXML:XML = tempTextureAtlasXML.elements(ConstValues.SUB_TEXTURE).(attribute(ConstValues.A_NAME) == tempImageName)[0];
 					if(_subTextureXML){
-						helpRect.x = int(_subTextureXML.attribute(ConstValues.A_X));
-						helpRect.y = int(_subTextureXML.attribute(ConstValues.A_Y));
-						helpRect.width = int(_subTextureXML.attribute(ConstValues.A_WIDTH));
-						helpRect.height = int(_subTextureXML.attribute(ConstValues.A_HEIGHT));
-						helpMatirx.tx = helpRect.x;
-						helpMatirx.ty = helpRect.y;
-						tempBitmapData.draw(_bitmap.bitmapData, helpMatirx, null, null, helpRect);
+						_helpRect.x = int(_subTextureXML.attribute(ConstValues.A_X));
+						_helpRect.y = int(_subTextureXML.attribute(ConstValues.A_Y));
+						_helpRect.width = int(_subTextureXML.attribute(ConstValues.A_WIDTH));
+						_helpRect.height = int(_subTextureXML.attribute(ConstValues.A_HEIGHT));
+						_helpMatirx.tx = _helpRect.x;
+						_helpMatirx.ty = _helpRect.y;
+						tempBitmapData.draw(_bitmap.bitmapData, _helpMatirx, null, null, _helpRect);
 					}
 				}
 			}

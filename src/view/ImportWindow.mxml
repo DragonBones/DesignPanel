@@ -2,7 +2,7 @@
 <s:TitleWindow xmlns:fx="http://ns.adobe.com/mxml/2009"
 			   xmlns:s="library://ns.adobe.com/flex/spark"
 			   xmlns:mx="library://ns.adobe.com/flex/mx"
-			   width="310" height="250" title="{resourceManager.getString('resources','import')}"
+			   width="360" height="320" title="{resourceManager.getString('resources','import')}"
 			   close="closeWindow()"
 			   >
 	<fx:Script>
@@ -13,23 +13,25 @@
 			import message.Message;
 			import message.MessageDispatcher;
 			
+			import model.SettingDataProxy;
 			import model.ImportDataProxy;
 			
-			import mx.collections.ArrayCollection;
 			import mx.events.CloseEvent;
-			import mx.events.FlexEvent;
 			import mx.managers.PopUpManager;
 			import mx.resources.ResourceManager;
+			import mx.collections.ArrayCollection;
 			
 			[Bindable]
 			private var dataImportAC:ArrayCollection = new ArrayCollection([
 				ResourceManager.getInstance().getString('resources','allLibraryItems'),
 				ResourceManager.getInstance().getString('resources','selectedItems'),
 				ResourceManager.getInstance().getString('resources','exportedData')
-			]);;
+			]);
 			
-			private function importData():void{
-				switch(ImportDataProxy.getInstance().dataImportID){
+			private function importData():void
+			{
+				switch(SettingDataProxy.getInstance().dataImportID)
+				{
 					case 0:
 						LoadFLADataCommand.instance.load(false);
 						break;
@@ -40,20 +42,21 @@
 						LoadFileDataCommand.instance.load();
 						break;
 				}
-				MessageDispatcher.addEventListener(MessageDispatcher.LOAD_FLADATA, onCommandHandler);
-				MessageDispatcher.addEventListener(MessageDispatcher.LOAD_FILEDATA, onCommandHandler);
+				MessageDispatcher.addEventListener(MessageDispatcher.LOAD_FLADATA, commandHandler);
+				MessageDispatcher.addEventListener(MessageDispatcher.LOAD_FILEDATA, commandHandler);
 			}
 			
-			private function onCommandHandler(_e:Message):void{
+			private function commandHandler(e:Message):void
+			{
 				closeWindow();
 			}
 			
-			private function closeWindow():void{
-				MessageDispatcher.addEventListener(MessageDispatcher.LOAD_FLADATA, onCommandHandler);
-				MessageDispatcher.addEventListener(MessageDispatcher.LOAD_FILEDATA, onCommandHandler);
+			private function closeWindow():void
+			{
+				MessageDispatcher.addEventListener(MessageDispatcher.LOAD_FLADATA, commandHandler);
+				MessageDispatcher.addEventListener(MessageDispatcher.LOAD_FILEDATA, commandHandler);
 				PopUpManager.removePopUp(this);
 			}
-			
 		]]>
 	</fx:Script>
 
@@ -70,41 +73,40 @@
 				<s:SolidColorStroke color="0x000000" weight="1" caps="square"/>
 			</s:stroke>
 		</s:Line>
-		
 	</s:HGroup>
-	<s:VGroup x="10" y="10" width="100" height="150" gap="6" horizontalAlign="right">
-		<s:Label width="100%" height="24" text="{resourceManager.getString('resources','importLabel')}" textAlign="right" verticalAlign="middle"/>
-		<s:Spacer height="25"/>
-		
-
-		<s:Label width="100%" height="24" text="{resourceManager.getString('resources','layoutAlgorithm')}" textAlign="right" verticalAlign="middle"/>
-		<s:Label width="100%" height="24" text="{resourceManager.getString('resources','size')}" textAlign="right" verticalAlign="middle"/>
-		<s:Label width="100%" height="24" text="{resourceManager.getString('resources','padding')}" textAlign="right" verticalAlign="middle"/>
-	</s:VGroup>
-	<s:VGroup x="118" y="10" width="170" gap="6">
-		<s:DropDownList width="100%" height="24" textAlign="right"
-						dataProvider="{dataImportAC}"
-						selectedIndex="@{ImportDataProxy.getInstance().dataImportID}"
-						/>
-		<s:Spacer height="25"/>
-		<s:DropDownList width="100%" height="24" textAlign="right"
-						dataProvider="{ImportDataProxy.getInstance().textureSortAC}"
-						enabled="{!ImportDataProxy.getInstance().isExportedSource}"
-						selectedIndex="@{ImportDataProxy.getInstance().textureSortID}"
-						/>
-		<s:DropDownList width="100%" height="24"
-						change="{ImportDataProxy.getInstance().updateTextures()}" cornerRadius="0" textAlign="right"
-						dataProvider="{ImportDataProxy.getInstance().textureMaxWidthAC}"
-						enabled="{ImportDataProxy.getInstance().textureSortID == 0 &amp;&amp; !ImportDataProxy.getInstance().isExportedSource}"
-						selectedIndex="@{ImportDataProxy.getInstance().textureMaxWidthID}"
-						/>
-		<s:NumericStepper width="100%" height="24" textAlign="right" cornerRadius="0"
-						  maximum="100" minimum="0"
-						  change="{ImportDataProxy.getInstance().updateTextures()}"
-						  enabled="{ImportDataProxy.getInstance().textureSortID == 0 &amp;&amp; !ImportDataProxy.getInstance().isExportedSource}"
-						  value="@{ImportDataProxy.getInstance().texturePadding}"
-						  />
-	</s:VGroup>
+	<s:HGroup left="10" right="10" top="10">
+		<s:VGroup minWidth="100" gap="6" horizontalAlign="right">
+			<s:Label height="24" text="{resourceManager.getString('resources','import') + ':'}" textAlign="right" verticalAlign="middle"/>
+			<s:Spacer height="24"/>
+			<s:Label height="24" text="{resourceManager.getString('resources','layoutAlgorithm')}" textAlign="right" verticalAlign="middle"/>
+			<s:Label height="24" text="{resourceManager.getString('resources','size')}" textAlign="right" verticalAlign="middle"/>
+			<s:Label height="24" text="{resourceManager.getString('resources','padding')}" textAlign="right" verticalAlign="middle"/>
+		</s:VGroup>
+		<s:VGroup width="100%" gap="6">
+			<s:DropDownList width="100%" height="24" textAlign="right"
+							dataProvider="{dataImportAC}"
+							selectedIndex="@{SettingDataProxy.getInstance().dataImportID}"
+							/>
+			<s:Spacer height="25"/>
+			<s:DropDownList width="100%" height="24" textAlign="right"
+							dataProvider="{SettingDataProxy.getInstance().textureSortAC}"
+							enabled="{!ImportDataProxy.getInstance().isExportedSource}"
+							selectedIndex="@{SettingDataProxy.getInstance().textureSortID}"
+							/>
+			<s:DropDownList width="100%" height="24"
+							change="{ImportDataProxy.getInstance().updateTextures()}" cornerRadius="0" textAlign="right"
+							dataProvider="{SettingDataProxy.getInstance().textureMaxWidthAC}"
+							enabled="{SettingDataProxy.getInstance().textureSortID == 0 &amp;&amp; !ImportDataProxy.getInstance().isExportedSource}"
+							selectedIndex="@{SettingDataProxy.getInstance().textureMaxWidthID}"
+							/>
+			<s:NumericStepper width="100%" height="24" textAlign="right" cornerRadius="0"
+							  maximum="100" minimum="0"
+							  change="{ImportDataProxy.getInstance().updateTextures()}"
+							  enabled="{SettingDataProxy.getInstance().textureSortID == 0 &amp;&amp; !ImportDataProxy.getInstance().isExportedSource}"
+							  value="@{SettingDataProxy.getInstance().texturePadding}"
+							  />
+		</s:VGroup>
+	</s:HGroup>
 
 	
 	<s:HGroup left="20" right="20" bottom="20" gap="20" horizontalAlign="center">

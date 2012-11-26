@@ -1,194 +1,222 @@
-﻿package control{
+﻿package control
+{
 	import dragonBones.utils.ConstValues;
-	
-	import flash.events.Event;
-	import flash.net.URLLoader;
-	import flash.net.URLLoaderDataFormat;
-	import flash.net.URLRequest;
 	
 	import makeswfs.make;
 	
 	import message.Message;
 	import message.MessageDispatcher;
 	
-	import model.ImportDataProxy;
 	import model.JSFLProxy;
+	import model.SettingDataProxy;
 	
 	import utils.GlobalConstValues;
 	import utils.TextureUtil;
 	
-	public class LoadFLADataCommand{
+	public class LoadFLADataCommand
+	{
 		public static var instance:LoadFLADataCommand = new LoadFLADataCommand();
 		
-		private var isLoading:Boolean;
+		private var _isLoading:Boolean;
 		
-		private var jsflProxy:JSFLProxy;
+		private var _jsflProxy:JSFLProxy;
 		
-		private var urlLoader:URLLoader;
-		private var skeletonXML:XML;
-		private var textureAtlasXML:XML;
-		private var subTextureXMLList:XMLList;
+		private var _skeletonXML:XML;
+		private var _textureAtlasXML:XML;
+		private var _subTextureXMLList:XMLList;
 		
-		private var totalCount:int;
-		private var armatureNameList:Array;
-		private var subTextureAddedIndex:int;
+		private var _totalCount:int;
+		private var _armatureNameList:Array;
+		private var _subTextureAddedIndex:int;
 		
-		public function LoadFLADataCommand(){
-			urlLoader = new URLLoader();
-			jsflProxy = JSFLProxy.getInstance();
-			
-			MessageDispatcher.addEventListener(JSFLProxy.GET_ARMATURE_LIST, jsflProxyHandler);
-			MessageDispatcher.addEventListener(JSFLProxy.GENERATE_ARMATURE, jsflProxyHandler);
-			MessageDispatcher.addEventListener(JSFLProxy.CLEAR_TEXTURE_SWFITEM, jsflProxyHandler);
-			MessageDispatcher.addEventListener(JSFLProxy.ADD_TEXTURE_TO_SWFITEM, jsflProxyHandler);
+		public function LoadFLADataCommand()
+		{
+			_jsflProxy = JSFLProxy.getInstance();
 		}
 		
-		public function load(_isSelected:Boolean):void{
-			if(isLoading){
+		public function load(isSelected:Boolean):void
+		{
+			if(_isLoading)
+			{
 				return;
 			}
 			//Load bone elements from Flash Pro
-			jsflProxy.getArmatureList(_isSelected);
+			MessageDispatcher.addEventListener(JSFLProxy.GET_ARMATURE_LIST, getArmatureListHandler);
+			_jsflProxy.getArmatureList(isSelected);
 		}
 		
-		private function addAndReadNextArmature(_skeletonXML:XML = null):void{
-			if(_skeletonXML){
-				addSkeletonXML(_skeletonXML);
+		private function getArmatureListHandler(e:Message):void
+		{
+			MessageDispatcher.removeEventListener(JSFLProxy.GET_ARMATURE_LIST, getArmatureListHandler);
+			var result:String = e.parameters[0];
+			if(result == "false")
+			{
+				//no armature element
+				MessageDispatcher.dispatchEvent(MessageDispatcher.LOAD_FLADATA, 0, "");
 			}
-			if(armatureNameList.length == 0){
+			else
+			{
+				//start load armature data
+				_armatureNameList = result.split(",");
+				_totalCount = _armatureNameList.length - 1;
+				MessageDispatcher.dispatchEvent(MessageDispatcher.LOAD_FLADATA, _totalCount, _armatureNameList.shift());
+				if(_totalCount > 0)
+				{
+					_isLoading = true;
+					_skeletonXML = null;
+					readNextArmature();
+				}
+			}
+		}
+		
+		private function readNextArmature():void
+		{
+			var armatureName:String = _armatureNameList.shift();
+			MessageDispatcher.dispatchEvent(MessageDispatcher.LOAD_ARMATURE_DATA, armatureName, _totalCount - _armatureNameList.length, _totalCount);
+			MessageDispatcher.addEventListener(JSFLProxy.GENERATE_ARMATURE, readNextArmatureHandler);
+			_jsflProxy.generateArmature(armatureName);
+		}
+		
+		private function readNextArmatureHandler(e:Message):void
+		{
+			MessageDispatcher.removeEventListener(JSFLProxy.GENERATE_ARMATURE, readNextArmatureHandler);
+			var result:String = e.parameters[0];
+			var skeletonXML:XML = result != "false"?XML(result):null
+			if(skeletonXML)
+			{
+				addSkeletonXML(skeletonXML);
+			}
+			
+			if(_armatureNameList.length > 0)
+			{
+				readNextArmature();
+			}
+			else
+			{
 				//load texture complete, start to place texture
 				MessageDispatcher.dispatchEvent(MessageDispatcher.LOAD_ARMATURE_DATA_COMPLETE);
-				jsflProxy.clearTextureSWFItem();
-				return;
+				MessageDispatcher.addEventListener(JSFLProxy.CLEAR_TEXTURE_SWFITEM, clearTextureAtlasSWFHandler);
+				_jsflProxy.clearTextureSWFItem();
 			}
-			var _armatureName:String = armatureNameList.shift();
-			MessageDispatcher.dispatchEvent(MessageDispatcher.LOAD_ARMATURE_DATA, _armatureName, totalCount - armatureNameList.length, totalCount);
-			jsflProxy.generateArmature(_armatureName);
 		}
 		
-		private function addAndReadNextSubTexture(_subTextureXML:XML = null):void{
-			if(_subTextureXML){
-				textureAtlasXML.appendChild(_subTextureXML);
+		private function clearTextureAtlasSWFHandler(e:Message):void
+		{
+			MessageDispatcher.removeEventListener(JSFLProxy.CLEAR_TEXTURE_SWFITEM, clearTextureAtlasSWFHandler);
+			_textureAtlasXML = _skeletonXML.elements(ConstValues.TEXTURE_ATLAS)[0];
+			_textureAtlasXML[ConstValues.AT + ConstValues.A_NAME] = _skeletonXML[ConstValues.AT + ConstValues.A_NAME];
+			delete _skeletonXML[ConstValues.TEXTURE_ATLAS];
+			_subTextureXMLList = _textureAtlasXML.elements(ConstValues.SUB_TEXTURE);
+			_totalCount = _subTextureXMLList.length();
+			_subTextureAddedIndex = _totalCount - 1;
+			//start to place texture
+			readNextSubTexture();
+		}
+		
+		private function readNextSubTexture():void
+		{
+			var subTextureName:String = _subTextureXMLList[_subTextureAddedIndex].attribute(ConstValues.A_NAME)
+			MessageDispatcher.dispatchEvent(MessageDispatcher.LOAD_TEXTURE_DATA, subTextureName, _totalCount - _subTextureAddedIndex, _totalCount);
+			
+			MessageDispatcher.addEventListener(JSFLProxy.ADD_TEXTURE_TO_SWFITEM, readNextSubTextureHandler);
+			_jsflProxy.addTextureToSWFItem(subTextureName, _subTextureAddedIndex == 0);
+			
+			delete _subTextureXMLList[_subTextureAddedIndex];
+			_subTextureAddedIndex --;
+		}
+		
+		private function readNextSubTextureHandler(e:Message):void
+		{
+			MessageDispatcher.removeEventListener(JSFLProxy.ADD_TEXTURE_TO_SWFITEM, readNextSubTextureHandler);
+			
+			var result:String = e.parameters[0];
+			var subTextureXML:XML = result != "false"?XML(result):null;
+			if(subTextureXML)
+			{
+				_textureAtlasXML.appendChild(subTextureXML);
 			}
-			if(subTextureAddedIndex < 0){
+			
+			if(_subTextureAddedIndex >= 0)
+			{
+				readNextSubTexture();
+			}
+			else
+			{
 				//load texture complete, start to place texture
 				MessageDispatcher.dispatchEvent(MessageDispatcher.LOAD_TEXTURE_DATA_COMPLETE);
-				MessageDispatcher.addEventListener(JSFLProxy.PACK_TEXTURES, jsflProxyHandler);
-				TextureUtil.packTextures(ImportDataProxy.getInstance().textureMaxWidth, ImportDataProxy.getInstance().texturePadding, textureAtlasXML);
-				jsflProxy.packTextures(textureAtlasXML);
-				return;
-			}
-			var _subTextureName:String = subTextureXMLList[subTextureAddedIndex].attribute(ConstValues.A_NAME)
-			MessageDispatcher.dispatchEvent(MessageDispatcher.LOAD_TEXTURE_DATA, _subTextureName, totalCount - subTextureAddedIndex, totalCount);
-			jsflProxy.addTextureToSWFItem(_subTextureName, subTextureAddedIndex == 0);
-			delete subTextureXMLList[subTextureAddedIndex];
-			subTextureAddedIndex --;
-		}
-		
-		private function jsflProxyHandler(_e:Message):void{
-			var _result:String = _e.parameters[0];
-			switch(_e.type){
-				case JSFLProxy.GET_ARMATURE_LIST:
-					if(_result == "false"){
-						//no armature element
-						MessageDispatcher.dispatchEvent(MessageDispatcher.LOAD_FLADATA, 0);
-					}else{
-						//start load armature data
-						armatureNameList = _result.split(",");
-						totalCount = armatureNameList.length - 1;
-						MessageDispatcher.dispatchEvent(MessageDispatcher.LOAD_FLADATA, totalCount, armatureNameList.shift());
-						if(totalCount > 0){
-							isLoading = true;
-							skeletonXML = null;
-							addAndReadNextArmature();
-						}
-					}
-					break;
-				case JSFLProxy.GENERATE_ARMATURE:
-					//read next Armature data
-					addAndReadNextArmature(_result != "false"?XML(_result):null);
-					break;
-				case JSFLProxy.CLEAR_TEXTURE_SWFITEM:
-					textureAtlasXML = skeletonXML.elements(ConstValues.TEXTURE_ATLAS)[0];
-					textureAtlasXML[ConstValues.AT + ConstValues.A_NAME] = skeletonXML[ConstValues.AT + ConstValues.A_NAME];
-					delete skeletonXML[ConstValues.TEXTURE_ATLAS];
-					subTextureXMLList = textureAtlasXML.elements(ConstValues.SUB_TEXTURE);
-					totalCount = subTextureXMLList.length();
-					subTextureAddedIndex = totalCount - 1;
-					//start to place texture
-					addAndReadNextSubTexture();
-					break;
-				case JSFLProxy.ADD_TEXTURE_TO_SWFITEM:
-					//place texture one by one
-					addAndReadNextSubTexture(_result != "false"?XML(_result):null);
-					break;
-				case JSFLProxy.PACK_TEXTURES:
-					//placed textures finished and then export
-					MessageDispatcher.removeEventListener(JSFLProxy.PACK_TEXTURES, jsflProxyHandler);
-					MessageDispatcher.addEventListener(JSFLProxy.EXPORT_SWF, jsflProxyHandler);
-					jsflProxy.exportSWF();
-					break;
-				case JSFLProxy.EXPORT_SWF:
-					//export swf finised, then load
-					MessageDispatcher.removeEventListener(JSFLProxy.EXPORT_SWF, jsflProxyHandler);
-					MessageDispatcher.dispatchEvent(MessageDispatcher.LOAD_SWF);
-					urlLoader.addEventListener(Event.COMPLETE, onURLLoaderCompleteHandler);
-					urlLoader.dataFormat = URLLoaderDataFormat.BINARY;
-					urlLoader.load(new URLRequest(_result));
-					break;
+				TextureUtil.packTextures(SettingDataProxy.getInstance().textureMaxWidth, SettingDataProxy.getInstance().texturePadding, _textureAtlasXML);
+				MessageDispatcher.addEventListener(JSFLProxy.PACK_TEXTURES, packTextureAtlasHandler);
+				_jsflProxy.packTextures(_textureAtlasXML);
 			}
 		}
 		
-		private function addSkeletonXML(_skeletonXML:XML):void{
-			if(skeletonXML){
-				var _xmlList1:XMLList;
-				var _xmlList2:XMLList;
-				var _node1:XML;
-				var _node2:XML;
-				var _name:String;
-				
-				_xmlList1 = skeletonXML.elements(ConstValues.ARMATURES).elements(ConstValues.ARMATURE);
-				_xmlList2 = _skeletonXML.elements(ConstValues.ARMATURES).elements(ConstValues.ARMATURE);
-				for each(_node2 in _xmlList2){
-					_name = _node2.attribute(ConstValues.A_NAME);
-					_node1 = _xmlList1.(attribute(ConstValues.A_NAME) == _name)[0];
-					if(_node1){
-						delete _xmlList1[_node1.childIndex()];
-					}
-					skeletonXML.elements(ConstValues.ARMATURES).appendChild(_node2);
-				}
-				
-				_xmlList1 = skeletonXML.elements(ConstValues.ANIMATIONS).elements(ConstValues.ANIMATION);
-				_xmlList2 = _skeletonXML.elements(ConstValues.ANIMATIONS).elements(ConstValues.ANIMATION);
-				for each(_node2 in _xmlList2){
-					_name = _node2.attribute(ConstValues.A_NAME);
-					_node1 = _xmlList1.(attribute(ConstValues.A_NAME) == _name)[0];
-					if(_node1){
-						delete _xmlList1[_node1.childIndex()];
-					}
-					skeletonXML.elements(ConstValues.ANIMATIONS).appendChild(_node2);
-				}
-				
-				_xmlList1 = skeletonXML.elements(ConstValues.TEXTURE_ATLAS).elements(ConstValues.SUB_TEXTURE);
-				_xmlList2 = _skeletonXML.elements(ConstValues.TEXTURE_ATLAS).elements(ConstValues.SUB_TEXTURE);
-				for each(_node2 in _xmlList2){
-					_name = _node2.attribute(ConstValues.A_NAME);
-					_node1 = _xmlList1.(attribute(ConstValues.A_NAME) == _name)[0];
-					if(_node1){
-						delete _xmlList1[_node1.childIndex()];
-					}
-					skeletonXML.elements(ConstValues.TEXTURE_ATLAS).appendChild(_node2);
-				}
-			}else{
-				skeletonXML = _skeletonXML;
-			}
+		private function packTextureAtlasHandler(e:Message):void
+		{
+			MessageDispatcher.removeEventListener(JSFLProxy.PACK_TEXTURES, packTextureAtlasHandler);
+			MessageDispatcher.addEventListener(MessageDispatcher.FLA_TEXTURE_ATLAS_SWF_LOADED, flaExportSWFHandler);
+			FLAExportSWFCommand.instance.exportSWF();
 		}
 		
-		private function onURLLoaderCompleteHandler(_e:Event):void{
-			isLoading = false;
-			urlLoader.removeEventListener(Event.COMPLETE, onURLLoaderCompleteHandler);
-			skeletonXML[ConstValues.AT + ConstValues.A_VERSION] = ConstValues.VERSION;
-			MessageDispatcher.dispatchEvent(MessageDispatcher.LOAD_SWF_COMPLETE, skeletonXML, textureAtlasXML, make(_e.target.data, textureAtlasXML));
+		private function flaExportSWFHandler(e:Message):void
+		{
+			_isLoading = false;
+			_skeletonXML[ConstValues.AT + ConstValues.A_VERSION] = ConstValues.VERSION;
+			MessageDispatcher.dispatchEvent(MessageDispatcher.LOAD_SWF_COMPLETE, _skeletonXML, _textureAtlasXML, make(e.parameters[0], _textureAtlasXML));
+		}
+		
+		private function addSkeletonXML(skeletonXML:XML):void
+		{
+			if(_skeletonXML)
+			{
+				var xmlList1:XMLList;
+				var xmlList2:XMLList;
+				var node1:XML;
+				var node2:XML;
+				var nodeName:String;
+				
+				xmlList1 = _skeletonXML.elements(ConstValues.ARMATURES).elements(ConstValues.ARMATURE);
+				xmlList2 = skeletonXML.elements(ConstValues.ARMATURES).elements(ConstValues.ARMATURE);
+				for each(node2 in xmlList2)
+				{
+					nodeName = node2.attribute(ConstValues.A_NAME);
+					node1 = xmlList1.(attribute(ConstValues.A_NAME) == nodeName)[0];
+					if(node1)
+					{
+						delete xmlList1[node1.childIndex()];
+					}
+					_skeletonXML.elements(ConstValues.ARMATURES).appendChild(node2);
+				}
+				
+				xmlList1 = _skeletonXML.elements(ConstValues.ANIMATIONS).elements(ConstValues.ANIMATION);
+				xmlList2 = skeletonXML.elements(ConstValues.ANIMATIONS).elements(ConstValues.ANIMATION);
+				for each(node2 in xmlList2)
+				{
+					nodeName = node2.attribute(ConstValues.A_NAME);
+					node1 = xmlList1.(attribute(ConstValues.A_NAME) == nodeName)[0];
+					if(node1)
+					{
+						delete xmlList1[node1.childIndex()];
+					}
+					_skeletonXML.elements(ConstValues.ANIMATIONS).appendChild(node2);
+				}
+				
+				xmlList1 = _skeletonXML.elements(ConstValues.TEXTURE_ATLAS).elements(ConstValues.SUB_TEXTURE);
+				xmlList2 = skeletonXML.elements(ConstValues.TEXTURE_ATLAS).elements(ConstValues.SUB_TEXTURE);
+				for each(node2 in xmlList2)
+				{
+					nodeName = node2.attribute(ConstValues.A_NAME);
+					node1 = xmlList1.(attribute(ConstValues.A_NAME) == nodeName)[0];
+					if(node1)
+					{
+						delete xmlList1[node1.childIndex()];
+					}
+					_skeletonXML.elements(ConstValues.TEXTURE_ATLAS).appendChild(node2);
+				}
+			}
+			else
+			{
+				_skeletonXML = skeletonXML;
+			}
 		}
 	}
 }

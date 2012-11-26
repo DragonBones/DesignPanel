@@ -2,22 +2,22 @@
 <s:TitleWindow xmlns:fx="http://ns.adobe.com/mxml/2009"
 		 xmlns:s="library://ns.adobe.com/flex/spark"
 		 xmlns:mx="library://ns.adobe.com/flex/mx"
-		 width="310" height="250" title="{resourceManager.getString('resources','export')}"
+		 width="360" height="320" title="{resourceManager.getString('resources','export')}"
 		 close="closeWindow()"
 		 >
 	<fx:Script>
 		<![CDATA[
-			import control.ExportDataCommand;
+			import mx.events.CloseEvent;
+			import mx.managers.PopUpManager;
+			import mx.collections.ArrayCollection;
 			
 			import message.Message;
 			import message.MessageDispatcher;
 			
-			import model.ExportDataProxy;
-			import model.ImportDataProxy;
+			import control.ExportDataCommand;
 			
-			import mx.collections.ArrayCollection;
-			import mx.events.CloseEvent;
-			import mx.managers.PopUpManager;
+			import model.SettingDataProxy;
+			import model.ImportDataProxy;
 			import mx.resources.ResourceManager;
 			
 			[Bindable]
@@ -29,41 +29,50 @@
 				ResourceManager.getInstance().getString('resources','ZIPwithXMLAndPNGs')
 			]);
 			
-			private function exportData():void{
-				if(!ImportDataProxy.getInstance().skeletonName){
+			private function exportData():void
+			{
+				if(!ImportDataProxy.getInstance().skeletonName)
+				{
 					return;
 				}
-				MessageDispatcher.addEventListener(MessageDispatcher.EXPORT, onCommandHandler);
-				ExportDataCommand.instance.export(ExportDataProxy.getInstance().dataExportID);
+				MessageDispatcher.addEventListener(MessageDispatcher.EXPORT, commandHandler);
+				ExportDataCommand.instance.export(SettingDataProxy.getInstance().dataExportID);
 			}
 			
-			private function onCommandHandler(_e:Message):void{
+			private function commandHandler(e:Message):void
+			{
 				closeWindow();
 			}
 			
-			private function closeWindow():void{
-				MessageDispatcher.removeEventListener(MessageDispatcher.EXPORT, onCommandHandler);
+			private function closeWindow():void
+			{
+				MessageDispatcher.removeEventListener(MessageDispatcher.EXPORT, commandHandler);
 				PopUpManager.removePopUp(this);
 			}
 		]]>
 	</fx:Script>
-	<s:VGroup x="10" y="10" width="100" height="150" gap="6" horizontalAlign="right">
-		<s:Label width="100%" height="24" textAlign="right" verticalAlign="middle"
-				 text="{resourceManager.getString('resources','exportLabel')}"
-				 />
-	</s:VGroup>
-	<s:VGroup x="118" y="10" width="170" height="150" gap="6">
-		<s:DropDownList width="100%" height="24" cornerRadius="0" textAlign="right"
-					dataProvider="{dataExportAC}"
-					selectedIndex="@{ExportDataProxy.getInstance().dataExportID}"
-					/>
-	</s:VGroup>
-	<s:Button right="140" bottom="20" width="100" height="24" cornerRadius="0"
-			  label="{resourceManager.getString('resources','ok')}"
-			  click="exportData()"
-			  />
-	<s:Button right="20" bottom="20" width="100" height="24" cornerRadius="0"
-			  label="{resourceManager.getString('resources','cancel')}" 
-			  click="closeWindow()"
-			  />
+	<s:HGroup left="10" right="10" top="10">
+		<s:VGroup minWidth="100" gap="6" horizontalAlign="right">
+			<s:Label height="24" textAlign="right" verticalAlign="middle"
+					 text="{resourceManager.getString('resources','export') + ':'}"
+					 />
+		</s:VGroup>
+		<s:VGroup width="100%" gap="6">
+			<s:DropDownList width="100%" height="24" cornerRadius="0" textAlign="right"
+							dataProvider="{dataExportAC}"
+							selectedIndex="@{SettingDataProxy.getInstance().dataExportID}"
+							/>
+		</s:VGroup>
+	</s:HGroup>
+	
+	<s:HGroup left="20" right="20" bottom="20" gap="20" horizontalAlign="center">
+		<s:Button width="100" height="24" cornerRadius="0"
+				  label="{resourceManager.getString('resources','ok')}" 
+				  click="exportData()"
+				  />
+		<s:Button width="100" height="24" cornerRadius="0"
+				  label="{resourceManager.getString('resources','cancel')}"
+				  click="closeWindow()"
+				  />
+	</s:HGroup>
 </s:TitleWindow>

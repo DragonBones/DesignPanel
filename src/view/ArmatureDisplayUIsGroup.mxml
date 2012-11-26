@@ -25,89 +25,91 @@
 			
 			use namespace dragonBones_internal;
 			
-			private var importDataProxy:ImportDataProxy = ImportDataProxy.getInstance();
+			private static const MIN_SCALE:Number = 0.2;
+			private static const MAX_SCALE:Number = 10;
 			
-			private var armatureContainer:Sprite;
-			private var bgShape:Shape;
-			private var lineX:Shape;
-			private var lineY:Shape;
-			private var boneDisplaySelected:Object;
-			private var boneDisplayRollOver:Object;
-			private var boneHighlightFilter:GlowFilter;
-			private var boneRolloverFilter:GlowFilter;
+			private static var  _pointHelp:Point = new Point();
 			
-			private var isDragedArmature:Boolean;
-			private var pointDragInBone:Point = new Point();
-			private var pointDragGlobal:Point = new Point();
-			private var pointScrollBarDrag:Point = new Point();
+			private var _importDataProxy:ImportDataProxy = ImportDataProxy.getInstance();
 			
-			private var pointHelp:Point = new Point();
+			private var _armatureContainer:Sprite;
+			private var _bgShape:Shape;
+			private var _originLineX:Shape;
+			private var _originlineY:Shape;
+			private var _boneDisplaySelected:Object;
+			private var _boneDisplayRollOver:Object;
+			private var _boneHighlightFilter:GlowFilter;
+			private var _boneRolloverFilter:GlowFilter;
 			
-			private var armatreArea:Rectangle;
+			private var _isDragedArmature:Boolean;
+			private var _pointDragGlobal:Point = new Point();
+			private var _pointScrollBarDrag:Point = new Point();
 			
-			private var link:LinkClip;
+			private var _armatreArea:Rectangle;
 			
-			private const MIN_SCALE:Number = 0.2;
-			private const MAX_SCALE:Number = 10;
-			public var __viewScale:Number = 0;
+			private var _boneBinder:LinkClip;
+			
+			private var _isMouseIn:Boolean;
+			private var _isMouseDown:Boolean;
+			
+			private var _viewScale:Number = 1;
 			public function get viewScale():Number{
-				return __viewScale;
+				return _viewScale;
 			}
-			public function set viewScale(_viewScale:Number):void{
-				if(_viewScale < MIN_SCALE){
-					_viewScale = MIN_SCALE
-				}else if(_viewScale > MAX_SCALE){
-					_viewScale = MAX_SCALE;
+			public function set viewScale(value:Number):void{
+				if(value < MIN_SCALE){
+					value = MIN_SCALE;
+				}else if(value > MAX_SCALE){
+					value = MAX_SCALE;
 				}
-				__viewScale = _viewScale;
-				if(armatureDisplay){
-					armatureDisplay.scaleX = armatureDisplay.scaleY = __viewScale;
+				_viewScale = value;
+				if(_armatureDisplay){
+					_armatureDisplay.scaleX = _armatureDisplay.scaleY = _viewScale;
 				}
-				sliderScale.value = __viewScale;
+				sliderScale.value = _viewScale;
 			}
 			
-			private function get armatureDisplay():DisplayObjectContainer{
-				return (importDataProxy.armature?importDataProxy.armature.display:null) as DisplayObjectContainer;
+			private function get _armatureDisplay():DisplayObjectContainer{
+				return (_importDataProxy.armature?_importDataProxy.armature.display:null) as DisplayObjectContainer;
 			}
 			
 			private function addedToStageHandler(event:Event):void{
-				armatureContainer = new Sprite();
+				_armatureContainer = new Sprite();
 				
-				link = new LinkClip();
-				link.mouseChildren = false;
-				link.mouseEnabled = false;
-				link.visible = false;
+				_boneBinder = new LinkClip();
+				_boneBinder.mouseChildren = false;
+				_boneBinder.mouseEnabled = false;
+				_boneBinder.visible = false;
 				
-				bgShape = new Shape();
-				bgShape.graphics.beginFill(0xFF00FF, 0);
-				bgShape.graphics.drawRect(0,0,10,10);
+				_bgShape = new Shape();
+				_bgShape.graphics.beginFill(0xFF00FF, 0);
+				_bgShape.graphics.drawRect(0,0,10,10);
 				
-				lineX = new Shape();
-				lineX.cacheAsBitmap = true;
-				lineX.x = -1;
-				lineY = new Shape();
-				lineY.cacheAsBitmap = true;
-				lineY.y = -1;
-				lineX.graphics.lineStyle(0, 0x999999,1,true);
-				lineX.graphics.lineTo(0,2048);
-				lineY.graphics.lineStyle(0, 0x999999,1,true);
-				lineY.graphics.lineTo(2048,0);
+				_originLineX = new Shape();
+				_originLineX.cacheAsBitmap = true;
+				_originLineX.x = -1;
+				_originlineY = new Shape();
+				_originlineY.cacheAsBitmap = true;
+				_originlineY.y = -1;
+				_originLineX.graphics.lineStyle(0, 0x999999,1,true);
+				_originLineX.graphics.lineTo(0,2048);
+				_originlineY.graphics.lineStyle(0, 0x999999,1,true);
+				_originlineY.graphics.lineTo(2048,0);
 				
-				armatureContainer.buttonMode = true;
-				armatureContainer.doubleClickEnabled = true;
-				armatureContainer.addChild(bgShape);
-				armatureContainer.addEventListener(Event.ENTER_FRAME, onEnterFrameHandler);
+				_armatureContainer.buttonMode = true;
+				_armatureContainer.doubleClickEnabled = true;
+				_armatureContainer.addChild(_bgShape);
+				_armatureContainer.addEventListener(Event.ENTER_FRAME, enterFrameHandler);
 				
-				armatureContainer.addEventListener(MouseEvent.ROLL_OVER, containerMouseHandler);
-				armatureContainer.addEventListener(MouseEvent.ROLL_OUT, containerMouseHandler);
-				armatureContainer.addEventListener(MouseEvent.MOUSE_MOVE, containerMouseHandler);
-				armatureContainer.addEventListener(MouseEvent.MOUSE_DOWN, containerMouseHandler);
-				armatureContainer.addEventListener(MouseEvent.MOUSE_WHEEL, containerMouseHandler);
-				armatureContainer.addEventListener(MouseEvent.DOUBLE_CLICK, containerMouseHandler);
+				_armatureContainer.addEventListener(MouseEvent.ROLL_OVER, containerMouseHandler);
+				_armatureContainer.addEventListener(MouseEvent.ROLL_OUT, containerMouseHandler);
+				_armatureContainer.addEventListener(MouseEvent.MOUSE_DOWN, containerMouseHandler);
+				_armatureContainer.addEventListener(MouseEvent.MOUSE_WHEEL, containerMouseHandler);
+				_armatureContainer.addEventListener(MouseEvent.DOUBLE_CLICK, containerMouseHandler);
 				
-				viewContainer.addChild(lineX);
-				viewContainer.addChild(lineY);
-				viewContainer.addChild(armatureContainer);
+				viewContainer.addChild(_originLineX);
+				viewContainer.addChild(_originlineY);
+				viewContainer.addChild(_armatureContainer);
 				
 				btnZoomIn.addEventListener(MouseEvent.CLICK, scaleHandler);
 				btnZoomOut.addEventListener(MouseEvent.CLICK, scaleHandler);
@@ -118,206 +120,216 @@
 				
 				MessageDispatcher.addEventListener(MessageDispatcher.CHANGE_IMPORT_DATA, commandHandler);
 				MessageDispatcher.addEventListener(MessageDispatcher.CHANGE_ARMATURE_DATA, commandHandler);
-				MessageDispatcher.addEventListener(MessageDispatcher.CHANGE_MOVEMENT_DATA, commandHandler);
 				MessageDispatcher.addEventListener(MessageDispatcher.CHANGE_BONE_DATA, commandHandler);
-				MessageDispatcher.addEventListener(MessageDispatcher.UPDATE_MOVEMENT_DATA, commandHandler);
-				MessageDispatcher.addEventListener(MessageDispatcher.UPDATE_MOVEMENT_BONE_DATA, commandHandler);
-				MessageDispatcher.addEventListener(MessageDispatcher.UPDATE_BONE_PARENT, commandHandler);
 				
 				MessageDispatcher.addEventListener(MessageDispatcher.VIEW_BONE_HIGHLIGHT_CHANGE, commandHandler);
 				
-				MessageDispatcher.addEventListener(MessageDispatcher.MOVEMENT_CHANGE, commandHandler);
 			}
 			
-			private function commandHandler(_e:Message):void{
-				var _movementName:String;
-				switch(_e.type){
+			private function commandHandler(e:Message):void
+			{
+				switch(e.type)
+				{
 					case MessageDispatcher.CHANGE_IMPORT_DATA:
-						if(!boneHighlightFilter){
-							boneHighlightFilter = new GlowFilter(
-								ShareObjectDataProxy.getInstance().getData("boneHighlightColor"),
-									0.5,8,8,4);
+						var _color:uint = ShareObjectDataProxy.getInstance().getData("boneHighlightColor");
+						if(!_boneHighlightFilter)
+						{
+							_boneHighlightFilter = new GlowFilter(_color,0.5,8,8,4);
 						}
-						if(!boneRolloverFilter){
-							boneRolloverFilter = new GlowFilter(
-								ShareObjectDataProxy.getInstance().getData("boneHighlightColor"),
-									0.5,2,2,32);
+						if(!_boneRolloverFilter)
+						{
+							_boneRolloverFilter = new GlowFilter(_color,0.5,2,2,32);
 						}
 						break;
 					case MessageDispatcher.CHANGE_ARMATURE_DATA:
-						isDragedArmature = false;
-						armatreArea = null;
+						_isDragedArmature = false;
+						_armatreArea = null;
 						//armatureContainer.removeChildren();
-						var _length:uint = armatureContainer.numChildren;
-						for(var _i:int = _length - 1;_i >= 0;_i --){
-							armatureContainer.removeChildAt(_i);
+						var length:uint = _armatureContainer.numChildren;
+						for(var i:int = length - 1;i >= 0;i --)
+						{
+							_armatureContainer.removeChildAt(i);
 						}
 						
-						if(armatureDisplay){
-							viewScale = 1;
-							armatureContainer.addChild(bgShape);
-							armatureContainer.addChild(armatureDisplay);
-							for(_i = armatureDisplay.numChildren - 1; _i >= 0;_i --){
-								var _child:Sprite = armatureDisplay.getChildAt(_i) as Sprite;
-								if(_child){
-									_child.mouseChildren = false;
+						if(_armatureDisplay)
+						{
+							_armatureContainer.addChild(_bgShape);
+							_armatureContainer.addChild(_armatureDisplay);
+							for(i = _armatureDisplay.numChildren - 1; i >= 0;i --)
+							{
+								var child:Sprite = _armatureDisplay.getChildAt(i) as Sprite;
+								if(child)
+								{
+									child.mouseChildren = false;
 								}
 							}
 						}
+						viewScale = viewScale;
 						break;
 					case MessageDispatcher.CHANGE_BONE_DATA:
 						highlightBoneDisplay();
 						break;
-					case MessageDispatcher.CHANGE_MOVEMENT_DATA:
-						changeRenderMovement(_e.parameters[0], false, _e.parameters[1]);
-						break;
-					case MessageDispatcher.UPDATE_MOVEMENT_DATA:
-					case MessageDispatcher.UPDATE_MOVEMENT_BONE_DATA:
-						changeRenderMovement(_e.parameters[0], true);
-						break;
-					case MessageDispatcher.UPDATE_BONE_PARENT:
-						updateRenderBoneParent(_e.parameters[0]);
-						break;
 					case MessageDispatcher.VIEW_BONE_HIGHLIGHT_CHANGE:
-						boneRolloverFilter.color = boneHighlightFilter.color = _e.parameters[0];
+						if(_boneRolloverFilter)
+						{
+							_boneRolloverFilter.color = _boneHighlightFilter.color = e.parameters[0];
+						}
 						highlightBoneDisplay();
-						break;
-					case MessageDispatcher.MOVEMENT_CHANGE:
-						importDataProxy.animationDataProxy.changeMovement(_e.parameters[0], true);
 						break;
 				}
 			}
 			
-			private function onEnterFrameHandler(_e:Event):void{
-				importDataProxy.render();
-				var _display:Object = armatureDisplay;
-				if(_display){
+			private function enterFrameHandler(e:Event):void
+			{
+				_importDataProxy.render();
+				var display:Object = _armatureDisplay;
+				if(display)
+				{
+					var rect:Rectangle = display.getRect(display);
 					
-					var _rect:Rectangle = _display.getRect(_display);
-					
-					if(armatreArea){
-						armatreArea.left = Math.min(armatreArea.left, _rect.left);
-						armatreArea.top = Math.min(armatreArea.top, _rect.top);
-						armatreArea.right = Math.max(armatreArea.right, _rect.right);
-						armatreArea.bottom = Math.max(armatreArea.bottom, _rect.bottom);
-					}else{
-						armatreArea = _rect;
+					if(_armatreArea)
+					{
+						_armatreArea.left = Math.min(_armatreArea.left, rect.left);
+						_armatreArea.top = Math.min(_armatreArea.top, rect.top);
+						_armatreArea.right = Math.max(_armatreArea.right, rect.right);
+						_armatreArea.bottom = Math.max(_armatreArea.bottom, rect.bottom);
+					}
+					else
+					{
+						_armatreArea = rect;
 					}
 					
-					var _x:int = armatreArea.x * __viewScale;
-					var _y:int = armatreArea.y * __viewScale;
-					var _width:uint = armatreArea.width * __viewScale;
-					var _height:uint = armatreArea.height * __viewScale;
+					var x:int = _armatreArea.x * _viewScale;
+					var y:int = _armatreArea.y * _viewScale;
+					var width:uint = _armatreArea.width * _viewScale;
+					var height:uint = _armatreArea.height * _viewScale;
 					
-					var _smallW:Boolean;
-					var _smallH:Boolean;
-					if(_width < width){
-						_smallW = true;
-						_display.x = (width - _width) * 0.5 - _x;
-					}else{
-						_width += 200;
-						_display.x = 100 - _x;
+					var smallW:Boolean;
+					var smallH:Boolean;
+					if(width < this.width)
+					{
+						smallW = true;
+						display.x = (this.width - width) * 0.5 - x;
 					}
-					if(_height < height){
-						_smallH = true;
-						_display.y = (height - _height) * 0.5 - _y;
-					}else{
-						_height += 120;
-						_display.y = 60 - _y;
+					else
+					{
+						width += 200;
+						display.x = 100 - x;
 					}
 					
-					
-					if(_smallW && _smallH){
-						isDragedArmature = false;
+					if(height < this.height)
+					{
+						smallH = true;
+						display.y = (this.height - height) * 0.5 - y;
+					}
+					else
+					{
+						height += 120;
+						display.y = 60 - y;
 					}
 					
-					lineX.x = _display.x;
-					lineY.y = _display.y;
 					
-					bgShape.width = viewContainerGroup.width = Math.max(_width, width);
-					bgShape.height = viewContainerGroup.height = Math.max(_height, height);
+					if(smallW && smallH)
+					{
+						_isDragedArmature = false;
+					}
 					
-					if(isMouseDown){
-						scrollerViewer.horizontalScrollBar.value = pointDragGlobal.x - stage.mouseX + pointScrollBarDrag.x;
-						scrollerViewer.verticalScrollBar.value = pointDragGlobal.y - stage.mouseY + pointScrollBarDrag.y;
-					}else if(!isDragedArmature){
-						scrollerViewer.horizontalScrollBar.value = (_width - width) * 0.5;
-						scrollerViewer.verticalScrollBar.value = (_height - height) * 0.5;
+					_originLineX.x = display.x;
+					_originlineY.y = display.y;
+					
+					_bgShape.width = viewContainerGroup.width = Math.max(width, this.width);
+					_bgShape.height = viewContainerGroup.height = Math.max(height, this.height);
+					
+					if(_isMouseDown)
+					{
+						scrollerViewer.horizontalScrollBar.value = _pointDragGlobal.x - stage.mouseX + _pointScrollBarDrag.x;
+						scrollerViewer.verticalScrollBar.value = _pointDragGlobal.y - stage.mouseY + _pointScrollBarDrag.y;
+					}
+					else if(!_isDragedArmature)
+					{
+						scrollerViewer.horizontalScrollBar.value = (width - this.width) * 0.5;
+						scrollerViewer.verticalScrollBar.value = (height - this.height) * 0.5;
 					}
 					
 					updateOverAndOut();
-					//updateBoneLink();
+					updateBoneBinder();
 				}
 			}
 			
-			private function scrollBarHandler(e:Event):void{
-				isDragedArmature = true;
+			private function scrollBarHandler(e:Event):void
+			{
+				_isDragedArmature = true;
 			}
 			
-			private var isMouseIn:Boolean;
-			private var isMouseDown:Boolean;
-			
-			private function containerMouseHandler(_e:MouseEvent):void{
-				var _display:DisplayObjectContainer = armatureDisplay;
-				if(!_display){
+			private function containerMouseHandler(e:MouseEvent):void
+			{
+				var display:DisplayObjectContainer = _armatureDisplay;
+				if(!display)
+				{
 					return;
 				}
-				var _mouseTarget:DisplayObject;
-				switch(_e.type){
+				var mouseTarget:DisplayObject;
+				switch(e.type)
+				{
 					case MouseEvent.ROLL_OVER:
-						isMouseIn = true;
+						_isMouseIn = true;
 						break;
 					case MouseEvent.ROLL_OUT:
-						isMouseIn = false;
+						_isMouseIn = false;
 						break;
 					case MouseEvent.MOUSE_MOVE:
-						/*
-						armatureContainer.addChild(link);
-						link.visible = true;
-						updateBoneLink();*/
+						
+						//_armatureContainer.addChild(_boneBinder);
+						//_boneBinder.visible = true;
+						//updateBoneBinder();
 						break;
 					case MouseEvent.MOUSE_DOWN:
-						isMouseDown = true;
+						_isMouseDown = true;
 						Mouse.cursor = MouseCursor.HAND;
-						if(stage){
+						if(stage)
+						{
 							stage.addEventListener(MouseEvent.MOUSE_UP, containerMouseHandler);
 						}
-						isDragedArmature = true;
-						pointDragGlobal.x = stage.mouseX;
-						pointDragGlobal.y = stage.mouseY;
-						pointScrollBarDrag.x = scrollerViewer.horizontalScrollBar.value;
-						pointScrollBarDrag.y = scrollerViewer.verticalScrollBar.value;
+						_isDragedArmature = true;
+						_pointDragGlobal.x = stage.mouseX;
+						_pointDragGlobal.y = stage.mouseY;
+						_pointScrollBarDrag.x = scrollerViewer.horizontalScrollBar.value;
+						_pointScrollBarDrag.y = scrollerViewer.verticalScrollBar.value;
 						break;
 					case MouseEvent.MOUSE_UP:
-						isMouseDown = false;
+						_isMouseDown = false;
 						Mouse.cursor = MouseCursor.AUTO;
-						if(stage){
+						if(stage)
+						{
 							stage.removeEventListener(MouseEvent.MOUSE_UP, containerMouseHandler);
 						}
 						
-						if(boneDisplayRollOver){
-							selectedBoneByDisplay(boneDisplayRollOver);
+						if(_boneDisplayRollOver)
+						{
+							selectedBoneByDisplay(_boneDisplayRollOver);
 							//pointStart.x = boneDisplaySelected.mouseX;
 							//pointStart.y = boneDisplaySelected.mouseY;
 						}
-						/*
-						link.visible = false;
-						if(boneDisplaySelected && boneDisplayRollOver && _e.target == boneDisplayRollOver){
+						
+						_boneBinder.visible = false;
+						if(_boneDisplaySelected && _boneDisplayRollOver && e.target == _boneDisplayRollOver){
 							boneAddToParent();
-						}*/
+						}
 						break;
 					case MouseEvent.MOUSE_WHEEL:
-						_e.delta > 0?(viewScale += 0.2):(viewScale -= 0.2);
+						e.delta > 0?(viewScale += 0.2):(viewScale -= 0.2);
 						break;
 					case MouseEvent.DOUBLE_CLICK:
-						isDragedArmature = false;
+						_isDragedArmature = false;
 						viewScale = 1;
 						break;
 				}
 			}
 			
-			private function scaleHandler(_e:Event):void{
-				switch(_e.target){
+			private function scaleHandler(_e:Event):void
+			{
+				switch(_e.target)
+				{
 					case btnZoomIn:
 						viewScale += 0.5;
 						break
@@ -330,126 +342,151 @@
 				}
 			}
 			
-			private function changeRenderMovement(_movementName:String, _autoPlay:Boolean = false, _isChangedByArmature:Boolean = false):void{
-				if(_movementName && importDataProxy.armature && !_isChangedByArmature){
-					if(_autoPlay?importDataProxy.armature.animation.isPlaying:true){
-						importDataProxy.armature.animation.gotoAndPlay(_movementName);
-					}
-				}
-			}
-			
-			private function updateRenderBoneParent(_boneName:String):void{
-				if(importDataProxy.armature){
-					importDataProxy.updateArmatureBoneOrigin(_boneName);
-					changeRenderMovement(importDataProxy.animationDataProxy.movementName);
-				}
-			}
-			
-			private function updateOverAndOut():void{
-				var _display:DisplayObjectContainer = armatureDisplay;
-				if(isMouseIn){
-					pointHelp.x = _display.mouseX;
-					pointHelp.y = _display.mouseY;
-					var _filtersBackup:Array = _display.filters;
-					var _mouseTarget:DisplayObject = getPointTarget(_display, pointHelp, 2);
-					_display.filters = _filtersBackup;
-					if(_mouseTarget){
-						if(_mouseTarget == boneDisplayRollOver){
+			private function updateOverAndOut():void
+			{
+				var display:DisplayObjectContainer = _armatureDisplay;
+				if(_isMouseIn)
+				{
+					_pointHelp.x = display.mouseX;
+					_pointHelp.y = display.mouseY;
+					var filtersBackup:Array = display.filters;
+					display.filters = null;
+					var mouseTarget:DisplayObject = getPointTarget(display, _pointHelp, 2);
+					display.filters = filtersBackup;
+					if(mouseTarget)
+					{
+						if(mouseTarget == _boneDisplayRollOver)
+						{
 							
-						}else if(_mouseTarget != boneDisplaySelected){
-							if(boneDisplayRollOver){
-								boneDisplayRollOver.filters = null;
-								boneDisplayRollOver = null;
-							}
-							//if(boneDisplaySelected && isMouseDown){
-								//if(!checkBoneParent(boneDisplaySelected, _mouseTarget)){
-									//return;
-								//}
-							//}
-							boneDisplayRollOver = _mouseTarget;
-							boneDisplayRollOver.filters = [boneRolloverFilter];
 						}
-					}else if(boneDisplayRollOver){
-						boneDisplayRollOver.filters = null;
-						boneDisplayRollOver = null;
-					}
-				}else if(boneDisplayRollOver){
-					boneDisplayRollOver.filters = null;
-					boneDisplayRollOver = null;
-				}
-				
-				/*
-				armatureContainer.addChild(link);
-				link.visible = true;
-				updateBoneLink();*/
-			}
-			
-			private function updateBoneLink():void{
-				if(link.visible){
-					pointHelp = boneDisplaySelected.localToGlobal(pointDragInBone);
-					pointHelp = armatureContainer.globalToLocal(pointHelp);
-					link.x = pointHelp.x;
-					link.y = pointHelp.y;
-					var _dX:Number = armatureContainer.mouseX - link.x;
-					var _dY:Number = armatureContainer.mouseY - link.y;
-					var _radian:Number = Math.atan2(_dY, _dX);
-					var _radius:Number = Math.sqrt(_dX * _dX + _dY * _dY);
-					link.rotation = _radian * 180 / Math.PI;
-					link.link.clip.width = _radius + 15;
-					link.pt.x = _radius;
-				}
-			}
-			
-			private function checkBoneParent(_boneDisplay:Object, _boneParentDisplay:Object):Boolean{
-				var _bone:Bone = importDataProxy.armature.getBoneByDisplay(_boneDisplay);
-				if(_bone){
-					var _boneName:String = _bone.name;
-				}
-				_bone = importDataProxy.armature.getBoneByDisplay(_boneParentDisplay);
-				if(_bone){
-					var _boneParentName:String = _bone.name;
-				}
-				
-				return importDataProxy.armatureDataProxy.checkParent(_boneName, _boneParentName);
-			}
-			
-			private function boneAddToParent():void{
-				var _bone:Bone = importDataProxy.armature.getBoneByDisplay(boneDisplaySelected);
-				if(_bone){
-					var _boneName:String = _bone.name;
-				}
-				_bone = importDataProxy.armature.getBoneByDisplay(boneDisplayRollOver);
-				if(_bone){
-					var _boneParentName:String = _bone.name;
-				}
-				importDataProxy.armatureDataProxy.updateBoneParent(_boneName, _boneParentName);
-			}
-			
-			private function selectedBoneByDisplay(_display:Object):void{
-				var _bone:Bone = importDataProxy.armature.getBoneByDisplay(_display);
-				if(_bone){
-					importDataProxy.armatureDataProxy.changeBone(_bone.name);
-					importDataProxy.animationDataProxy.changeMovementBone(_bone.name);
-				}
-			}
-			private function highlightBoneDisplay(_color:uint = 0):void{
-				
-				if(boneDisplaySelected){
-					boneDisplaySelected.filters = null;
-					boneDisplaySelected = null;
-				}
-				
-				if(armatureDisplay){
-					var _bone:Bone = importDataProxy.armature.getBone(importDataProxy.armatureDataProxy.boneName);
-					if(_bone){
-						boneDisplaySelected = _bone.display || (_bone.childArmature?_bone.childArmature.display:null);
-						if(boneDisplaySelected){
-							if(boneDisplaySelected == boneDisplayRollOver){
-								boneDisplayRollOver.filters = null;
-								boneDisplayRollOver = null;
+						else if(mouseTarget != _boneDisplaySelected)
+						{
+							if(_boneDisplayRollOver)
+							{
+								_boneDisplayRollOver.filters = null;
+								_boneDisplayRollOver = null;
 							}
-							if(boneHighlightFilter.color){
-								boneDisplaySelected.filters = [boneHighlightFilter];
+							if(_boneDisplaySelected && _isMouseDown)
+							{
+								if(!checkBoneParent(_boneDisplaySelected, mouseTarget))
+								{
+									return;
+								}
+							}
+							_boneDisplayRollOver = mouseTarget;
+							if(_boneRolloverFilter.color)
+							{
+								_boneDisplayRollOver.filters = [_boneRolloverFilter];
+							}
+						}
+					}
+					else if(_boneDisplayRollOver)
+					{
+						_boneDisplayRollOver.filters = null;
+						_boneDisplayRollOver = null;
+					}
+				}
+				else if(_boneDisplayRollOver)
+				{
+					_boneDisplayRollOver.filters = null;
+					_boneDisplayRollOver = null;
+				}
+				
+				
+				//_armatureContainer.addChild(_boneBinder);
+				//_boneBinder.visible = true;
+				//updateBoneBinder();
+				//_armatureContainer.addEventListener(MouseEvent.MOUSE_MOVE, containerMouseHandler);
+			}
+			
+			private function updateBoneBinder():void
+			{
+				if(_boneBinder.visible)
+				{
+					_pointHelp.x = 0;
+					_pointHelp.y = 0;
+					_pointHelp = _boneDisplaySelected.localToGlobal(_pointHelp);
+					_pointHelp = _armatureContainer.globalToLocal(_pointHelp);
+					_boneBinder.x = _pointHelp.x;
+					_boneBinder.y = _pointHelp.y;
+					
+					var dX:Number = _armatureContainer.mouseX - _boneBinder.x;
+					var dY:Number = _armatureContainer.mouseY - _boneBinder.y;
+					var radian:Number = Math.atan2(dY, dX);
+					var radius:Number = Math.sqrt(dX * dX + dY * dY);
+					
+					_boneBinder.rotation = radian * 180 / Math.PI;
+					_boneBinder.link.clip.width = radius + 15;
+					_boneBinder.pt.x = radius;
+				}
+			}
+			
+			private function checkBoneParent(display:Object, parentDisplay:Object):Boolean
+			{
+				var bone:Bone = _importDataProxy.armature.getBoneByDisplay(display);
+				if(bone)
+				{
+					var boneName:String = bone.name;
+				}
+				bone = _importDataProxy.armature.getBoneByDisplay(parentDisplay);
+				if(bone)
+				{
+					var boneParentName:String = bone.name;
+				}
+				
+				return _importDataProxy.armatureDataProxy.checkParent(boneName, boneParentName);
+			}
+			
+			private function boneAddToParent():void
+			{
+				var bone:Bone = _importDataProxy.armature.getBoneByDisplay(_boneDisplaySelected);
+				if(bone)
+				{
+					var boneName:String = bone.name;
+				}
+				bone = _importDataProxy.armature.getBoneByDisplay(_boneDisplayRollOver);
+				if(bone)
+				{
+					var boneParentName:String = bone.name;
+				}
+				_importDataProxy.armatureDataProxy.updateBoneParent(boneName, boneParentName);
+			}
+			
+			private function selectedBoneByDisplay(display:Object):void
+			{
+				var bone:Bone = _importDataProxy.armature.getBoneByDisplay(display);
+				if(bone)
+				{
+					_importDataProxy.armatureDataProxy.changeBone(bone.name);
+					_importDataProxy.animationDataProxy.changeMovementBone(bone.name);
+				}
+			}
+			
+			private function highlightBoneDisplay():void
+			{
+				
+				if(_boneDisplaySelected)
+				{
+					_boneDisplaySelected.filters = null;
+					_boneDisplaySelected = null;
+				}
+				
+				if(_armatureDisplay)
+				{
+					var bone:Bone = _importDataProxy.armature.getBone(_importDataProxy.armatureDataProxy.boneName);
+					if(bone)
+					{
+						_boneDisplaySelected = bone.display;
+						if(_boneDisplaySelected)
+						{
+							if(_boneDisplaySelected == _boneDisplayRollOver)
+							{
+								_boneDisplayRollOver.filters = null;
+								_boneDisplayRollOver = null;
+							}
+							if(_boneHighlightFilter.color)
+							{
+								_boneDisplaySelected.filters = [_boneHighlightFilter];
 							}
 						}
 					}
@@ -472,6 +509,6 @@
 	<s:Button id="btnZoomOut" x="5" y="5" width="35" height="20" label="－"/>
 	<s:Button id="btnZoomIn" x="150" y="5" width="35" height="20" label="＋"/>
 	<s:HSlider id="sliderScale" x="45" y="10" width="100"
-			    minimum="0.1" maximum="10" snapInterval="0.1"
+			   minimum="0.1" maximum="10" snapInterval="0.1"
 			   />
 </s:Group>

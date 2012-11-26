@@ -3,7 +3,9 @@
 			   xmlns:s="library://ns.adobe.com/flex/spark"
 			   xmlns:mx="library://ns.adobe.com/flex/mx"
 			   xmlns:view="view.*"
-			   addedToStage="addedToStageHandler()">
+			   addedToStage="addedToStageHandler()"
+			   preloader="prevloadClasses.Prevloader"
+			   >
 	<fx:Script>
 		<![CDATA[
 			import control.LoadFileDataCommand;
@@ -19,6 +21,8 @@
 			import mx.controls.Alert;
 			import mx.managers.PopUpManager;
 			
+			import spark.events.IndexChangeEvent;
+			
 			import view.ExportWindow;
 			import view.ImportWindow;
 			//
@@ -27,7 +31,8 @@
 			public static var instance:SkeletonAnimationDesignPanel; 
 			private static const JSFL_LANGUAGE_CODE:String = "languageCode";
 
-			private var importDataProxy:ImportDataProxy = ImportDataProxy.getInstance();
+			private var _importDataProxy:ImportDataProxy = ImportDataProxy.getInstance();
+			
 			[Bindable]
 			private var languageArrayCollection:ArrayCollection = new ArrayCollection([
 				{label:"English", value:"en_US"}, 
@@ -35,7 +40,8 @@
 				{label:"French", value:"fr_FR"},
 				{label:"Japanese", value:"ja_JP"}
 			]);
-			private var _selectedLanguageIndex:int = 0;
+			
+			private var _alert:Alert;
 			
 			[Bindable]
 			private var aboutXML:XML =
@@ -56,9 +62,12 @@
 			private function addedToStageHandler():void
 			{	
 				var languageID:* = ShareObjectDataProxy.getInstance().getData("languageID");
-				if(languageID != null){
+				if(languageID != null)
+				{
 					selectedLanguageIndex = int(languageID);
-				}else{
+				}
+				else
+				{
 					MessageDispatcher.addEventListener(JSFL_LANGUAGE_CODE, jsflProxyHandler);
 					JSFLProxy.getInstance().runJSFLCode(JSFL_LANGUAGE_CODE, "fl.languageCode;");
 				}
@@ -66,10 +75,12 @@
 				instance = this;
 				XML.prettyIndent = -1;
 				removeEventListener(Event.ADDED_TO_STAGE, addedToStageHandler);
-				if(loaderInfo){
-					loaderInfo.uncaughtErrorEvents.addEventListener(UncaughtErrorEvent.UNCAUGHT_ERROR, onUncaughtErrorHandler);
+				if(loaderInfo)
+				{
+					loaderInfo.uncaughtErrorEvents.addEventListener(UncaughtErrorEvent.UNCAUGHT_ERROR, uncaughtErrorHandler);
 					var _data:String = loaderInfo.parameters["data"];
-					if(_data){
+					if(_data)
+					{
 						LoadFileDataCommand.instance.load(_data);
 					}
 				}
@@ -77,24 +88,218 @@
 				numFrameRate.value = stage.frameRate;
 				numFrameRate.addEventListener(Event.CHANGE, valueChangeHandler);
 				
-				MessageDispatcher.addEventListener(MessageDispatcher.CHANGE_IMPORT_DATA, onCommandHandler);
+				MessageDispatcher.addEventListener(MessageDispatcher.LOAD_FLADATA, commandHandler);
+				MessageDispatcher.addEventListener(MessageDispatcher.LOAD_ARMATURE_DATA, commandHandler);
+				MessageDispatcher.addEventListener(MessageDispatcher.LOAD_TEXTURE_DATA, commandHandler);
+				MessageDispatcher.addEventListener(MessageDispatcher.LOAD_SWF_COMPLETE, commandHandler);
+				
+				MessageDispatcher.addEventListener(MessageDispatcher.LOAD_FILEDATA, commandHandler);
+				MessageDispatcher.addEventListener(MessageDispatcher.LOAD_FILEDATA_ERROR, commandHandler);
+				MessageDispatcher.addEventListener(MessageDispatcher.LOAD_FILEDATA_PROGRESS, commandHandler);
+				MessageDispatcher.addEventListener(MessageDispatcher.LOAD_FILEDATA_COMPLETE, commandHandler);
+				
+				MessageDispatcher.addEventListener(MessageDispatcher.EXPORT, commandHandler);
+				MessageDispatcher.addEventListener(MessageDispatcher.EXPORT_CANCEL, commandHandler);
+				MessageDispatcher.addEventListener(MessageDispatcher.EXPORT_ERROR, commandHandler);
+				MessageDispatcher.addEventListener(MessageDispatcher.EXPORT_COMPLETE, commandHandler);
+				
+				MessageDispatcher.addEventListener(MessageDispatcher.UPDATE_MOVEMENT_DATA, commandHandler);
+				MessageDispatcher.addEventListener(MessageDispatcher.UPDATE_MOVEMENT_BONE_DATA, commandHandler);
+				MessageDispatcher.addEventListener(MessageDispatcher.UPDATE_BONE_PARENT, commandHandler);
+				
+				MessageDispatcher.addEventListener(MessageDispatcher.CHANGE_IMPORT_DATA, commandHandler);
+				MessageDispatcher.addEventListener(MessageDispatcher.CHANGE_MOVEMENT_DATA, commandHandler);
+				
+				MessageDispatcher.addEventListener(MessageDispatcher.MOVEMENT_CHANGE, commandHandler);
 			}
 			
-			private function onCommandHandler(_e:Message):void{
-				switch(_e.type){
+			private function commandHandler(e:Message):void
+			{
+				switch(e.type)
+				{
+					case MessageDispatcher.LOAD_FLADATA:
+						if(e.parameters[0] > 0)
+						{
+							_alert = Alert.show(resourceManager.getString('resources','importFLAWaitting', [e.parameters[1]]));
+						}
+						else
+						{
+							_alert = Alert.show(resourceManager.getString('resources',"importNoElement", [e.parameters[1]]));
+						}
+						break;
+					case MessageDispatcher.LOAD_ARMATURE_DATA:
+						if(_alert)
+						{
+							_alert.title = resourceManager.getString('resources', 'importSkeletonProgress', [e.parameters[1], e.parameters[2]]);
+						}
+						break;
+					case MessageDispatcher.LOAD_TEXTURE_DATA:
+						if(_alert)
+						{
+							_alert.title = resourceManager.getString('resources', 'importTextureProgress', [e.parameters[1], e.parameters[2]]);
+						}
+						break;
+					case MessageDispatcher.LOAD_FILEDATA:
+						_alert = Alert.show(resourceManager.getString('resources', 'importFileWaitting'));
+						break;
+					case MessageDispatcher.LOAD_FILEDATA_ERROR:
+						clearAlert();
+						_alert = Alert.show(resourceManager.getString('resources', 'importFileError'));
+						break;
+					case MessageDispatcher.LOAD_FILEDATA_PROGRESS:
+						if(_alert)
+						{
+							_alert.title = resourceManager.getString('resources', 'importFileProgress', [Math.round(e.parameters[0] * 100)]);
+						}
+						break;
+					case MessageDispatcher.LOAD_SWF_COMPLETE:
+						clearAlert();
+						_importDataProxy.setData(e.parameters[0], e.parameters[1], e.parameters[2], false);
+						break;
+					case MessageDispatcher.LOAD_FILEDATA_COMPLETE:
+						clearAlert();
+						_importDataProxy.setData(e.parameters[0], e.parameters[1], e.parameters[2], true);
+						break;
+					case MessageDispatcher.EXPORT:
+						_alert = Alert.show(resourceManager.getString('resources', 'exportWaitting'));
+						break;
+					case MessageDispatcher.EXPORT_CANCEL:
+						clearAlert();
+						break;
+					case MessageDispatcher.EXPORT_ERROR:
+						clearAlert();
+						_alert = Alert.show(resourceManager.getString('resources', 'exportError'));
+						break;
+					case MessageDispatcher.EXPORT_COMPLETE:
+						clearAlert();
+						break;
 					case MessageDispatcher.CHANGE_IMPORT_DATA:
-						numFrameRate.value = stage.frameRate = importDataProxy.frameRate;
+						numFrameRate.value = stage.frameRate = _importDataProxy.frameRate;
+						break;
+					case MessageDispatcher.CHANGE_MOVEMENT_DATA:
+						changeRenderMovement(e.parameters[0], false, e.parameters[1]);
+						break;
+					case MessageDispatcher.UPDATE_MOVEMENT_DATA:
+					case MessageDispatcher.UPDATE_MOVEMENT_BONE_DATA:
+						changeRenderMovement(e.parameters[0], true);
+						break;
+					case MessageDispatcher.UPDATE_BONE_PARENT:
+						updateRenderBoneParent(e.parameters[0]);
+						break;
+					case MessageDispatcher.MOVEMENT_CHANGE:
+						_importDataProxy.animationDataProxy.changeMovement(e.parameters[0], true);
 						break;
 				}
 			}
 			
-			private function jsflProxyHandler(_e:Message):void
+			private function changeRenderMovement(movementName:String, autoPlay:Boolean = false, isChangedByArmature:Boolean = false):void
 			{
-				switch(_e.type)
+				if(movementName && _importDataProxy.armature && !isChangedByArmature)
+				{
+					if(autoPlay?_importDataProxy.armature.animation.isPlaying:true)
+					{
+						_importDataProxy.armature.animation.gotoAndPlay(movementName);
+					}
+				}
+			}
+			
+			private function updateRenderBoneParent(boneName:String):void
+			{
+				if(_importDataProxy.armature)
+				{
+					_importDataProxy.updateArmatureBoneOrigin(boneName);
+					changeRenderMovement(_importDataProxy.animationDataProxy.movementName);
+				}
+			}
+			
+			private function importData():void
+			{
+				var window:ImportWindow = new ImportWindow();
+				PopUpManager.addPopUp(window, SkeletonAnimationDesignPanel.instance, true);
+				PopUpManager.centerPopUp(window);
+			}
+			
+			private function exportData():void
+			{
+				var window:ExportWindow = new ExportWindow();
+				PopUpManager.addPopUp(window, SkeletonAnimationDesignPanel.instance, true);
+				PopUpManager.centerPopUp(window);
+			}
+			
+			private function navIndexChangeHandler(event:Event):void
+			{
+				switch(event.target.selectedChild)
+				{
+					case navXML:
+						if(_importDataProxy.skeletonXML)
+						{
+							txtXML.text = _importDataProxy.skeletonXML;
+						}
+						break;
+					case navTexture:
+						if(_importDataProxy.textureData)
+						{
+							if(textureContainer.numChildren > 0)
+							{
+								textureContainer.removeChildAt(0);
+							}
+							textureContainer.addChild(_importDataProxy.textureData.bitmap);
+							textureContainerGroup.width = _importDataProxy.textureData.bitmap.width;
+							textureContainerGroup.height = _importDataProxy.textureData.bitmap.height;
+						}
+						break;
+				}
+			}
+			
+			private function valueChangeHandler(e:Event):void
+			{
+				switch(e.target)
+				{
+					case numFrameRate:
+						stage.frameRate = numFrameRate.value;
+						break;
+				}
+			}
+			
+			private function uncaughtErrorHandler(e:UncaughtErrorEvent):void
+			{
+				Alert.show(String(e.error));
+			}
+			
+			private function clearAlert():void
+			{
+				if(_alert)
+				{
+					PopUpManager.removePopUp(_alert);
+					_alert = null;
+				}
+			}
+			
+			private function languageChangeHandler(event:IndexChangeEvent):void
+			{
+				selectedLanguageIndex = event.newIndex;
+			}
+			
+			private var _selectedLanguageIndex:int = 0;
+			private function get selectedLanguageIndex():int
+			{
+				return _selectedLanguageIndex;
+			}
+			private function set selectedLanguageIndex(value:int):void
+			{
+				_selectedLanguageIndex = value;
+				ShareObjectDataProxy.getInstance().setData("languageID", _selectedLanguageIndex);
+				resourceManager.localeChain = [languageArrayCollection[_selectedLanguageIndex].value];
+				languageDropDownList.selectedIndex = _selectedLanguageIndex;
+			}
+			
+			private function jsflProxyHandler(e:Message):void
+			{
+				switch(e.type)
 				{
 					case JSFL_LANGUAGE_CODE:
 						
-						var lanCode:String = String(_e.parameters[0]);
+						var lanCode:String = String(e.parameters[0]);
 						MessageDispatcher.removeEventListener(JSFL_LANGUAGE_CODE, jsflProxyHandler);
 						var len:int = languageArrayCollection.length;
 						for(var i:int = 0; i < len; i++)
@@ -115,61 +320,6 @@
 				}
 			}
 			
-			public function importData():void{
-				var _window:ImportWindow = new ImportWindow();
-				PopUpManager.addPopUp(_window, SkeletonAnimationDesignPanel.instance, true);
-				PopUpManager.centerPopUp(_window);
-			}
-			
-			public function exportData():void{
-				var _window:ExportWindow = new ExportWindow();
-				PopUpManager.addPopUp(_window, SkeletonAnimationDesignPanel.instance, true);
-				PopUpManager.centerPopUp(_window);
-			}
-			
-			private function navIndexChangeHandler(event:Event):void{
-				switch(event.target.selectedChild){
-					case navXML:
-						if(importDataProxy.skeletonXML){
-							txtXML.text = importDataProxy.skeletonXML;
-						}
-						break;
-					case navTexture:
-						if(importDataProxy.textureData){
-							if(textureContainer.numChildren > 0){
-								textureContainer.removeChildAt(0);
-							}
-							textureContainer.addChild(importDataProxy.textureData.bitmap);
-							textureContainerGroup.width = importDataProxy.textureData.bitmap.width;
-							textureContainerGroup.height = importDataProxy.textureData.bitmap.height;
-						}
-						break;
-				}
-			}
-			
-			private function valueChangeHandler(_e:Event):void{
-				switch(_e.target){
-					case numFrameRate:
-						stage.frameRate = numFrameRate.value;
-						break;
-				}
-			}
-			
-			private function onUncaughtErrorHandler(_e:UncaughtErrorEvent):void{
-				Alert.show(String(_e.error));
-			}
-			
-			[Bindable]
-			private function get selectedLanguageIndex():int
-			{
-				return _selectedLanguageIndex;
-			}
-			private function set selectedLanguageIndex(value:int):void
-			{
-				_selectedLanguageIndex = value;
-				ShareObjectDataProxy.getInstance().setData("languageID", _selectedLanguageIndex);
-				resourceManager.localeChain = [languageArrayCollection[_selectedLanguageIndex].value];
-			}
 		]]>
 	</fx:Script>
 	<fx:Metadata>
@@ -212,13 +362,12 @@
 			  click="{exportData()}"
 			  />
 	<s:HGroup y="10" left="400" right="10" horizontalAlign="right" gap="10">
-		<s:Label width="75" height="24" text="{resourceManager.getString('resources','frameRate')}"
+		<s:Label height="24" text="{resourceManager.getString('resources','frameRate')}"
 				 textAlign="right" verticalAlign="middle"/>
 		<s:NumericStepper id="numFrameRate" width="60" height="24" cornerRadius="0" textAlign="right"
 						  maximum="120" minimum="1" snapInterval="1"/>
 		
-		<s:DropDownList width="120" height="24" cornerRadius="0" textAlign="right"
-						dataProvider="{languageArrayCollection}"
-						selectedIndex="@{selectedLanguageIndex}"/>
+		<s:DropDownList id="languageDropDownList" width="120" height="24" cornerRadius="0" textAlign="right"
+						dataProvider="{languageArrayCollection}" change="languageChangeHandler(event)"/>
 	</s:HGroup>
 </s:Application>

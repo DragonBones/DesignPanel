@@ -208,7 +208,7 @@ function isMainLayer(_layer){
 
 //To determine whether the item is valide armature.
 //If yes, return mainLayer and boneLayers
-function isArmatureItem(_item){
+function isArmatureItem(_item, _isChildArmature){
 	var _layersFiltered = [];
 	var _mainLayer;
 	for each(var _layer in _item.timeline.layers){
@@ -227,9 +227,25 @@ function isArmatureItem(_item){
 		}
 	}
 	
-	if(_mainLayer && _layersFiltered.length > 0){
-		_layersFiltered.unshift(_mainLayer);
-		return _layersFiltered;
+	if(_layersFiltered.length > 0){
+		if(_mainLayer){
+			_layersFiltered.unshift(_mainLayer);
+			return _layersFiltered;
+		}else if(_isChildArmature && _item.timeline.frameCount > 1){
+			_mainLayer = {};
+			_mainLayer.frames = [];
+			_mainLayer.frameCount = _item.timeline.frameCount;
+			
+			var _frame = { };
+			_frame.labelType = LABEL_TYPE_NAME;
+			_frame.name = "unnamed";
+			_frame.startFrame = 0;
+			_frame.duration = _mainLayer.frameCount;
+			
+			_mainLayer.frames.push(_frame);
+			_layersFiltered.unshift(_mainLayer);
+			return _layersFiltered;
+		}
 	}
 	return null;
 }
@@ -513,7 +529,8 @@ function generateFrame(_frame, _boneName, _symbol, _z){
 	
 	var _imageItem = _symbol.libraryItem;
 	var _imageName = formatName(_imageItem);
-	var _isArmature = isArmatureItem(_imageItem);
+	var _isChildArmature = _symbol.symbolType == MOVIE_CLIP;
+	var _isArmature = isArmatureItem(_imageItem, _isChildArmature);
 	var _displayXML = getDisplayXML(_boneXML, _imageName, _isArmature);
 	_frameXML[AT + A_DISPLAY_INDEX] = _displayXML.childIndex();
 	if(_isArmature){
@@ -521,7 +538,7 @@ function generateFrame(_frame, _boneName, _symbol, _z){
 		var _backupAnimationXML = animationXML;
 		var _backupArmatureConnectionXML = armatureConnectionXML;
 		
-		Skeleton.generateArmature(_imageName);
+		Skeleton.generateArmature(_imageName, null, _isChildArmature);
 		
 		armatureXML = _backupArmatureXML;
 		animationXML = _backupAnimationXML;
@@ -658,7 +675,7 @@ Skeleton.getArmatureList = function(_isSelected){
 	return _importItems;
 }
 
-Skeleton.generateArmature = function(_armatureName, _isNewXML){
+Skeleton.generateArmature = function(_armatureName, _isNewXML, _isChildArmature){
 	var _item = currentLibrary.items[currentLibrary.findItemIndex(_armatureName)];
 	if(!_item){
 		return false;
@@ -676,7 +693,7 @@ Skeleton.generateArmature = function(_armatureName, _isNewXML){
 		return false;
 	}
 	
-	var _layersFiltered = isArmatureItem(_item);
+	var _layersFiltered = isArmatureItem(_item, _isChildArmature);
 	var _mainLayer = _layersFiltered.shift();
 	
 	armatureXML = <{ARMATURE} {A_NAME} = {_armatureName}/>;

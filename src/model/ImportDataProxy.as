@@ -16,9 +16,7 @@
 	
 	import message.MessageDispatcher;
 	
-	import mx.collections.ArrayCollection;
 	import mx.collections.XMLListCollection;
-	import mx.resources.ResourceManager;
 	
 	import utils.GlobalConstValues;
 	import utils.TextureUtil;
@@ -56,40 +54,13 @@
 		
 		public var armaturesMC:XMLListCollection;
 		
-		public var isExportedSource:Boolean;
 		public var isTextureChanged:Boolean;
-		
-		private var rawSkeletonXML:XML;
+		public var isExportedSource:Boolean;
 		
 		private var armaturesXMLList:XMLList;
 		private var animationsXMLList:XMLList;
-		private var armatures:Object;
+		//private var armatures:Object;
 		private var baseFactory:BaseFactory;
-		
-		private var __dataImportID:int = 0;
-		public function get dataImportID():int{
-			return __dataImportID;
-		}
-		public function set dataImportID(value:int):void{
-			value = value < 0 ? 0 : value;
-			__dataImportID = value;
-			ShareObjectDataProxy.getInstance().setData("dataImportID", __dataImportID);
-		}
-		
-		public var textureMaxWidthID:int = 0;
-		
-		public var textureMaxWidthAC:ArrayCollection = new ArrayCollection(["Autosize", 128, 256, 512, 1024, 2048, 4096]);
-		public function get textureMaxWidth():int{
-			if(textureMaxWidthID == 0){
-				return 0;
-			}
-			return int(textureMaxWidthAC.getItemAt(textureMaxWidthID));
-		}
-		
-		public var texturePadding:int = 2;
-		
-		public var textureSortID:int = 0;
-		public var textureSortAC:ArrayCollection = new ArrayCollection(["MaxRects"]);
 		
 		public function get skeletonName():String{
 			return getElementName(__skeletonXML);
@@ -143,22 +114,25 @@
 			__armatureDataProxy = new ArmatureDataProxy();
 			__animationDataProxy = new AnimationDataProxy();
 			baseFactory = new BaseFactory();
-			
-			dataImportID = ShareObjectDataProxy.getInstance().getOrSetData("dataImportID", 0);
 		}
 		
 		public function setData(_skeletonXML:XML, _textureAtlasXML:XML, _textureData:ByteArray, _isSWFSource:Boolean):void{
-			for each(__armature in armatures){
+			/*for each(__armature in armatures){
+				__armature.dispose();
+			}
+			armatures = {};
+			__armature = null;*/
+			if(__armature)
+			{
 				__armature.dispose();
 			}
 			__armature = null;
-			armatures = {};
 			
 			isTextureChanged = false;
 			isExportedSource = _isSWFSource;
 			
-			rawSkeletonXML = _skeletonXML;
-			__skeletonXML = rawSkeletonXML.copy();
+			//__skeletonXML = _skeletonXML.copy();
+			__skeletonXML = _skeletonXML;
 			__textureAtlasXML = _textureAtlasXML;
 			
 			armaturesXMLList = __skeletonXML.elements(ConstValues.ARMATURES).elements(ConstValues.ARMATURE);
@@ -179,10 +153,15 @@
 		}
 		
 		public function changeRenderArmature(_armatureName:String):void{
-			__armature = armatures[_armatureName];
+			if(__armature)
+			{
+				__armature.dispose();
+			}
+			__armature = baseFactory.buildArmature(_armatureName);
+			/*__armature = armatures[_armatureName];
 			if(!__armature){
 				armatures[_armatureName] = __armature = baseFactory.buildArmature(_armatureName);
-			}
+			}*/
 			
 			__armature.addEventListener(dragonBones.events.AnimationEvent.MOVEMENT_CHANGE, aramtureEventHandler);
 			__armature.addEventListener(dragonBones.events.AnimationEvent.START, aramtureEventHandler);
@@ -199,11 +178,7 @@
 			if(isExportedSource || !skeletonName){
 				return;
 			}
-			/*switch(textureSortID){
-			case 0:
-			break;
-			}*/
-			TextureUtil.packTextures(textureMaxWidth, texturePadding, textureAtlasXML);
+			TextureUtil.packTextures(SettingDataProxy.getInstance().textureMaxWidth, SettingDataProxy.getInstance().texturePadding, textureAtlasXML);
 			JSFLProxy.getInstance().packTextures(textureAtlasXML);
 			isTextureChanged = true;
 		}
@@ -218,9 +193,10 @@
 		
 		public function updateArmatureBoneOrigin(_boneName:String):void{
 			var _armatureName:String = armatureDataProxy.armatureName;
-			for each(var _armature:Armature in armatures){
+			updateOrigin(__armature, _armatureName, _boneName);
+			/*for each(var _armature:Armature in armatures){
 				updateOrigin(_armature, _armatureName, _boneName);
-			}
+			}*/
 		}
 		
 		private function textureCompleteHandler(e:Event):void{
