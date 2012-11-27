@@ -44,7 +44,8 @@
 				sliderDelay.addEventListener(Event.CHANGE, valueChangeHandler);
 				numDelay.addEventListener(Event.CHANGE, valueChangeHandler);
 				
-				//MessageDispatcher.addEventListener(MessageDispatcher.LANGUAGE_CHANGE, commandHandler);
+				MessageDispatcher.addEventListener(MessageDispatcher.CHANGE_LANGUAGE, commandHandler);
+				
 				MessageDispatcher.addEventListener(MessageDispatcher.CHANGE_MOVEMENT_DATA, commandHandler);
 				MessageDispatcher.addEventListener(MessageDispatcher.CHANGE_MOVEMENT_BONE_DATA, commandHandler);
 				
@@ -62,9 +63,9 @@
 			{
 				switch(e.type)
 				{
-					//case MessageDispatcher.LANGUAGE_CHANGE:
-						//updatePlayAndPauseBtn();
-						//break;
+					case MessageDispatcher.CHANGE_LANGUAGE:
+						updatePlayAndPauseBtn();
+						break;
 					case MessageDispatcher.CHANGE_MOVEMENT_DATA:
 						_movementName = e.parameters[0];
 						var durationTo:int = _importDataProxy.animationDataProxy.durationTo;

@@ -5,6 +5,8 @@ package message{
 	
 	public class MessageDispatcher extends EventDispatcher{
 		
+		static public const CHANGE_LANGUAGE:String = "changeLanguage";
+		
 		static public const LOAD_FLADATA:String = "loadFladata";
 		static public const LOAD_ARMATURE_DATA:String = "loadSkeletonData";
 		static public const LOAD_ARMATURE_DATA_COMPLETE:String = "loadSkeletonDataComplete";

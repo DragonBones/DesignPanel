@@ -44,7 +44,11 @@
 			private var _alert:Alert;
 			
 			[Bindable]
-			private var aboutXML:XML =
+			private var aboutXML:XML;
+			
+			private function updateAbout():XML
+			{
+				var xml:XML = 
 				<root>
 					<br/>
 					<b>DragonBones Version 1.4</b>
@@ -53,40 +57,24 @@
 					<a href="http://dragonbones.github.com/">http://dragonbones.github.com/</a>
 					<br/>
 					<br/>
-					Contact us by　<a href="mailto:dragonbonesteam@gmail.com">dragonbonesteam@gmail.com</a>
+					<a href="mailto:dragonbonesteam@gmail.com">{resourceManager.getString('resources', 'contactUsBy', ['dragonbonesteam@gmail.com'])}</a>
 					<br/>
 					<br/>
-					Copyright 2012 The DragonBones team and other contributors
+					{resourceManager.getString('resources', 'copyright')}
 				</root>
+				return xml;
+			}
 			
 			private function addedToStageHandler():void
 			{	
-				var languageID:* = ShareObjectDataProxy.getInstance().getData("languageID");
-				if(languageID != null)
-				{
-					selectedLanguageIndex = int(languageID);
-				}
-				else
-				{
-					MessageDispatcher.addEventListener(JSFL_LANGUAGE_CODE, jsflProxyHandler);
-					JSFLProxy.getInstance().runJSFLCode(JSFL_LANGUAGE_CODE, "fl.languageCode;");
-				}
-				
 				instance = this;
 				XML.prettyIndent = -1;
 				removeEventListener(Event.ADDED_TO_STAGE, addedToStageHandler);
-				if(loaderInfo)
-				{
-					loaderInfo.uncaughtErrorEvents.addEventListener(UncaughtErrorEvent.UNCAUGHT_ERROR, uncaughtErrorHandler);
-					var _data:String = loaderInfo.parameters["data"];
-					if(_data)
-					{
-						LoadFileDataCommand.instance.load(_data);
-					}
-				}
 				
 				numFrameRate.value = stage.frameRate;
 				numFrameRate.addEventListener(Event.CHANGE, valueChangeHandler);
+				
+				MessageDispatcher.addEventListener(MessageDispatcher.CHANGE_LANGUAGE, commandHandler);
 				
 				MessageDispatcher.addEventListener(MessageDispatcher.LOAD_FLADATA, commandHandler);
 				MessageDispatcher.addEventListener(MessageDispatcher.LOAD_ARMATURE_DATA, commandHandler);
@@ -111,12 +99,37 @@
 				MessageDispatcher.addEventListener(MessageDispatcher.CHANGE_MOVEMENT_DATA, commandHandler);
 				
 				MessageDispatcher.addEventListener(MessageDispatcher.MOVEMENT_CHANGE, commandHandler);
+				
+				
+				var languageID:* = ShareObjectDataProxy.getInstance().getData("languageID");
+				if(languageID != null)
+				{
+					selectedLanguageIndex = int(languageID);
+				}
+				else
+				{
+					MessageDispatcher.addEventListener(JSFL_LANGUAGE_CODE, jsflProxyHandler);
+					JSFLProxy.getInstance().runJSFLCode(JSFL_LANGUAGE_CODE, "fl.languageCode;");
+				}
+				
+				if(loaderInfo)
+				{
+					loaderInfo.uncaughtErrorEvents.addEventListener(UncaughtErrorEvent.UNCAUGHT_ERROR, uncaughtErrorHandler);
+					var _data:String = loaderInfo.parameters["data"];
+					if(_data)
+					{
+						LoadFileDataCommand.instance.load(_data);
+					}
+				}
 			}
 			
 			private function commandHandler(e:Message):void
 			{
 				switch(e.type)
 				{
+					case MessageDispatcher.CHANGE_LANGUAGE:
+						aboutXML = updateAbout();
+						break;
 					case MessageDispatcher.LOAD_FLADATA:
 						if(e.parameters[0] > 0)
 						{
@@ -290,6 +303,8 @@
 				_selectedLanguageIndex = value;
 				ShareObjectDataProxy.getInstance().setData("languageID", _selectedLanguageIndex);
 				resourceManager.localeChain = [languageArrayCollection[_selectedLanguageIndex].value];
+				MessageDispatcher.dispatchEvent(MessageDispatcher.CHANGE_LANGUAGE, _selectedLanguageIndex);
+				//
 				languageDropDownList.selectedIndex = _selectedLanguageIndex;
 			}
 			
