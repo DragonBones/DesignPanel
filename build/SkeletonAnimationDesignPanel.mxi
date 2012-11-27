@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<macromedia-extension name="SkeletonAnimationDesignPanel" version="1.4.0" type="command">
+<macromedia-extension name="SkeletonAnimationDesignPanel" version="1.5.0" type="command">
 
 	<author name="DragonBones Team"/>
 	<products>
