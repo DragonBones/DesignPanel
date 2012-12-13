@@ -1,19 +1,14 @@
 package control
 {
-	import dragonBones.objects.TextureAtlasData;
 	import dragonBones.objects.XMLDataParser;
-	import dragonBones.utils.BytesType;
 	import dragonBones.utils.ConstValues;
 	
-	import flash.display.Bitmap;
 	import flash.display.BitmapData;
 	import flash.events.Event;
 	import flash.events.IOErrorEvent;
 	import flash.geom.Matrix;
 	import flash.net.FileReference;
 	import flash.utils.ByteArray;
-	
-	import makeswfs.make;
 	
 	import message.Message;
 	import message.MessageDispatcher;
@@ -37,7 +32,6 @@ package control
 		private var _isExporting:Boolean;
 		
 		private var _importDataProxy:ImportDataProxy;
-		private var _textureAtlasData:TextureAtlasData;
 		
 		public function ExportDataCommand()
 		{
@@ -54,15 +48,10 @@ package control
 			}
 			_isExporting = true;
 			_exportType = exportType;
-			if(_textureAtlasData)
-			{
-				_textureAtlasData.dispose();
-			}
-			_textureAtlasData = null;
 			if(_importDataProxy.isTextureChanged)
 			{
 				MessageDispatcher.addEventListener(MessageDispatcher.FLA_TEXTURE_ATLAS_SWF_LOADED, flaExportSWFHandler);
-				FLAExportSWFCommand.instance.exportSWF();
+				FLAExportSWFCommand.instance.exportSWF(_importDataProxy.textureAtlasXML);
 			}
 			else
 			{
@@ -72,14 +61,13 @@ package control
 	
 		private function flaExportSWFHandler(e:Message):void
 		{
-			var textureAtlasXML:XML = _importDataProxy.textureAtlasXML;
-			_textureAtlasData = XMLDataParser.parseTextureAtlasData(textureAtlasXML, make(e.parameters[0], textureAtlasXML));
-			_textureAtlasData.addEventListener(Event.COMPLETE, exportStart);
+			//e.parameters[0];
+			_importDataProxy.textureBytes = e.parameters[1];
+			exportStart();
 		}
 		
-		private function exportStart(e:Event = null):void
+		private function exportStart():void
 		{
-			var textureAtlasData:TextureAtlasData = _textureAtlasData || _importDataProxy.textureData;
 			var dataBytes:ByteArray;
 			var zip:Zip;
 			var date:Date;
@@ -89,28 +77,32 @@ package control
 				case 0:
 					try
 					{
-						dataBytes = getSWFBytes(textureAtlasData);
+						dataBytes = getSWFBytes();
 						if(dataBytes)
 						{
-							exportSave(XMLDataParser.compressionData(_importDataProxy.skeletonXML, _importDataProxy.textureAtlasXML, dataBytes), _importDataProxy.skeletonName + GlobalConstValues.OUTPUT_SUFFIX + GlobalConstValues.SWF_SUFFIX);
+							exportSave(XMLDataParser.compressData(_importDataProxy.skeletonXML, _importDataProxy.textureAtlasXML, dataBytes), _importDataProxy.skeletonName + GlobalConstValues.OUTPUT_SUFFIX + GlobalConstValues.SWF_SUFFIX);
 							return;
 						}
+						break;
 					}
 					catch(_e:Error)
 					{
+						break;
 					}
 				case 1:
 					try
 					{
-						dataBytes = getPNGBytes(textureAtlasData);
+						dataBytes = getPNGBytes();
 						if(dataBytes)
 						{
-							exportSave(XMLDataParser.compressionData(_importDataProxy.skeletonXML, _importDataProxy.textureAtlasXML, dataBytes), _importDataProxy.skeletonName + GlobalConstValues.OUTPUT_SUFFIX + GlobalConstValues.PNG_SUFFIX);
+							exportSave(XMLDataParser.compressData(_importDataProxy.skeletonXML, _importDataProxy.textureAtlasXML, dataBytes), _importDataProxy.skeletonName + GlobalConstValues.OUTPUT_SUFFIX + GlobalConstValues.PNG_SUFFIX);
 							return;
 						}
+						break;
 					}
 					catch(_e:Error)
 					{
+						break;
 					}
 				case 2:
 				case 3:
@@ -118,11 +110,11 @@ package control
 					{
 						if(_exportType == 2)
 						{
-							dataBytes = getSWFBytes(textureAtlasData);
+							dataBytes = getSWFBytes();
 						}
 						else
 						{
-							dataBytes = getPNGBytes(textureAtlasData);
+							dataBytes = getPNGBytes();
 						}
 						
 						if(dataBytes)
@@ -136,15 +128,16 @@ package control
 							zip.clear();
 							return;
 						}
+						break;
 					}
 					catch(_e:Error)
 					{
+						break;
 					}
 				case 4:
 					try
 					{
-						var bitmap:Bitmap = textureAtlasData.bitmap;
-						if(bitmap)
+						if(_importDataProxy.textureAtlasData.bitmapData)
 						{
 							date = new Date();
 							zip = new Zip();
@@ -166,7 +159,7 @@ package control
 								var height:int = int(subTextureXML.attribute(ConstValues.A_HEIGHT));
 								
 								var bitmapData:BitmapData = new BitmapData(width, height, true, 0xFF00FF);
-								bitmapData.draw(bitmap.bitmapData, _helpMatirx);
+								bitmapData.draw(_importDataProxy.textureAtlasData.bitmapData, _helpMatirx);
 								subTextureName = subTextureXML.attribute(ConstValues.A_NAME);
 								subTextureName = subTextureName.split("/").join("-");
 								subTextureXML[ConstValues.AT + ConstValues.A_NAME] = subTextureName;
@@ -181,9 +174,11 @@ package control
 							zip.clear();
 							return;
 						}
+						break;
 					}
 					catch(_e:Error)
 					{
+						break;
 					}
 				default:
 					break;
@@ -192,24 +187,24 @@ package control
 			MessageDispatcher.dispatchEvent(MessageDispatcher.EXPORT_ERROR);
 		}
 		
-		private function getSWFBytes(textureAtlasData:TextureAtlasData):ByteArray
+		private function getSWFBytes():ByteArray
 		{
-			if(textureAtlasData.dataType == BytesType.SWF)
+			if(_importDataProxy.textureAtlasData.movieClip)
 			{
-				return textureAtlasData.rawData;
+				return _importDataProxy.textureBytes;
 			}
 			return null;
 		}
 		
-		private function getPNGBytes(textureAtlasData:TextureAtlasData):ByteArray
+		private function getPNGBytes():ByteArray
 		{
-			if(textureAtlasData.dataType == BytesType.SWF)
+			if(_importDataProxy.textureAtlasData.movieClip)
 			{
-				return PNGEncoder.encode(textureAtlasData.bitmap.bitmapData);
+				return PNGEncoder.encode(_importDataProxy.textureAtlasData.bitmapData);
 			}
-			else if(textureAtlasData.dataType != BytesType.ATF)
+			else
 			{
-				return textureAtlasData.rawData;
+				return _importDataProxy.textureBytes;
 			}
 			return null;
 		}

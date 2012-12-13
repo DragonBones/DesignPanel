@@ -9,12 +9,13 @@
 	<fx:Script>
 		<![CDATA[
 			import dragonBones.utils.ConstValues;
+			import dragonBones.utils.dragonBones_internal;
 			
 			import message.Message;
 			import message.MessageDispatcher;
 			
 			import model.ImportDataProxy;
-			import model.ShareObjectDataProxy;
+			import model.SettingDataProxy;
 			
 			import mx.events.ColorPickerEvent;
 			import mx.events.DragEvent;
@@ -22,14 +23,14 @@
 			
 			import spark.events.GridSelectionEvent;
 			
+			use namespace dragonBones_internal;
+			
 			private static const AT_NAME:String = ConstValues.AT + ConstValues.A_NAME;
 			
 			private var _importDataProxy:ImportDataProxy = ImportDataProxy.getInstance();
 			
 			private function addedToStageHandler():void
 			{
-				colorBoneHighlight.selectedColor = ShareObjectDataProxy.getInstance().getOrSetData("boneHighlightColor", 0xFF0000);
-				
 				armatureList.dataProvider = _importDataProxy.armaturesMC;
 				movementList.dataProvider = _importDataProxy.animationDataProxy.movementsMC;
 				displayList.dataProvider = _importDataProxy.armatureDataProxy.displaysMC;
@@ -109,12 +110,6 @@
 				}
 			}
 			
-			private function boneDisplayHighlightChangeHandler(event:ColorPickerEvent):void
-			{
-				ShareObjectDataProxy.getInstance().setData("boneHighlightColor", event.color);
-				MessageDispatcher.dispatchEvent(MessageDispatcher.VIEW_BONE_HIGHLIGHT_CHANGE, event.color);
-			}
-			
 			private function getListItemByName(list:DataGrid, itemName:String):XML
 			{
 				for each(var eachItem:XML in list.dataProvider)
@@ -146,9 +141,9 @@
 			<s:HGroup width="100%" height="100%" gap="0">
 				<s:Button width="100%" height="24" label="{resourceManager.getString('resources','boneTree')}"
 					 	 cornerRadius="0" fontWeight="bold"/>
-				<components:ColorPickerNoColor id="colorBoneHighlight" width="24" height="24"
+				<components:ColorPickerNoColor width="24" height="24"
 											   label="{resourceManager.getString('resources','boneHighlight')}"
-											   change="boneDisplayHighlightChangeHandler(event)"/>
+											   selectedColor="@{SettingDataProxy.getInstance().boneHighlightColor}"/>
 			</s:HGroup>
 			<components:DragTree id="boneTree" y="23" width="100%" height="100%" dragEnabled="true"
 							dropEnabled="true" labelField="{AT_NAME}" textRollOverColor="#CCCCCC"

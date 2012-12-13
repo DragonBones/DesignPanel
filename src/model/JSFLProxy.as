@@ -1,4 +1,5 @@
-﻿package model{
+﻿package model
+{
 	import adobe.utils.MMExecute;
 	
 	import flash.errors.IllegalOperationError;
@@ -15,7 +16,8 @@
 	/**
 	 * Delegate of communicate between UI panel and JSFL
 	 */
-	public class JSFLProxy{
+	public class JSFLProxy
+	{
 		public static const GET_ARMATURE_LIST:String = "getArmatureList";
 		public static const GENERATE_ARMATURE:String = "generateArmature";
 		public static const CLEAR_TEXTURE_SWFITEM:String = "clearTextureSWFItem";
@@ -30,21 +32,27 @@
 		private static const JSFL_URL:String = "SkeletonAnimationDesignPanel/skeleton.jsfl";
 		
 		private static var instance:JSFLProxy;
-		public static function getInstance():JSFLProxy{
-			if(!instance){
+		public static function getInstance():JSFLProxy
+		{
+			if(!instance)
+			{
 				instance = new JSFLProxy();
 			}
 			return instance;
 		}
 		
-		private static function xmlToString(_xml:XML):String{
+		private static function xmlToString(_xml:XML):String
+		{
 			return <a a={_xml.toXMLString()}/>.@a[0].toXMLString();
 		}
 		
-		private static function jsflTrace(...arg):String{
+		private static function jsflTrace(...arg):String
+		{
 			var _str:String = "";
-			for(var _i:int = 0;_i < arg.length;_i ++){
-				if(_i!=0){
+			for(var _i:int = 0;_i < arg.length;_i ++)
+			{
+				if(_i!=0)
+				{
 					_str += ", ";
 				}
 				_str += arg[_i];

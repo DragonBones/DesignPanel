@@ -6,20 +6,20 @@
 		 >
 	<fx:Script>
 		<![CDATA[
-			import flash.filters.GlowFilter;
-			import flash.ui.Mouse;
-			import flash.ui.MouseCursor;
-			
 			import dragonBones.Armature;
 			import dragonBones.Bone;
 			import dragonBones.objects.BoneData;
 			import dragonBones.utils.dragonBones_internal;
 			
+			import flash.filters.GlowFilter;
+			import flash.ui.Mouse;
+			import flash.ui.MouseCursor;
+			
 			import message.Message;
 			import message.MessageDispatcher;
 			
 			import model.ImportDataProxy;
-			import model.ShareObjectDataProxy;
+			import model.SettingDataProxy;
 			
 			import utils.getPointTarget;
 			
@@ -28,7 +28,7 @@
 			private static const MIN_SCALE:Number = 0.2;
 			private static const MAX_SCALE:Number = 10;
 			
-			private static var  _pointHelp:Point = new Point();
+			private static var _pointHelp:Point = new Point();
 			
 			private var _importDataProxy:ImportDataProxy = ImportDataProxy.getInstance();
 			
@@ -53,27 +53,39 @@
 			private var _isMouseDown:Boolean;
 			
 			private var _viewScale:Number = 1;
-			public function get viewScale():Number{
+			public function get viewScale():Number
+			{
 				return _viewScale;
 			}
-			public function set viewScale(value:Number):void{
-				if(value < MIN_SCALE){
+			public function set viewScale(value:Number):void
+			{
+				if(value < MIN_SCALE)
+				{
 					value = MIN_SCALE;
-				}else if(value > MAX_SCALE){
+				}
+				else if(value > MAX_SCALE)
+				{
 					value = MAX_SCALE;
 				}
 				_viewScale = value;
-				if(_armatureDisplay){
+				if(_armatureDisplay)
+				{
 					_armatureDisplay.scaleX = _armatureDisplay.scaleY = _viewScale;
 				}
 				sliderScale.value = _viewScale;
 			}
 			
-			private function get _armatureDisplay():DisplayObjectContainer{
+			private function get _armatureDisplay():DisplayObjectContainer
+			{
 				return (_importDataProxy.armature?_importDataProxy.armature.display:null) as DisplayObjectContainer;
 			}
 			
-			private function addedToStageHandler(event:Event):void{
+			private function addedToStageHandler(event:Event):void
+			{
+				var color:uint = SettingDataProxy.getInstance().getData(SettingDataProxy.BONE_HIGHLIGHT_COLOR);
+				_boneHighlightFilter = new GlowFilter(color,0.5,8,8,4);
+				_boneRolloverFilter = new GlowFilter(color,0.5,2,2,32);
+				
 				_armatureContainer = new Sprite();
 				
 				_boneBinder = new LinkClip();
@@ -118,32 +130,36 @@
 				scrollerViewer.horizontalScrollBar.addEventListener(MouseEvent.MOUSE_DOWN, scrollBarHandler);
 				scrollerViewer.verticalScrollBar.addEventListener(MouseEvent.MOUSE_DOWN, scrollBarHandler);
 				
-				MessageDispatcher.addEventListener(MessageDispatcher.CHANGE_IMPORT_DATA, commandHandler);
+				
+				MessageDispatcher.addEventListener(MessageDispatcher.SETTING_DATA_CHANGE, settingHandler);
+				
 				MessageDispatcher.addEventListener(MessageDispatcher.CHANGE_ARMATURE_DATA, commandHandler);
 				MessageDispatcher.addEventListener(MessageDispatcher.CHANGE_BONE_DATA, commandHandler);
 				
-				MessageDispatcher.addEventListener(MessageDispatcher.VIEW_BONE_HIGHLIGHT_CHANGE, commandHandler);
-				
+			}
+			
+			private function settingHandler(e:Message):void
+			{
+				var settingID:String = e.parameters[0];
+				var value:Object = e.parameters[1];
+				switch(settingID)
+				{
+					case SettingDataProxy.BONE_HIGHLIGHT_COLOR:
+						_boneRolloverFilter.color = _boneHighlightFilter.color = value as uint;
+						highlightBoneDisplay();
+						break;
+				}
 			}
 			
 			private function commandHandler(e:Message):void
 			{
 				switch(e.type)
 				{
-					case MessageDispatcher.CHANGE_IMPORT_DATA:
-						var _color:uint = ShareObjectDataProxy.getInstance().getData("boneHighlightColor");
-						if(!_boneHighlightFilter)
-						{
-							_boneHighlightFilter = new GlowFilter(_color,0.5,8,8,4);
-						}
-						if(!_boneRolloverFilter)
-						{
-							_boneRolloverFilter = new GlowFilter(_color,0.5,2,2,32);
-						}
-						break;
 					case MessageDispatcher.CHANGE_ARMATURE_DATA:
 						_isDragedArmature = false;
 						_armatreArea = null;
+						_boneDisplayRollOver = null;
+						_boneDisplaySelected = null;
 						//armatureContainer.removeChildren();
 						var length:uint = _armatureContainer.numChildren;
 						for(var i:int = length - 1;i >= 0;i --)
@@ -167,13 +183,6 @@
 						viewScale = viewScale;
 						break;
 					case MessageDispatcher.CHANGE_BONE_DATA:
-						highlightBoneDisplay();
-						break;
-					case MessageDispatcher.VIEW_BONE_HIGHLIGHT_CHANGE:
-						if(_boneRolloverFilter)
-						{
-							_boneRolloverFilter.color = _boneHighlightFilter.color = e.parameters[0];
-						}
 						highlightBoneDisplay();
 						break;
 				}
@@ -201,14 +210,14 @@
 					
 					var x:int = _armatreArea.x * _viewScale;
 					var y:int = _armatreArea.y * _viewScale;
-					var width:uint = _armatreArea.width * _viewScale;
-					var height:uint = _armatreArea.height * _viewScale;
+					var width:int = _armatreArea.width * _viewScale;
+					var height:int = _armatreArea.height * _viewScale;
 					
-					var smallW:Boolean;
-					var smallH:Boolean;
+					var isSmallW:Boolean;
+					var isSmallH:Boolean;
 					if(width < this.width)
 					{
-						smallW = true;
+						isSmallW = true;
 						display.x = (this.width - width) * 0.5 - x;
 					}
 					else
@@ -219,7 +228,7 @@
 					
 					if(height < this.height)
 					{
-						smallH = true;
+						isSmallH = true;
 						display.y = (this.height - height) * 0.5 - y;
 					}
 					else
@@ -229,7 +238,7 @@
 					}
 					
 					
-					if(smallW && smallH)
+					if(isSmallW && isSmallH)
 					{
 						_isDragedArmature = false;
 					}
@@ -240,12 +249,15 @@
 					_bgShape.width = viewContainerGroup.width = Math.max(width, this.width);
 					_bgShape.height = viewContainerGroup.height = Math.max(height, this.height);
 					
-					if(_isMouseDown)
+					if(_isDragedArmature)
 					{
-						scrollerViewer.horizontalScrollBar.value = _pointDragGlobal.x - stage.mouseX + _pointScrollBarDrag.x;
-						scrollerViewer.verticalScrollBar.value = _pointDragGlobal.y - stage.mouseY + _pointScrollBarDrag.y;
+						if(_isMouseDown && !_boneBinder.visible)
+						{
+							scrollerViewer.horizontalScrollBar.value = _pointDragGlobal.x - stage.mouseX + _pointScrollBarDrag.x;
+							scrollerViewer.verticalScrollBar.value = _pointDragGlobal.y - stage.mouseY + _pointScrollBarDrag.y;
+						}
 					}
-					else if(!_isDragedArmature)
+					else
 					{
 						scrollerViewer.horizontalScrollBar.value = (width - this.width) * 0.5;
 						scrollerViewer.verticalScrollBar.value = (height - this.height) * 0.5;
@@ -277,51 +289,76 @@
 					case MouseEvent.ROLL_OUT:
 						_isMouseIn = false;
 						break;
-					case MouseEvent.MOUSE_MOVE:
-						
-						//_armatureContainer.addChild(_boneBinder);
-						//_boneBinder.visible = true;
-						//updateBoneBinder();
-						break;
 					case MouseEvent.MOUSE_DOWN:
+						mouseTarget = updateOverAndOut();
 						_isMouseDown = true;
 						Mouse.cursor = MouseCursor.HAND;
-						if(stage)
-						{
-							stage.addEventListener(MouseEvent.MOUSE_UP, containerMouseHandler);
-						}
-						_isDragedArmature = true;
+						
 						_pointDragGlobal.x = stage.mouseX;
 						_pointDragGlobal.y = stage.mouseY;
 						_pointScrollBarDrag.x = scrollerViewer.horizontalScrollBar.value;
 						_pointScrollBarDrag.y = scrollerViewer.verticalScrollBar.value;
+						
+						if(stage)
+						{
+							stage.addEventListener(MouseEvent.MOUSE_UP, containerMouseHandler);
+						}
+						
+						if(mouseTarget && mouseTarget == _boneDisplaySelected)
+						{
+							_armatureContainer.addEventListener(MouseEvent.MOUSE_MOVE, containerMouseHandler);
+						}
+						else
+						{
+							_isDragedArmature = true;
+						}
 						break;
 					case MouseEvent.MOUSE_UP:
-						_isMouseDown = false;
-						Mouse.cursor = MouseCursor.AUTO;
+						_armatureContainer.removeEventListener(MouseEvent.MOUSE_MOVE, containerMouseHandler);
 						if(stage)
 						{
 							stage.removeEventListener(MouseEvent.MOUSE_UP, containerMouseHandler);
 						}
+						mouseTarget = updateOverAndOut();
+						_isMouseDown = false;
+						Mouse.cursor = MouseCursor.AUTO;
 						
-						if(_boneDisplayRollOver)
+						
+						if(_boneBinder.visible)
 						{
-							selectedBoneByDisplay(_boneDisplayRollOver);
-							//pointStart.x = boneDisplaySelected.mouseX;
-							//pointStart.y = boneDisplaySelected.mouseY;
+							_boneBinder.visible = false;
+							//if(_boneDisplaySelected && _boneDisplayRollOver && mouseTarget == _boneDisplayRollOver)
+							//{
+								//boneAddToParent();
+							//}
+							
+							/*if(mouseTarget != _boneDisplaySelected)
+							{
+								if(_boneDisplaySelected && _isMouseDown)
+								{
+									if(!checkBoneParent(_boneDisplaySelected, mouseTarget))
+									{
+										return null;
+									}
+								}
+							}*/
 						}
-						
-						_boneBinder.visible = false;
-						if(_boneDisplaySelected && _boneDisplayRollOver && e.target == _boneDisplayRollOver){
-							boneAddToParent();
+						else if(mouseTarget)
+						{
+							selectedBoneByDisplay(mouseTarget);
 						}
-						break;
-					case MouseEvent.MOUSE_WHEEL:
-						e.delta > 0?(viewScale += 0.2):(viewScale -= 0.2);
 						break;
 					case MouseEvent.DOUBLE_CLICK:
 						_isDragedArmature = false;
 						viewScale = 1;
+						break;
+					case MouseEvent.MOUSE_MOVE:
+						_armatureContainer.removeEventListener(MouseEvent.MOUSE_MOVE, containerMouseHandler);
+						_armatureContainer.addChild(_boneBinder);
+						_boneBinder.visible = true;
+						break;
+					case MouseEvent.MOUSE_WHEEL:
+						e.delta > 0?(viewScale += 0.2):(viewScale -= 0.2);
 						break;
 				}
 			}
@@ -332,17 +369,17 @@
 				{
 					case btnZoomIn:
 						viewScale += 0.5;
-						break
+						break;
 					case btnZoomOut:
 						viewScale -= 0.5;
-						break
+						break;
 					case sliderScale:
 						viewScale = sliderScale.value;
-						break
+						break;
 				}
 			}
 			
-			private function updateOverAndOut():void
+			private function updateOverAndOut():DisplayObject
 			{
 				var display:DisplayObjectContainer = _armatureDisplay;
 				if(_isMouseIn)
@@ -353,59 +390,38 @@
 					display.filters = null;
 					var mouseTarget:DisplayObject = getPointTarget(display, _pointHelp, 2);
 					display.filters = filtersBackup;
-					if(mouseTarget)
+					
+					if(mouseTarget != _boneDisplayRollOver)
 					{
-						if(mouseTarget == _boneDisplayRollOver)
+						if(_boneDisplayRollOver && _boneDisplayRollOver != _boneDisplaySelected)
 						{
-							
+							_boneDisplayRollOver.filters = null;
+							_boneDisplayRollOver = null;
 						}
-						else if(mouseTarget != _boneDisplaySelected)
+						_boneDisplayRollOver = mouseTarget;
+						if(_boneDisplayRollOver && _boneDisplayRollOver != _boneDisplaySelected && _boneRolloverFilter.color)
 						{
-							if(_boneDisplayRollOver)
-							{
-								_boneDisplayRollOver.filters = null;
-								_boneDisplayRollOver = null;
-							}
-							if(_boneDisplaySelected && _isMouseDown)
-							{
-								if(!checkBoneParent(_boneDisplaySelected, mouseTarget))
-								{
-									return;
-								}
-							}
-							_boneDisplayRollOver = mouseTarget;
-							if(_boneRolloverFilter.color)
-							{
-								_boneDisplayRollOver.filters = [_boneRolloverFilter];
-							}
+							_boneDisplayRollOver.filters = [_boneRolloverFilter];
 						}
-					}
-					else if(_boneDisplayRollOver)
-					{
-						_boneDisplayRollOver.filters = null;
-						_boneDisplayRollOver = null;
 					}
 				}
-				else if(_boneDisplayRollOver)
+				else if(_boneDisplayRollOver && _boneDisplayRollOver != _boneDisplaySelected)
 				{
 					_boneDisplayRollOver.filters = null;
 					_boneDisplayRollOver = null;
 				}
-				
-				
-				//_armatureContainer.addChild(_boneBinder);
-				//_boneBinder.visible = true;
-				//updateBoneBinder();
-				//_armatureContainer.addEventListener(MouseEvent.MOUSE_MOVE, containerMouseHandler);
+				return mouseTarget;
 			}
 			
 			private function updateBoneBinder():void
 			{
 				if(_boneBinder.visible)
 				{
-					_pointHelp.x = 0;
-					_pointHelp.y = 0;
-					_pointHelp = _boneDisplaySelected.localToGlobal(_pointHelp);
+					var bone:Bone = _importDataProxy.armature.getBoneByDisplay(_boneDisplaySelected);
+					
+					_pointHelp.x = bone.global.x;
+					_pointHelp.y = bone.global.y;
+					_pointHelp = _armatureDisplay.localToGlobal(_pointHelp);
 					_pointHelp = _armatureContainer.globalToLocal(_pointHelp);
 					_boneBinder.x = _pointHelp.x;
 					_boneBinder.y = _pointHelp.y;
@@ -464,13 +480,11 @@
 			
 			private function highlightBoneDisplay():void
 			{
-				
 				if(_boneDisplaySelected)
 				{
 					_boneDisplaySelected.filters = null;
 					_boneDisplaySelected = null;
 				}
-				
 				if(_armatureDisplay)
 				{
 					var bone:Bone = _importDataProxy.armature.getBone(_importDataProxy.armatureDataProxy.boneName);
@@ -479,11 +493,6 @@
 						_boneDisplaySelected = bone.display;
 						if(_boneDisplaySelected)
 						{
-							if(_boneDisplaySelected == _boneDisplayRollOver)
-							{
-								_boneDisplayRollOver.filters = null;
-								_boneDisplayRollOver = null;
-							}
 							if(_boneHighlightFilter.color)
 							{
 								_boneDisplaySelected.filters = [_boneHighlightFilter];

@@ -104,7 +104,7 @@ function trace(){
 
 function formatNumber(_num, _retain){
 	_retain = _retain || 100;
-	return Math.round(_num * _retain) / 100;
+	return Math.round(_num * _retain) / _retain;
 }
 
 function replaceString(_strOld, _str, _rep){
@@ -350,6 +350,8 @@ function getBoneXML(_name, _frameXML){
 		_xml[AT + A_SKEW_Y] = _frameXML[AT + A_SKEW_Y];
 		_xml[AT + A_SCALE_X] = _frameXML[AT + A_SCALE_X];
 		_xml[AT + A_SCALE_Y] = _frameXML[AT + A_SCALE_Y];
+		_xml[AT + A_PIVOT_X] = _frameXML[AT + A_PIVOT_X];
+		_xml[AT + A_PIVOT_Y] = _frameXML[AT + A_PIVOT_Y];
 		_xml[AT + A_Z] = _frameXML[AT + A_Z];
 		armatureXML.appendChild(_xml);
 	}
@@ -510,19 +512,22 @@ function generateMovement(_item, _mainFrame, _layers){
 
 function generateFrame(_frame, _boneName, _symbol, _z){
 	var _frameXML = <{FRAME}/>;
-	_frameXML[AT + A_X] = formatNumber(_symbol.x);
-	_frameXML[AT + A_Y] = formatNumber(_symbol.y);
-	var _rotate = _symbol.skewX;
+	_frameXML[AT + A_X] = formatNumber(_symbol.transformX);
+	_frameXML[AT + A_Y] = formatNumber(_symbol.transformY);
+	/*var _rotate = _symbol.skewX;
 	while(_rotate > 180){
 		_rotate -= 360;
 	}
 	while(_rotate < -180){
 		_rotate += 360;
-	}
+	}*/
 	_frameXML[AT + A_SKEW_X] = formatNumber(_symbol.skewX);
 	_frameXML[AT + A_SKEW_Y] = formatNumber(_symbol.skewY);
 	_frameXML[AT + A_SCALE_X] = formatNumber(_symbol.scaleX);
 	_frameXML[AT + A_SCALE_Y] = formatNumber(_symbol.scaleY);
+	helpPoint = _symbol.getTransformationPoint();
+	_frameXML[AT + A_PIVOT_X] = formatNumber(helpPoint.x, 1);
+	_frameXML[AT + A_PIVOT_Y] = formatNumber(helpPoint.y, 1);
 	_frameXML[AT + A_Z] = _z;
 	
 	var _boneXML = getBoneXML(_boneName, _frameXML);
@@ -531,7 +536,9 @@ function generateFrame(_frame, _boneName, _symbol, _z){
 	var _imageName = formatName(_imageItem);
 	var _isChildArmature = _symbol.symbolType == MOVIE_CLIP;
 	var _isArmature = isArmatureItem(_imageItem, _isChildArmature);
+	
 	var _displayXML = getDisplayXML(_boneXML, _imageName, _isArmature);
+	
 	_frameXML[AT + A_DISPLAY_INDEX] = _displayXML.childIndex();
 	if(_isArmature){
 		var _backupArmatureXML = armatureXML;
@@ -844,8 +851,6 @@ Skeleton.packTextures = function(_textureAtlasXML){
 			_texture.y += Number(_subTextureXML[AT + A_Y]) - _texture.top;
 		}
 	}
-	currentDom.selectAll();
-	currentDom.selectNone();
 	return true;
 }
 

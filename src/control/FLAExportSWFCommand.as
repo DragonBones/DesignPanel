@@ -1,10 +1,16 @@
 package control
 {
+	import flash.display.Loader;
+	import flash.display.LoaderInfo;
+	import flash.display.MovieClip;
+	import flash.display.Sprite;
 	import flash.events.Event;
 	import flash.events.IOErrorEvent;
-	import flash.net.URLLoader;
-	import flash.net.URLLoaderDataFormat;
 	import flash.net.URLRequest;
+	import flash.system.LoaderContext;
+	import flash.utils.ByteArray;
+	
+	import makeswfs.make;
 	
 	import message.Message;
 	import message.MessageDispatcher;
@@ -15,16 +21,20 @@ package control
 	{
 		public static var instance:FLAExportSWFCommand = new FLAExportSWFCommand();
 		
-		private var _urlLoader:URLLoader;
+		private var _loaderContext:LoaderContext;
+		
+		private var _textureAtlasXML:XML;
+		private var _textureBytes:ByteArray;
 		
 		public function FLAExportSWFCommand()
 		{
-			_urlLoader = new URLLoader();
-			_urlLoader.dataFormat = URLLoaderDataFormat.BINARY;
+			_loaderContext = new LoaderContext(false)
+			_loaderContext.allowCodeImport = true;
 		}
 		
-		public function exportSWF():void
+		public function exportSWF(textureAtlasXML:XML):void
 		{
+			_textureAtlasXML = textureAtlasXML;
 			MessageDispatcher.addEventListener(JSFLProxy.EXPORT_SWF, jsflProxyHandler);
 			JSFLProxy.getInstance().exportSWF();
 		}
@@ -36,23 +46,28 @@ package control
 			var swfURL:String = e.parameters[0];
 			if(swfURL)
 			{
-				_urlLoader.addEventListener(IOErrorEvent.IO_ERROR, urlLoaderHandler);
-				_urlLoader.addEventListener(Event.COMPLETE, urlLoaderHandler);
-				_urlLoader.load(new URLRequest(swfURL));
+				var loader:Loader = new Loader();
+				loader.contentLoaderInfo.addEventListener(IOErrorEvent.IO_ERROR, loaderHandler);
+				loader.contentLoaderInfo.addEventListener(Event.COMPLETE, loaderHandler);
+				loader.load(new URLRequest(swfURL), _loaderContext);
 			}
 		}
 		
-		private function urlLoaderHandler(e:Event):void
+		private function loaderHandler(e:Event):void
 		{
-			_urlLoader.addEventListener(IOErrorEvent.IO_ERROR, urlLoaderHandler);
-			_urlLoader.addEventListener(Event.COMPLETE, urlLoaderHandler);
+			var loaderInfo:LoaderInfo = e.target as LoaderInfo;
+			loaderInfo.removeEventListener(IOErrorEvent.IO_ERROR, loaderHandler);
+			loaderInfo.removeEventListener(Event.COMPLETE, loaderHandler);
 			switch(e.type)
 			{
 				case IOErrorEvent.IO_ERROR:
 					MessageDispatcher.dispatchEvent(IOErrorEvent.IO_ERROR);
 					break;
 				case Event.COMPLETE:
-					MessageDispatcher.dispatchEvent(MessageDispatcher.FLA_TEXTURE_ATLAS_SWF_LOADED, _urlLoader.data);
+					var content:MovieClip = (loaderInfo.content as Sprite).getChildAt(0) as MovieClip;
+					content.stop();
+					_textureBytes = make(loaderInfo.bytes, _textureAtlasXML);
+					MessageDispatcher.dispatchEvent(MessageDispatcher.FLA_TEXTURE_ATLAS_SWF_LOADED, content, _textureBytes);
 					break;
 			}
 		}

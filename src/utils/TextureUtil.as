@@ -37,8 +37,8 @@
 			_remainRectList.push(new Rectangle(0, 0, _widthDefault, _heightMax));
 			
 			var _isFit:Boolean;
-			var _width:uint;
-			var _height:uint;
+			var _width:int;
+			var _height:int;
 			var _pivotX:Number;
 			var _pivotY:Number;
 			

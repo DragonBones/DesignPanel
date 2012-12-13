@@ -1,15 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <s:TitleWindow xmlns:fx="http://ns.adobe.com/mxml/2009"
-		 xmlns:s="library://ns.adobe.com/flex/spark"
-		 xmlns:mx="library://ns.adobe.com/flex/mx"
-		 width="360" height="320" title="{resourceManager.getString('resources','export')}"
-		 close="closeWindow()"
-		 >
+			   xmlns:s="library://ns.adobe.com/flex/spark"
+			   xmlns:mx="library://ns.adobe.com/flex/mx"
+			   xmlns:components="view.components.*"
+			   width="360" height="320" close="closeWindow()"
+			   title="{resourceManager.getString('resources','export')}">
 	<fx:Script>
 		<![CDATA[
 			import mx.events.CloseEvent;
 			import mx.managers.PopUpManager;
-			import mx.collections.ArrayCollection;
+			import mx.resources.ResourceManager;
 			
 			import message.Message;
 			import message.MessageDispatcher;
@@ -18,16 +18,6 @@
 			
 			import model.SettingDataProxy;
 			import model.ImportDataProxy;
-			import mx.resources.ResourceManager;
-			
-			[Bindable]
-			private var dataExportAC:ArrayCollection = new ArrayCollection([
-				ResourceManager.getInstance().getString('resources','SWFwithXML'),
-				ResourceManager.getInstance().getString('resources','PNGwithXML'),
-				ResourceManager.getInstance().getString('resources','ZIPwithXMLAndSWF'),
-				ResourceManager.getInstance().getString('resources','ZIPwithXMLAndPNG'),
-				ResourceManager.getInstance().getString('resources','ZIPwithXMLAndPNGs')
-			]);
 			
 			private function exportData():void
 			{
@@ -59,7 +49,7 @@
 		</s:VGroup>
 		<s:VGroup width="100%" gap="6">
 			<s:DropDownList width="100%" height="24" cornerRadius="0" textAlign="right"
-							dataProvider="{dataExportAC}"
+							dataProvider="{SettingDataProxy.getInstance().dataExportArrayCollectio}"
 							selectedIndex="@{SettingDataProxy.getInstance().dataExportID}"
 							/>
 		</s:VGroup>

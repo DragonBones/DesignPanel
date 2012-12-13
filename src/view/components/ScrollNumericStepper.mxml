@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:NumericStepper xmlns:fx="http://ns.adobe.com/mxml/2009" 
+				  xmlns:s="library://ns.adobe.com/flex/spark" 
+				  xmlns:mx="library://ns.adobe.com/flex/mx"
+				  creationComplete="creationCompleteHandler(event)"
+				  >
+	<fx:Script>
+		<![CDATA[
+			import mx.events.FlexEvent;
+			
+			private var _isDrag:Boolean;
+			private var _startMouseX:int;
+			private var _startValue:Number;
+			
+			private function creationCompleteHandler(event:FlexEvent):void
+			{
+				this.textDisplay.mouseChildren = false;
+				this.textDisplay.mouseEnabled = false;
+				this.textDisplay.selectable = false;
+				this.textDisplay.editable = false;
+				
+				this.addEventListener(MouseEvent.MOUSE_DOWN, this.mouseHandler);
+				this.addEventListener(FocusEvent.FOCUS_IN, focusHandler);
+				this.addEventListener(FocusEvent.FOCUS_OUT, focusHandler);
+			}
+			
+			private function focusHandler(e:FocusEvent):void
+			{
+				switch(e.type)
+				{
+					case FocusEvent.FOCUS_IN:
+						/*this.textDisplay.mouseChildren = true;
+						this.textDisplay.mouseEnabled = true;
+						this.textDisplay.selectable = true;
+						this.textDisplay.editable = true;*/
+						break;
+					case FocusEvent.FOCUS_OUT:
+						this.textDisplay.mouseChildren = false;
+						this.textDisplay.mouseEnabled = false;
+						this.textDisplay.selectable = false;
+						this.textDisplay.editable = false;
+						break;
+				}
+			}
+			
+			private function mouseHandler(e:MouseEvent):void
+			{
+				switch(e.type)
+				{
+					case MouseEvent.MOUSE_DOWN:
+						if(e.target == this.skin)
+						{
+							this.stage.addEventListener(MouseEvent.MOUSE_MOVE, this.mouseHandler);
+							this.stage.addEventListener(MouseEvent.MOUSE_UP, this.mouseHandler);
+							_startMouseX = this.mouseX;
+							_startValue = this.value;
+						}
+						break;
+					case MouseEvent.MOUSE_MOVE:
+						_isDrag = true;
+						var dX:int = (this.mouseX - _startMouseX) * 0.5;
+						this.value = dX * this.snapInterval + _startValue;
+						break;
+					case MouseEvent.MOUSE_UP:
+						this.stage.removeEventListener(MouseEvent.MOUSE_MOVE, this.mouseHandler);
+						this.stage.removeEventListener(MouseEvent.MOUSE_UP, this.mouseHandler);
+						if(_isDrag)
+						{
+							
+						}
+						else
+						{
+							//this.textDisplay.mouseChildren = true;
+							//this.textDisplay.mouseEnabled = true;
+							//this.textDisplay.selectable = true;
+							//this.textDisplay.editable = true;
+							this.setFocus();
+							this.textDisplay.setFocus();
+						}
+						_isDrag = false;
+						break;
+				}
+			}
+		]]>
+	</fx:Script>
+</s:NumericStepper>

@@ -4,9 +4,6 @@ package message{
 	import flash.events.IEventDispatcher;
 	
 	public class MessageDispatcher extends EventDispatcher{
-		
-		static public const CHANGE_LANGUAGE:String = "changeLanguage";
-		
 		static public const LOAD_FLADATA:String = "loadFladata";
 		static public const LOAD_ARMATURE_DATA:String = "loadSkeletonData";
 		static public const LOAD_ARMATURE_DATA_COMPLETE:String = "loadSkeletonDataComplete";
@@ -41,8 +38,9 @@ package message{
 		public static const MOVEMENT_START:String = "movementStart";
 		public static const MOVEMENT_COMPLETE:String = "movementComplete";
 		
-		public static const VIEW_BONE_HIGHLIGHT_CHANGE:String = "viewBoneHighlightChange";
 		public static const FLA_TEXTURE_ATLAS_SWF_LOADED:String = "flaTextureAtlasSWFLoaded";
+		
+		public static const SETTING_DATA_CHANGE:String = "settingDataChange";
 		
 		private static var instance:MessageDispatcher = new MessageDispatcher();
 		

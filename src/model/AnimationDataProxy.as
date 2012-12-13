@@ -1,4 +1,5 @@
-﻿package model{
+﻿package model
+{
 	import dragonBones.objects.AnimationData;
 	import dragonBones.objects.MovementBoneData;
 	import dragonBones.objects.MovementData;
@@ -17,182 +18,228 @@
 	/**
 	 * Manage selected animation data
 	 */
-	public class AnimationDataProxy{
+	public class AnimationDataProxy
+	{
 		public var movementsMC:XMLListCollection;
 		
-		private var xml:XML;
-		private var movementsXMLList:XMLList;
+		private var _xml:XML;
+		private var _movementsXMLList:XMLList;
 		
-		private var movementXML:XML;
-		private var movementBonesXMLList:XMLList;
+		private var _movementXML:XML;
+		private var _movementBonesXMLList:XMLList;
 		
-		private var movementBoneXML:XML;
+		private var _movementBoneXML:XML;
 		
-		public function get animationName():String{
-			return ImportDataProxy.getElementName(xml);
+		public function get animationName():String
+		{
+			return ImportDataProxy.getElementName(_xml);
 		}
 		
-		public function get movementName():String{
-			return ImportDataProxy.getElementName(movementXML);
+		public function get movementName():String
+		{
+			return ImportDataProxy.getElementName(_movementXML);
 		}
 		
-		public function get boneName():String{
-			return ImportDataProxy.getElementName(movementBoneXML);
+		public function get boneName():String
+		{
+			return ImportDataProxy.getElementName(_movementBoneXML);
 		}
 		
-		public function get durationTo():int{
-			if(!movementXML){
+		public function get durationTo():Number
+		{
+			if(!_movementXML)
+			{
 				return -1;
 			}
-			return int(movementXML.attribute(ConstValues.A_DURATION_TO));
+			return int(_movementXML.attribute(ConstValues.A_DURATION_TO)) / ImportDataProxy.getInstance().frameRate;
 		}
-		public function set durationTo(_value:int):void{
-			if(movementXML){
-				movementXML[ConstValues.AT + ConstValues.A_DURATION_TO] = _value;
+		public function set durationTo(value:Number):void
+		{
+			if(_movementXML)
+			{
+				_movementXML[ConstValues.AT + ConstValues.A_DURATION_TO] = Math.round(value * ImportDataProxy.getInstance().frameRate);
 				updateMovement();
 			}
 		}
 		
-		public function get durationTween():int{
-			if(movementXML?int(movementXML.attribute(ConstValues.A_DURATION)) == 1:true){
+		public function get durationTween():Number
+		{
+			if(_movementXML?int(_movementXML.attribute(ConstValues.A_DURATION)) == 1:true)
+			{
 				return -1;
 			}
-			return int(movementXML.attribute(ConstValues.A_DURATION_TWEEN));
+			return int(_movementXML.attribute(ConstValues.A_DURATION_TWEEN)) / ImportDataProxy.getInstance().frameRate;
 		}
-		public function set durationTween(_value:int):void{
-			if(movementXML){
-				movementXML[ConstValues.AT + ConstValues.A_DURATION_TWEEN] = _value;
+		public function set durationTween(value:Number):void
+		{
+			if(_movementXML)
+			{
+				_movementXML[ConstValues.AT + ConstValues.A_DURATION_TWEEN] = Math.round(value * ImportDataProxy.getInstance().frameRate);
 				updateMovement();
 			}
 		}
 		
-		public function get loop():Boolean{
-			return movementXML?Boolean(int(movementXML.attribute(ConstValues.A_LOOP)) == 1):false;
+		public function get loop():Boolean
+		{
+			return _movementXML?Boolean(int(_movementXML.attribute(ConstValues.A_LOOP)) == 1):false;
 		}
-		public function set loop(_value:Boolean):void{
-			if(movementXML){
-				movementXML[ConstValues.AT + ConstValues.A_LOOP] = _value?1:0;
+		public function set loop(value:Boolean):void
+		{
+			if(_movementXML)
+			{
+				_movementXML[ConstValues.AT + ConstValues.A_LOOP] = value?1:0;
 				updateMovement();
 			}
 		}
 		
-		public function get tweenEasing():Number{
-			return movementXML?Number(movementXML.attribute(ConstValues.A_TWEEN_EASING)):-1.1;
+		public function get tweenEasing():Number
+		{
+			return _movementXML?Number(_movementXML.attribute(ConstValues.A_TWEEN_EASING)):-1.1;
 		}
-		public function set tweenEasing(_value:Number):void{
-			if(movementXML){
-				if(_value<-1){
-					movementXML[ConstValues.AT + ConstValues.A_TWEEN_EASING] = NaN;
-				}else{
-					movementXML[ConstValues.AT + ConstValues.A_TWEEN_EASING] = _value;
+		public function set tweenEasing(value:Number):void
+		{
+			if(_movementXML)
+			{
+				if(value<-1)
+				{
+					_movementXML[ConstValues.AT + ConstValues.A_TWEEN_EASING] = NaN;
+				}
+				else
+				{
+					_movementXML[ConstValues.AT + ConstValues.A_TWEEN_EASING] = value;
 				}
 				updateMovement();
 			}
 		}
 		
-		public function get boneScale():Number{
-			if(!movementBoneXML || int(movementXML.attribute(ConstValues.A_DURATION)) < 2){
+		public function get boneScale():Number
+		{
+			if(!_movementBoneXML || int(_movementXML.attribute(ConstValues.A_DURATION)) < 2)
+			{
 				return NaN;
 			}
-			return Number(movementBoneXML.attribute(ConstValues.A_MOVEMENT_SCALE)) * 100;
+			return Number(_movementBoneXML.attribute(ConstValues.A_MOVEMENT_SCALE)) * 100;
 		}
-		public function set boneScale(_value:Number):void{
-			if(movementBoneXML){
-				movementBoneXML[ConstValues.AT + ConstValues.A_MOVEMENT_SCALE] = _value * 0.01;
+		public function set boneScale(value:Number):void
+		{
+			if(_movementBoneXML)
+			{
+				_movementBoneXML[ConstValues.AT + ConstValues.A_MOVEMENT_SCALE] = value * 0.01;
 				updateMovementBone();
 			}
 		}
 		
-		public function get boneDelay():Number{
-			if(!movementBoneXML || int(movementXML.attribute(ConstValues.A_DURATION)) < 2){
+		public function get boneDelay():Number
+		{
+			if(!_movementBoneXML || int(_movementXML.attribute(ConstValues.A_DURATION)) < 2)
+			{
 				return NaN;
 			}
-			return Number(movementBoneXML.attribute(ConstValues.A_MOVEMENT_DELAY))* 100;
+			return Number(_movementBoneXML.attribute(ConstValues.A_MOVEMENT_DELAY))* 100;
 		}
-		public function set boneDelay(_value:Number):void{
-			if(movementBoneXML){
-				movementBoneXML[ConstValues.AT + ConstValues.A_MOVEMENT_DELAY] = _value * 0.01;
+		public function set boneDelay(value:Number):void
+		{
+			if(_movementBoneXML)
+			{
+				_movementBoneXML[ConstValues.AT + ConstValues.A_MOVEMENT_DELAY] = value * 0.01;
 				updateMovementBone();
 			}
 		}
 		
-		public function AnimationDataProxy(){
+		public function AnimationDataProxy()
+		{
 			movementsMC = new XMLListCollection();
 		}
 		
-		internal function setData(_xml:XML):void{
-			xml = _xml;
-			if(xml){
-				movementsXMLList = xml.elements(ConstValues.MOVEMENT);
-			}else{
-				movementsXMLList = null;
+		internal function setData(xml:XML):void
+		{
+			_xml = xml;
+			if(_xml)
+			{
+				_movementsXMLList = _xml.elements(ConstValues.MOVEMENT);
+			}
+			else
+			{
+				_movementsXMLList = null;
 			}
 			
-			movementsMC.source = movementsXMLList;
+			movementsMC.source = _movementsXMLList;
 			
 			MessageDispatcher.dispatchEvent(MessageDispatcher.CHANGE_ANIMATION_DATA, animationName);
 			
 			changeMovement();
 		}
 		
-		public function changeMovement(_movementName:String = null, _isChangedByArmature:Boolean = false):void{
-			movementXML = ImportDataProxy.getElementByName(movementsXMLList, _movementName, true);
-			if(movementXML){
-				movementBonesXMLList = movementXML.elements(ConstValues.BONE);
-			}else{
-				movementBonesXMLList = null;
+		public function changeMovement(movementName:String = null, isChangedByArmature:Boolean = false):void
+		{
+			_movementXML = ImportDataProxy.getElementByName(_movementsXMLList, movementName, true);
+			if(_movementXML)
+			{
+				_movementBonesXMLList = _movementXML.elements(ConstValues.BONE);
+			}
+			else
+			{
+				_movementBonesXMLList = null;
 			}
 			
-			MessageDispatcher.dispatchEvent(MessageDispatcher.CHANGE_MOVEMENT_DATA, movementName, _isChangedByArmature);
+			MessageDispatcher.dispatchEvent(MessageDispatcher.CHANGE_MOVEMENT_DATA, this.movementName, isChangedByArmature);
 			
 			changeMovementBone(ImportDataProxy.getInstance().armatureDataProxy.boneName);
 		}
 		
-		public function changeMovementBone(_boneName:String = null):void{
-			var _movementBoneXML:XML = ImportDataProxy.getElementByName(movementBonesXMLList, _boneName, true);
-			if(movementBoneXML == _movementBoneXML){
+		public function changeMovementBone(boneName:String = null):void
+		{
+			var movementBoneXML:XML = ImportDataProxy.getElementByName(_movementBonesXMLList, boneName, true);
+			if(movementBoneXML == _movementBoneXML)
+			{
 				return;
 			}
-			movementBoneXML = _movementBoneXML;
-			MessageDispatcher.dispatchEvent(MessageDispatcher.CHANGE_MOVEMENT_BONE_DATA , boneName);
+			_movementBoneXML = movementBoneXML;
+			MessageDispatcher.dispatchEvent(MessageDispatcher.CHANGE_MOVEMENT_BONE_DATA , this.boneName);
 		}
 		
-		internal function updateBoneParent(_boneName:String):void{
-			XMLDataParser.parseAnimationData(xml, ImportDataProxy.getInstance().skeletonData);
+		internal function updateBoneParent(boneName:String):void
+		{
+			XMLDataParser.parseAnimationData(_xml, ImportDataProxy.getInstance().skeletonData);
 		}
 		
-		private function updateMovement():void{
-			var _animationData:AnimationData = ImportDataProxy.getInstance().skeletonData.getAnimationData(animationName);
-			var _movementData:MovementData = _animationData.getMovementData(movementName);
+		private function updateMovement():void
+		{
+			var animationData:AnimationData = ImportDataProxy.getInstance().skeletonData.getAnimationData(animationName);
+			var movementData:MovementData = animationData.getMovementData(movementName);
 			
-			_movementData.durationTo = durationTo;
-			_movementData.durationTween = durationTween;
-			_movementData.loop = loop;
-			_movementData.tweenEasing = tweenEasing;
+			movementData.durationTo = durationTo;
+			movementData.durationTween = durationTween;
+			movementData.loop = loop;
+			movementData.tweenEasing = tweenEasing;
 			
-			if(!ImportDataProxy.getInstance().isExportedSource){
-				JSFLProxy.getInstance().changeMovement(animationName, movementName, movementXML);
+			if(!ImportDataProxy.getInstance().isExportedSource)
+			{
+				JSFLProxy.getInstance().changeMovement(animationName, movementName, _movementXML);
 			}
 			
 			MessageDispatcher.dispatchEvent(MessageDispatcher.UPDATE_MOVEMENT_DATA, movementName);
 		}
 		
-		private function updateMovementBone():void{
-			var _animationData:AnimationData = ImportDataProxy.getInstance().skeletonData.getAnimationData(animationName);
-			var _movementData:MovementData = _animationData.getMovementData(movementName);
-			var _movementBoneData:MovementBoneData = _movementData.getMovementBoneData(boneName);
+		private function updateMovementBone():void
+		{
+			var animationData:AnimationData = ImportDataProxy.getInstance().skeletonData.getAnimationData(animationName);
+			var movementData:MovementData = animationData.getMovementData(movementName);
+			var movementBoneData:MovementBoneData = movementData.getMovementBoneData(boneName);
 			
-			_movementBoneData.scale = boneScale * 0.01;
-			_movementBoneData.delay = boneDelay * 0.01;
-			if(_movementBoneData.delay > 0){
-				_movementBoneData.delay -= 1;
+			movementBoneData.scale = boneScale * 0.01;
+			movementBoneData.delay = boneDelay * 0.01;
+			if(movementBoneData.delay > 0)
+			{
+				movementBoneData.delay -= 1;
 			}
 			
-			if(!ImportDataProxy.getInstance().isExportedSource){
-				var _movementXMLCopy:XML = movementXML.copy();
-				delete _movementXMLCopy.elements(ConstValues.BONE).*;
-				delete _movementXMLCopy[ConstValues.FRAME];
-				JSFLProxy.getInstance().changeMovement(animationName, movementName, _movementXMLCopy);
+			if(!ImportDataProxy.getInstance().isExportedSource)
+			{
+				var movementXMLCopy:XML = _movementXML.copy();
+				delete movementXMLCopy.elements(ConstValues.BONE).*;
+				delete movementXMLCopy[ConstValues.FRAME];
+				JSFLProxy.getInstance().changeMovement(animationName, movementName, movementXMLCopy);
 			}
 			
 			MessageDispatcher.dispatchEvent(MessageDispatcher.UPDATE_MOVEMENT_BONE_DATA, movementName);

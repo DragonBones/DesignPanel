@@ -11,6 +11,7 @@
 			import message.MessageDispatcher;
 			
 			import model.ImportDataProxy;
+			import model.SettingDataProxy;
 			
 			private var _importDataProxy:ImportDataProxy = ImportDataProxy.getInstance();
 			
@@ -44,7 +45,7 @@
 				sliderDelay.addEventListener(Event.CHANGE, valueChangeHandler);
 				numDelay.addEventListener(Event.CHANGE, valueChangeHandler);
 				
-				MessageDispatcher.addEventListener(MessageDispatcher.CHANGE_LANGUAGE, commandHandler);
+				MessageDispatcher.addEventListener(MessageDispatcher.SETTING_DATA_CHANGE, settingHandler);
 				
 				MessageDispatcher.addEventListener(MessageDispatcher.CHANGE_MOVEMENT_DATA, commandHandler);
 				MessageDispatcher.addEventListener(MessageDispatcher.CHANGE_MOVEMENT_BONE_DATA, commandHandler);
@@ -59,17 +60,26 @@
 				
 			}
 			
+			private function settingHandler(e:Message):void
+			{
+				var settingID:String = e.parameters[0];
+				var value:Object = e.parameters[1];
+				switch(settingID)
+				{
+					case SettingDataProxy.LANGUAGE_ID:
+						updatePlayAndPauseBtn();
+						break;
+				}
+			}
+			
 			private function commandHandler(e:Message):void
 			{
 				switch(e.type)
 				{
-					case MessageDispatcher.CHANGE_LANGUAGE:
-						updatePlayAndPauseBtn();
-						break;
 					case MessageDispatcher.CHANGE_MOVEMENT_DATA:
 						_movementName = e.parameters[0];
-						var durationTo:int = _importDataProxy.animationDataProxy.durationTo;
-						var durationTween:int = _importDataProxy.animationDataProxy.durationTween;
+						var durationTo:Number = _importDataProxy.animationDataProxy.durationTo;
+						var durationTween:Number = _importDataProxy.animationDataProxy.durationTween;
 						if(durationTo < 0)
 						{
 							numDurationTo.enabled = false;
@@ -150,16 +160,24 @@
 			{
 				switch(e.target){
 					case sliderDurationTo:
-						numDurationTo.value = sliderDurationTo.value;
+						_importDataProxy.animationDataProxy.durationTo = sliderDurationTo.value;
+						numDurationTo.value = _importDataProxy.animationDataProxy.durationTo;
+						sliderDurationTo.value = _importDataProxy.animationDataProxy.durationTo;
+						break;
 					case numDurationTo:
-						sliderDurationTo.value = numDurationTo.value;
 						_importDataProxy.animationDataProxy.durationTo = numDurationTo.value;
+						numDurationTo.value = _importDataProxy.animationDataProxy.durationTo;
+						sliderDurationTo.value = _importDataProxy.animationDataProxy.durationTo;
 						break;
 					case sliderDurationTween:
-						numDurationTween.value = sliderDurationTween.value;
+						_importDataProxy.animationDataProxy.durationTween = sliderDurationTween.value;
+						numDurationTween.value = _importDataProxy.animationDataProxy.durationTween;
+						sliderDurationTween.value = _importDataProxy.animationDataProxy.durationTween;
+						break;
 					case numDurationTween:
-						sliderDurationTween.value = numDurationTween.value;
 						_importDataProxy.animationDataProxy.durationTween = numDurationTween.value;
+						numDurationTween.value = _importDataProxy.animationDataProxy.durationTween;
+						sliderDurationTween.value = _importDataProxy.animationDataProxy.durationTween;
 						break;
 					case sliderTweenEasing:
 						_importDataProxy.animationDataProxy.tweenEasing = sliderTweenEasing.value;
@@ -261,10 +279,10 @@
 			
 			<s:Group>
 				<s:HSlider id="sliderDurationTween" y="7" width="100"
-						   minimum="0" maximum="100" snapInterval="1"
+						   minimum="0" maximum="10" snapInterval="0.01"
 						   />
 				<s:HSlider id="sliderDurationTo" y="37" width="100" 
-						   minimum="0" maximum="100" snapInterval="1"
+						   minimum="0" maximum="10" snapInterval="0.01"
 						   />
 				<s:HSlider id="sliderTweenEasing" y="67" width="100"
 						   minimum="-1.1" maximum="2" snapInterval="0.05"
@@ -273,11 +291,11 @@
 							label="{resourceManager.getString('resources','loop')}"/>
 				
 				<s:NumericStepper id="numDurationTween" x="110" y="0" width="60" height="24" cornerRadius="0" textAlign="right"
-								  maximum="3000" minimum="0" snapInterval="1"
+								  maximum="3000" minimum="0" snapInterval="0.01"
 								  />
 				
 				<s:NumericStepper id="numDurationTo" x="110" y="30" width="60" height="24" cornerRadius="0" textAlign="right"
-								  maximum="3000" minimum="0" snapInterval="1"
+								  maximum="3000" minimum="0" snapInterval="0.01"
 								  />
 			</s:Group>
 		</s:HGroup>

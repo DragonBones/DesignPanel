@@ -19,17 +19,11 @@
 			import mx.events.CloseEvent;
 			import mx.managers.PopUpManager;
 			import mx.resources.ResourceManager;
-			import mx.collections.ArrayCollection;
-			
-			[Bindable]
-			private var dataImportAC:ArrayCollection = new ArrayCollection([
-				ResourceManager.getInstance().getString('resources','allLibraryItems'),
-				ResourceManager.getInstance().getString('resources','selectedItems'),
-				ResourceManager.getInstance().getString('resources','exportedData')
-			]);
 			
 			private function importData():void
 			{
+				MessageDispatcher.addEventListener(MessageDispatcher.LOAD_FLADATA, commandHandler);
+				MessageDispatcher.addEventListener(MessageDispatcher.LOAD_FILEDATA, commandHandler);
 				switch(SettingDataProxy.getInstance().dataImportID)
 				{
 					case 0:
@@ -42,8 +36,6 @@
 						LoadFileDataCommand.instance.load();
 						break;
 				}
-				MessageDispatcher.addEventListener(MessageDispatcher.LOAD_FLADATA, commandHandler);
-				MessageDispatcher.addEventListener(MessageDispatcher.LOAD_FILEDATA, commandHandler);
 			}
 			
 			private function commandHandler(e:Message):void
@@ -53,8 +45,8 @@
 			
 			private function closeWindow():void
 			{
-				MessageDispatcher.addEventListener(MessageDispatcher.LOAD_FLADATA, commandHandler);
-				MessageDispatcher.addEventListener(MessageDispatcher.LOAD_FILEDATA, commandHandler);
+				MessageDispatcher.removeEventListener(MessageDispatcher.LOAD_FLADATA, commandHandler);
+				MessageDispatcher.removeEventListener(MessageDispatcher.LOAD_FILEDATA, commandHandler);
 				PopUpManager.removePopUp(this);
 			}
 		]]>
@@ -84,18 +76,18 @@
 		</s:VGroup>
 		<s:VGroup width="100%" gap="6">
 			<s:DropDownList width="100%" height="24" textAlign="right"
-							dataProvider="{dataImportAC}"
+							dataProvider="{SettingDataProxy.getInstance().dataImportArrayCollection}"
 							selectedIndex="@{SettingDataProxy.getInstance().dataImportID}"
 							/>
 			<s:Spacer height="25"/>
 			<s:DropDownList width="100%" height="24" textAlign="right"
-							dataProvider="{SettingDataProxy.getInstance().textureSortAC}"
+							dataProvider="{SettingDataProxy.getInstance().textureSortArrayCollection}"
 							enabled="{!ImportDataProxy.getInstance().isExportedSource}"
 							selectedIndex="@{SettingDataProxy.getInstance().textureSortID}"
 							/>
 			<s:DropDownList width="100%" height="24"
 							change="{ImportDataProxy.getInstance().updateTextures()}" cornerRadius="0" textAlign="right"
-							dataProvider="{SettingDataProxy.getInstance().textureMaxWidthAC}"
+							dataProvider="{SettingDataProxy.getInstance().textureMaxWidthArrayCollection}"
 							enabled="{SettingDataProxy.getInstance().textureSortID == 0 &amp;&amp; !ImportDataProxy.getInstance().isExportedSource}"
 							selectedIndex="@{SettingDataProxy.getInstance().textureMaxWidthID}"
 							/>

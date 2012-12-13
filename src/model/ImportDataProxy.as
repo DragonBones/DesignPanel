@@ -1,6 +1,8 @@
-﻿package model{
+﻿package model
+{
 	import dragonBones.Armature;
 	import dragonBones.Bone;
+	import dragonBones.animation.WorldClock;
 	import dragonBones.events.AnimationEvent;
 	import dragonBones.factorys.BaseFactory;
 	import dragonBones.objects.BoneData;
@@ -11,7 +13,6 @@
 	import dragonBones.utils.dragonBones_internal;
 	
 	import flash.errors.IllegalOperationError;
-	import flash.events.Event;
 	import flash.utils.ByteArray;
 	
 	import message.MessageDispatcher;
@@ -20,6 +21,7 @@
 	
 	import utils.GlobalConstValues;
 	import utils.TextureUtil;
+	import utils.movePivotToSkeleton;
 	
 	use namespace dragonBones_internal;
 	
@@ -27,29 +29,38 @@
 	/**
 	 * Manage imported data
 	 */
-	public class ImportDataProxy{
-		private static var instance:ImportDataProxy
-		public static function getInstance():ImportDataProxy{
-			if(!instance){
-				instance = new ImportDataProxy();
+	public class ImportDataProxy
+	{
+		private static var _instance:ImportDataProxy
+		public static function getInstance():ImportDataProxy
+		{
+			if(!_instance)
+			{
+				_instance = new ImportDataProxy();
 			}
-			return instance;
+			return _instance;
 		}
 		
-		public static function getElementByName(_xmlList:XMLList, _name:String = null, _returnFirst:Boolean = false):XML{
-			if(_xmlList){
-				if(_name){
-					return _xmlList.(attribute(ConstValues.A_NAME) == _name)[0];
+		public static function getElementByName(xmlList:XMLList, name:String = null, returnFirst:Boolean = false):XML
+		{
+			if(xmlList)
+			{
+				if(name)
+				{
+					return XMLDataParser.getElementByAttribute(xmlList, ConstValues.A_NAME, name)[0];
 				}
-				if(_returnFirst){
-					return _xmlList[0];
+				if(returnFirst)
+				{
+					return xmlList[0];
 				}
 			}
 			return null;
 		}
 		
-		public static function getElementName(_xml:XML, _key:String = null):String{
-			return _xml?String(_xml.attribute(ConstValues.A_NAME)):"";
+		public static function getElementName(xml:XML, key:String = null):String
+		{
+			key = key||ConstValues.A_NAME;
+			return xml?String(xml.attribute(key)):"";
 		}
 		
 		public var armaturesMC:XMLListCollection;
@@ -57,125 +68,141 @@
 		public var isTextureChanged:Boolean;
 		public var isExportedSource:Boolean;
 		
-		private var armaturesXMLList:XMLList;
-		private var animationsXMLList:XMLList;
-		//private var armatures:Object;
-		private var baseFactory:BaseFactory;
+		private var _armaturesXMLList:XMLList;
+		private var _animationsXMLList:XMLList;
+		private var _baseFactory:BaseFactory;
 		
-		public function get skeletonName():String{
-			return getElementName(__skeletonXML);
+		public function get skeletonName():String
+		{
+			return getElementName(_skeletonXML);
 		}
 		
-		public function get frameRate():int{
-			return int(__skeletonXML.attribute(ConstValues.A_FRAME_RATE));
+		public function get frameRate():int
+		{
+			return int(_skeletonXML.attribute(ConstValues.A_FRAME_RATE));
 		}
 		
-		private var __skeletonXML:XML;
-		public function get skeletonXML():XML{
-			return __skeletonXML;
+		private var _skeletonXML:XML;
+		public function get skeletonXML():XML
+		{
+			return _skeletonXML;
 		}
 		
-		private var __textureAtlasXML:XML;
-		public function get textureAtlasXML():XML{
-			return __textureAtlasXML;
+		private var _textureAtlasXML:XML;
+		public function get textureAtlasXML():XML
+		{
+			return _textureAtlasXML;
 		}
 		
-		private var __armatureDataProxy:ArmatureDataProxy;
-		public function get armatureDataProxy():ArmatureDataProxy{
-			return __armatureDataProxy;
+		private var _armatureDataProxy:ArmatureDataProxy;
+		public function get armatureDataProxy():ArmatureDataProxy
+		{
+			return _armatureDataProxy;
 		}
 		
-		private var __animationDataProxy:AnimationDataProxy;
-		public function get animationDataProxy():AnimationDataProxy{
-			return __animationDataProxy;
+		private var _animationDataProxy:AnimationDataProxy;
+		public function get animationDataProxy():AnimationDataProxy
+		{
+			return _animationDataProxy;
 		}
 		
-		private var __skeletonData:SkeletonData;
-		public function get skeletonData():SkeletonData{
-			return __skeletonData;
+		private var _skeletonData:SkeletonData;
+		public function get skeletonData():SkeletonData
+		{
+			return _skeletonData;
 		}
 		
-		private var __textureData:TextureAtlasData;
-		public function get textureData():TextureAtlasData{
-			return __textureData;
+		private var _textureAtlasData:TextureAtlasData;
+		public function get textureAtlasData():TextureAtlasData
+		{
+			return _textureAtlasData;
 		}
 		
-		private var __armature:Armature;
-		public function get armature():Armature{
-			return __armature;
+		public var textureBytes:ByteArray;
+		
+		private var _armature:Armature;
+		public function get armature():Armature
+		{
+			return _armature;
 		}
 		
-		public function ImportDataProxy(){
-			if (instance) {
+		public function ImportDataProxy()
+		{
+			if (_instance) 
+			{
 				throw new IllegalOperationError("Singleton already constructed!");
 			}
 			armaturesMC = new XMLListCollection();
 			
-			__armatureDataProxy = new ArmatureDataProxy();
-			__animationDataProxy = new AnimationDataProxy();
-			baseFactory = new BaseFactory();
+			_armatureDataProxy = new ArmatureDataProxy();
+			_animationDataProxy = new AnimationDataProxy();
+			_baseFactory = new BaseFactory();
 		}
 		
-		public function setData(_skeletonXML:XML, _textureAtlasXML:XML, _textureData:ByteArray, _isSWFSource:Boolean):void{
-			/*for each(__armature in armatures){
-				__armature.dispose();
-			}
-			armatures = {};
-			__armature = null;*/
-			if(__armature)
+		public function setData(skeletonXML:XML, textureAtlasXML:XML, textureData:Object, textureBytes:ByteArray, isExportedSource:Boolean):void
+		{
+			disposeArmature();
+			
+			if(_skeletonData)
 			{
-				__armature.dispose();
+				_baseFactory.removeSkeletonData(_skeletonData.name);
+				_skeletonData.dispose();
 			}
-			__armature = null;
+			
+			if(_textureAtlasData)
+			{
+				_baseFactory.removeTextureAtlasData(_textureAtlasData.name);
+				_textureAtlasData.dispose();
+			}
 			
 			isTextureChanged = false;
-			isExportedSource = _isSWFSource;
 			
-			//__skeletonXML = _skeletonXML.copy();
-			__skeletonXML = _skeletonXML;
-			__textureAtlasXML = _textureAtlasXML;
+			_skeletonXML = skeletonXML;
+			_textureAtlasXML = textureAtlasXML;
+			this.textureBytes = textureBytes;
+			this.isExportedSource = isExportedSource;
 			
-			armaturesXMLList = __skeletonXML.elements(ConstValues.ARMATURES).elements(ConstValues.ARMATURE);
-			animationsXMLList = __skeletonXML.elements(ConstValues.ANIMATIONS).elements(ConstValues.ANIMATION);
+			movePivotToSkeleton(_skeletonXML, _textureAtlasXML);
 			
-			armaturesMC.source = armaturesXMLList;
+			_armaturesXMLList = _skeletonXML.elements(ConstValues.ARMATURES).elements(ConstValues.ARMATURE);
+			_animationsXMLList = _skeletonXML.elements(ConstValues.ANIMATIONS).elements(ConstValues.ANIMATION);
 			
-			if(__skeletonData){
-				__skeletonData.dispose();
-			}
+			armaturesMC.source = _armaturesXMLList;
 			
-			if(__textureData){
-				__textureData.dispose();
-			}
+			_skeletonData = XMLDataParser.parseSkeletonData(skeletonXML);
+			_textureAtlasData = XMLDataParser.parseTextureAtlasData(textureAtlasXML, textureData);
+			_textureAtlasData.movieClipToBitmapData();
+			_baseFactory.addSkeletonData(_skeletonData);
+			_baseFactory.addTextureAtlasData(_textureAtlasData);
 			
-			__textureData = XMLDataParser.parseTextureAtlasData(__textureAtlasXML, _textureData);
-			__textureData.addEventListener(Event.COMPLETE, textureCompleteHandler);
+			MessageDispatcher.dispatchEvent(MessageDispatcher.CHANGE_IMPORT_DATA, skeletonName);
+			
+			armatureDataProxy.setData(getArmatureXMLByName());
 		}
 		
-		public function changeRenderArmature(_armatureName:String):void{
-			if(__armature)
+		public function changeRenderArmature(armatureName:String):void
+		{
+			disposeArmature();
+			
+			_armature = _baseFactory.buildArmature(armatureName);
+			_armature.addEventListener(dragonBones.events.AnimationEvent.MOVEMENT_CHANGE, aramtureEventHandler);
+			_armature.addEventListener(dragonBones.events.AnimationEvent.START, aramtureEventHandler);
+			_armature.addEventListener(dragonBones.events.AnimationEvent.COMPLETE, aramtureEventHandler);
+		}
+		
+		public function render():void
+		{
+			WorldClock.update();
+			if(_armature)
 			{
-				__armature.dispose();
-			}
-			__armature = baseFactory.buildArmature(_armatureName);
-			/*__armature = armatures[_armatureName];
-			if(!__armature){
-				armatures[_armatureName] = __armature = baseFactory.buildArmature(_armatureName);
-			}*/
-			
-			__armature.addEventListener(dragonBones.events.AnimationEvent.MOVEMENT_CHANGE, aramtureEventHandler);
-			__armature.addEventListener(dragonBones.events.AnimationEvent.START, aramtureEventHandler);
-			__armature.addEventListener(dragonBones.events.AnimationEvent.COMPLETE, aramtureEventHandler);
-		}
-		
-		public function render():void{
-			if(__armature){
-				__armature.update();
+				_armature.update();
 			}
 		}
 		
-		public function updateTextures():void{
-			if(isExportedSource || !skeletonName){
+		public function updateTextures():void
+		{
+			if(isExportedSource || !skeletonName)
+			{
 				return;
 			}
 			TextureUtil.packTextures(SettingDataProxy.getInstance().textureMaxWidth, SettingDataProxy.getInstance().texturePadding, textureAtlasXML);
@@ -183,57 +210,66 @@
 			isTextureChanged = true;
 		}
 		
-		public function getArmatureXMLByName(_name:String = null):XML{
-			return getElementByName(armaturesXMLList, _name, true);
+		public function getArmatureXMLByName(name:String = null):XML
+		{
+			return getElementByName(_armaturesXMLList, name, true);
 		}
 		
-		public function getAnimationXMLByName(_name:String = null):XML{
-			return getElementByName(animationsXMLList, _name, true);
+		public function getAnimationXMLByName(name:String = null):XML
+		{
+			return getElementByName(_animationsXMLList, name, true);
 		}
 		
-		public function updateArmatureBoneOrigin(_boneName:String):void{
-			var _armatureName:String = armatureDataProxy.armatureName;
-			updateOrigin(__armature, _armatureName, _boneName);
-			/*for each(var _armature:Armature in armatures){
-				updateOrigin(_armature, _armatureName, _boneName);
-			}*/
+		public function updateArmatureBoneOrigin(boneName:String):void
+		{
+			var armatureName:String = armatureDataProxy.armatureName;
+			updateOrigin(_armature, armatureName, boneName);
 		}
 		
-		private function textureCompleteHandler(e:Event):void{
-			__skeletonData = XMLDataParser.parseSkeletonData(__skeletonXML);
-			baseFactory.skeletonData = __skeletonData;
-			baseFactory.textureAtlasData = __textureData;
-			MessageDispatcher.dispatchEvent(MessageDispatcher.CHANGE_IMPORT_DATA, skeletonName);
-			
-			armatureDataProxy.setData(getArmatureXMLByName());
-		}
-		
-		private function aramtureEventHandler(_e:AnimationEvent):void{
-			switch(_e.type){
+		private function aramtureEventHandler(e:AnimationEvent):void
+		{
+			switch(e.type)
+			{
 				case dragonBones.events.AnimationEvent.MOVEMENT_CHANGE:
-					MessageDispatcher.dispatchEvent(MessageDispatcher.MOVEMENT_CHANGE, _e.movementID);
+					MessageDispatcher.dispatchEvent(MessageDispatcher.MOVEMENT_CHANGE, e.movementID);
 					break;
 				case dragonBones.events.AnimationEvent.START:
-					MessageDispatcher.dispatchEvent(MessageDispatcher.MOVEMENT_START, _e.movementID);
+					MessageDispatcher.dispatchEvent(MessageDispatcher.MOVEMENT_START, e.movementID);
 					break;
 				case dragonBones.events.AnimationEvent.COMPLETE:
-					MessageDispatcher.dispatchEvent(MessageDispatcher.MOVEMENT_COMPLETE, _e.movementID);
+					MessageDispatcher.dispatchEvent(MessageDispatcher.MOVEMENT_COMPLETE, e.movementID);
 					break;
 			}
 		}
 		
-		private function updateOrigin(_armature:Armature, _armatureName:String, _boneName:String):void{
-			if(_armature){
-				if(_armature.name == _armatureName){
-					var _boneData:BoneData = __skeletonData.getArmatureData(_armatureName).getBoneData(_boneName);
-					var _bone:Bone = _armature.getBone(_boneName);
-					_bone.origin.copy(_boneData);
-					_armature.addBone(_bone, _boneData.parent);
+		private function updateOrigin(armature:Armature, armatureName:String, boneName:String):void
+		{
+			if(armature)
+			{
+				if(armature.name == armatureName)
+				{
+					var boneData:BoneData = _skeletonData.getArmatureData(armatureName).getBoneData(boneName);
+					var bone:Bone = armature.getBone(boneName);
+					bone.origin.copy(boneData);
+					armature.addBone(bone, boneData.parent);
 				}
-				for each(_bone in _armature._boneDepthList){
-					updateOrigin(_bone.childArmature, _armatureName, _boneName);
+				for each(bone in armature._boneDepthList)
+				{
+					updateOrigin(bone.childArmature, armatureName, boneName);
 				}
 			}
+		}
+		
+		private function disposeArmature():void
+		{
+			if(_armature)
+			{
+				_armature.removeEventListener(dragonBones.events.AnimationEvent.MOVEMENT_CHANGE, aramtureEventHandler);
+				_armature.removeEventListener(dragonBones.events.AnimationEvent.START, aramtureEventHandler);
+				_armature.removeEventListener(dragonBones.events.AnimationEvent.COMPLETE, aramtureEventHandler);
+				_armature.dispose();
+			}
+			_armature = null;
 		}
 	}
 }

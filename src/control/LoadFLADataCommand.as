@@ -1,8 +1,7 @@
 ﻿package control
 {
+	import dragonBones.objects.XMLDataParser;
 	import dragonBones.utils.ConstValues;
-	
-	import makeswfs.make;
 	
 	import message.Message;
 	import message.MessageDispatcher;
@@ -23,8 +22,8 @@
 		
 		private var _skeletonXML:XML;
 		private var _textureAtlasXML:XML;
-		private var _subTextureXMLList:XMLList;
 		
+		private var _subTextureXMLList:XMLList;
 		private var _totalCount:int;
 		private var _armatureNameList:Array;
 		private var _subTextureAddedIndex:int;
@@ -154,14 +153,14 @@
 		{
 			MessageDispatcher.removeEventListener(JSFLProxy.PACK_TEXTURES, packTextureAtlasHandler);
 			MessageDispatcher.addEventListener(MessageDispatcher.FLA_TEXTURE_ATLAS_SWF_LOADED, flaExportSWFHandler);
-			FLAExportSWFCommand.instance.exportSWF();
+			FLAExportSWFCommand.instance.exportSWF(_textureAtlasXML);
 		}
 		
 		private function flaExportSWFHandler(e:Message):void
 		{
 			_isLoading = false;
 			_skeletonXML[ConstValues.AT + ConstValues.A_VERSION] = ConstValues.VERSION;
-			MessageDispatcher.dispatchEvent(MessageDispatcher.LOAD_SWF_COMPLETE, _skeletonXML, _textureAtlasXML, make(e.parameters[0], _textureAtlasXML));
+			MessageDispatcher.dispatchEvent(MessageDispatcher.LOAD_SWF_COMPLETE, _skeletonXML, _textureAtlasXML, e.parameters[0], e.parameters[1]);
 		}
 		
 		private function addSkeletonXML(skeletonXML:XML):void
@@ -179,7 +178,7 @@
 				for each(node2 in xmlList2)
 				{
 					nodeName = node2.attribute(ConstValues.A_NAME);
-					node1 = xmlList1.(attribute(ConstValues.A_NAME) == nodeName)[0];
+					node1 = XMLDataParser.getElementByAttribute(xmlList1, ConstValues.A_NAME, nodeName)[0];
 					if(node1)
 					{
 						delete xmlList1[node1.childIndex()];
@@ -192,7 +191,7 @@
 				for each(node2 in xmlList2)
 				{
 					nodeName = node2.attribute(ConstValues.A_NAME);
-					node1 = xmlList1.(attribute(ConstValues.A_NAME) == nodeName)[0];
+					node1 = XMLDataParser.getElementByAttribute(xmlList1, ConstValues.A_NAME, nodeName)[0];
 					if(node1)
 					{
 						delete xmlList1[node1.childIndex()];
@@ -205,7 +204,7 @@
 				for each(node2 in xmlList2)
 				{
 					nodeName = node2.attribute(ConstValues.A_NAME);
-					node1 = xmlList1.(attribute(ConstValues.A_NAME) == nodeName)[0];
+					node1 = XMLDataParser.getElementByAttribute(xmlList1, ConstValues.A_NAME, nodeName)[0];
 					if(node1)
 					{
 						delete xmlList1[node1.childIndex()];

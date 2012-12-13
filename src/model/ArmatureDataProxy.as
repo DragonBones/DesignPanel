@@ -1,4 +1,5 @@
-package model{
+package model
+{
 	import dragonBones.objects.XMLDataParser;
 	import dragonBones.utils.ConstValues;
 	import dragonBones.utils.dragonBones_internal;
@@ -14,42 +15,51 @@ package model{
 	/**
 	 * Manage selected armature data
 	 */
-	public class ArmatureDataProxy{
+	public class ArmatureDataProxy
+	{
 		public var bonesMC:XMLListCollection;
 		public var displaysMC:XMLListCollection;
 		
-		private var xml:XML;
-		private var bonesXMLList:XMLList;
+		private var _xml:XML;
+		private var _bonesXMLList:XMLList;
 		
-		private var boneXML:XML;
-		private var displaysXMLList:XMLList;
-		private var displayXML:XML;
+		private var _boneXML:XML;
+		private var _displaysXMLList:XMLList;
+		private var _displayXML:XML;
 		
-		public function get armatureName():String{
-			return ImportDataProxy.getElementName(xml);
+		public function get armatureName():String
+		{
+			return ImportDataProxy.getElementName(_xml);
 		}
 		
-		public function get boneName():String{
-			return ImportDataProxy.getElementName(boneXML);
+		public function get boneName():String
+		{
+			return ImportDataProxy.getElementName(_boneXML);
 		}
 		
-		public function get displayName():String{
-			return ImportDataProxy.getElementName(displayXML);
+		public function get displayName():String
+		{
+			return ImportDataProxy.getElementName(_displayXML);
 		}
 		
-		public function ArmatureDataProxy(){
+		public function ArmatureDataProxy()
+		{
 			bonesMC = new XMLListCollection();
 			displaysMC = new XMLListCollection();
 		}
 		
-		public function setData(_xml:XML):void{
-			xml = _xml;
+		public function setData(xml:XML):void
+		{
+			_xml = xml;
 			bonesMC.removeAll();
-			if(xml){
-				bonesXMLList = xml.elements(ConstValues.BONE);
+			if(_xml)
+			{
+				_bonesXMLList = _xml.elements(ConstValues.BONE);
 				bonesMC.source = getBoneList();
-			}else{
-				bonesXMLList = null;
+			}
+			else
+			{
+				_bonesXMLList = null;
 				bonesMC.source = null;
 			}
 			
@@ -61,96 +71,113 @@ package model{
 			ImportDataProxy.getInstance().animationDataProxy.setData(ImportDataProxy.getInstance().getAnimationXMLByName(armatureName));
 		}
 		
-		public function changeBone(_boneName:String = null):void{
-			var _boneXML:XML = ImportDataProxy.getElementByName(bonesXMLList, _boneName, true);
-			if(boneXML == _boneXML){
+		public function changeBone(boneName:String = null):void
+		{
+			var boneXML:XML = ImportDataProxy.getElementByName(_bonesXMLList, boneName, true);
+			if(_boneXML == boneXML)
+			{
 				return;
 			}
-			boneXML = _boneXML;
-			displaysXMLList = boneXML.elements(ConstValues.DISPLAY);
+			_boneXML = boneXML;
+			_displaysXMLList = _boneXML.elements(ConstValues.DISPLAY);
 			
-			displaysMC.source = displaysXMLList;
+			displaysMC.source = _displaysXMLList;
 			
-			MessageDispatcher.dispatchEvent(MessageDispatcher.CHANGE_BONE_DATA, boneName);
+			MessageDispatcher.dispatchEvent(MessageDispatcher.CHANGE_BONE_DATA, this.boneName);
 			
 			changeBoneDisplay();
 		}
 		
-		public function changeBoneDisplay(_displayName:String = null):void{
-			displayXML = ImportDataProxy.getElementByName(displaysXMLList, _displayName, true);
-			MessageDispatcher.dispatchEvent(MessageDispatcher.CHANGE_DISPLAY_DATA, displayName);
+		public function changeBoneDisplay(displayName:String = null):void
+		{
+			_displayXML = ImportDataProxy.getElementByName(_displaysXMLList, displayName, true);
+			MessageDispatcher.dispatchEvent(MessageDispatcher.CHANGE_DISPLAY_DATA, this.displayName);
 		}
 		
-		public function checkParent(_name:String, _parentName:String):Boolean{
-			var _boneXML:XML = ImportDataProxy.getElementByName(bonesXMLList, _name);
-			var _parentXML:XML = ImportDataProxy.getElementByName(bonesXMLList, _parentName);
+		public function checkParent(name:String, parentName:String):Boolean
+		{
+			var boneXML:XML = ImportDataProxy.getElementByName(_bonesXMLList, name);
+			var parentXML:XML = ImportDataProxy.getElementByName(_bonesXMLList, parentName);
 			
-			var _ancestor:XML = _parentXML;
-			while (_ancestor != _boneXML && _ancestor != null){
-				_ancestor = ImportDataProxy.getElementByName(bonesXMLList, _ancestor.attribute(ConstValues.A_PARENT));
+			var ancestor:XML = parentXML;
+			while (ancestor != boneXML && ancestor != null)
+			{
+				ancestor = ImportDataProxy.getElementByName(_bonesXMLList, ancestor.attribute(ConstValues.A_PARENT));
 			}
-			if (_ancestor == _boneXML){
+			if (ancestor == boneXML)
+			{
 				return false;
 			}
 			return true;
 		}
 		
-		public function updateBoneParent(_name:String, _parentName:String):void{
-			var _boneXML:XML = ImportDataProxy.getElementByName(bonesXMLList, _name);
-			var _parentXML:XML = ImportDataProxy.getElementByName(bonesXMLList, _parentName);
+		public function updateBoneParent(name:String, parentName:String):void
+		{
+			var boneXML:XML = ImportDataProxy.getElementByName(_bonesXMLList, name);
+			var parentXML:XML = ImportDataProxy.getElementByName(_bonesXMLList, parentName);
 			
-			var _isChange:Boolean;
-			if(_parentXML){
-				if(_boneXML.attribute(ConstValues.A_PARENT) != _parentName){
-					_boneXML[ConstValues.AT + ConstValues.A_PARENT] = _parentName;
-					_isChange = true;
+			var isChange:Boolean;
+			if(parentXML)
+			{
+				if(boneXML.attribute(ConstValues.A_PARENT) != parentName)
+				{
+					boneXML[ConstValues.AT + ConstValues.A_PARENT] = parentName;
+					isChange = true;
 				}
-			}else{
-				if(_boneXML.attribute(ConstValues.A_PARENT).length() > 0){
-					_isChange = true;
-					delete _boneXML[ConstValues.AT + ConstValues.A_PARENT];
+			}
+			else
+			{
+				if(boneXML.attribute(ConstValues.A_PARENT).length() > 0)
+				{
+					isChange = true;
+					delete boneXML[ConstValues.AT + ConstValues.A_PARENT];
 				}
 			}
 			
-			if(_isChange){
+			if(isChange)
+			{
 				XMLDataParser.parseBoneData(
-					_boneXML,
-					_parentXML,
-					ImportDataProxy.getInstance().skeletonData.getArmatureData(armatureName).getBoneData(_name)
+					boneXML,
+					parentXML,
+					ImportDataProxy.getInstance().skeletonData.getArmatureData(armatureName).getBoneData(name)
 				)
 				
-				if(!ImportDataProxy.getInstance().isExportedSource){
-					JSFLProxy.getInstance().changeArmatureConnection(armatureName, xml);
+				if(!ImportDataProxy.getInstance().isExportedSource)
+				{
+					JSFLProxy.getInstance().changeArmatureConnection(armatureName, _xml);
 				}
 				
 				ImportDataProxy.getInstance().animationDataProxy.updateBoneParent(boneName);
 				bonesMC.source = getBoneList();
 				
-				MessageDispatcher.dispatchEvent(MessageDispatcher.UPDATE_BONE_PARENT, _name, _parentName);
+				MessageDispatcher.dispatchEvent(MessageDispatcher.UPDATE_BONE_PARENT, name, parentName);
 			}
 		}
 		
-		private function getBoneList():XMLList{
-			var _boneXMLList:XMLList = xml.copy().elements(ConstValues.BONE);
-			var _dic:Object = {};
-			var _parentXML:XML;
-			var _parentName:String;
-			var _boneXML:XML;
-			var _length:int = _boneXMLList.length();
-			for(var _i:int = _length-1;_i >= 0;_i --){
-				_boneXML = _boneXMLList[_i];
-				delete _boneXML[ConstValues.DISPLAY];
-				_dic[_boneXML.attribute(ConstValues.A_NAME)] = _boneXML;
-				_parentName = _boneXML.attribute(ConstValues.A_PARENT);
-				if (_parentName){
-					_parentXML = _dic[_parentName] || _boneXMLList.(attribute(ConstValues.A_NAME) == _parentName)[0];
-					if (_parentXML){
-						delete _boneXMLList[_i];
-						_parentXML.appendChild(_boneXML);
+		private function getBoneList():XMLList
+		{
+			var boneXMLList:XMLList = _xml.copy().elements(ConstValues.BONE);
+			var dic:Object = {};
+			var parentXML:XML;
+			var parentName:String;
+			var boneXML:XML;
+			for(var i:int = boneXMLList.length() - 1;i >= 0;i --)
+			{
+				boneXML = boneXMLList[i];
+				delete boneXML[ConstValues.DISPLAY];
+				dic[boneXML.attribute(ConstValues.A_NAME)] = boneXML;
+				parentName = boneXML.attribute(ConstValues.A_PARENT);
+				if (parentName)
+				{
+					parentXML = dic[parentName] || XMLDataParser.getElementByAttribute(boneXMLList, ConstValues.A_NAME, parentName)[0];
+					if (parentXML)
+					{
+						delete boneXMLList[i];
+						parentXML.appendChild(boneXML);
 					}
 				}
 			}
-			return _boneXMLList;
+			return boneXMLList;
 		}
 	}
 }
