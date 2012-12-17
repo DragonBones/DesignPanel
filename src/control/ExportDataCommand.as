@@ -137,7 +137,7 @@ package control
 				case 4:
 					try
 					{
-						if(_importDataProxy.textureAtlasData.bitmapData)
+						if(_importDataProxy.textureAtlas.bitmapData)
 						{
 							date = new Date();
 							zip = new Zip();
@@ -159,7 +159,7 @@ package control
 								var height:int = int(subTextureXML.attribute(ConstValues.A_HEIGHT));
 								
 								var bitmapData:BitmapData = new BitmapData(width, height, true, 0xFF00FF);
-								bitmapData.draw(_importDataProxy.textureAtlasData.bitmapData, _helpMatirx);
+								bitmapData.draw(_importDataProxy.textureAtlas.bitmapData, _helpMatirx);
 								subTextureName = subTextureXML.attribute(ConstValues.A_NAME);
 								subTextureName = subTextureName.split("/").join("-");
 								subTextureXML[ConstValues.AT + ConstValues.A_NAME] = subTextureName;
@@ -189,7 +189,7 @@ package control
 		
 		private function getSWFBytes():ByteArray
 		{
-			if(_importDataProxy.textureAtlasData.movieClip)
+			if(_importDataProxy.textureAtlas.movieClip)
 			{
 				return _importDataProxy.textureBytes;
 			}
@@ -198,9 +198,9 @@ package control
 		
 		private function getPNGBytes():ByteArray
 		{
-			if(_importDataProxy.textureAtlasData.movieClip)
+			if(_importDataProxy.textureAtlas.movieClip)
 			{
-				return PNGEncoder.encode(_importDataProxy.textureAtlasData.bitmapData);
+				return PNGEncoder.encode(_importDataProxy.textureAtlas.bitmapData);
 			}
 			else
 			{

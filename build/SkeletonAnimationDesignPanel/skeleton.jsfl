@@ -514,13 +514,6 @@ function generateFrame(_frame, _boneName, _symbol, _z){
 	var _frameXML = <{FRAME}/>;
 	_frameXML[AT + A_X] = formatNumber(_symbol.transformX);
 	_frameXML[AT + A_Y] = formatNumber(_symbol.transformY);
-	/*var _rotate = _symbol.skewX;
-	while(_rotate > 180){
-		_rotate -= 360;
-	}
-	while(_rotate < -180){
-		_rotate += 360;
-	}*/
 	_frameXML[AT + A_SKEW_X] = formatNumber(_symbol.skewX);
 	_frameXML[AT + A_SKEW_Y] = formatNumber(_symbol.skewY);
 	_frameXML[AT + A_SCALE_X] = formatNumber(_symbol.scaleX);

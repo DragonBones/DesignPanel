@@ -7,8 +7,8 @@
 	import dragonBones.factorys.BaseFactory;
 	import dragonBones.objects.BoneData;
 	import dragonBones.objects.SkeletonData;
-	import dragonBones.objects.TextureAtlasData;
 	import dragonBones.objects.XMLDataParser;
+	import dragonBones.textures.NativeTextureAtlas;
 	import dragonBones.utils.ConstValues;
 	import dragonBones.utils.dragonBones_internal;
 	
@@ -112,10 +112,10 @@
 			return _skeletonData;
 		}
 		
-		private var _textureAtlasData:TextureAtlasData;
-		public function get textureAtlasData():TextureAtlasData
+		private var _textureAtlas:NativeTextureAtlas;
+		public function get textureAtlas():NativeTextureAtlas
 		{
-			return _textureAtlasData;
+			return _textureAtlas;
 		}
 		
 		public var textureBytes:ByteArray;
@@ -149,10 +149,10 @@
 				_skeletonData.dispose();
 			}
 			
-			if(_textureAtlasData)
+			if(_textureAtlas)
 			{
-				_baseFactory.removeTextureAtlasData(_textureAtlasData.name);
-				_textureAtlasData.dispose();
+				_baseFactory.removeTextureAtlas(_textureAtlas.name);
+				_textureAtlas.dispose();
 			}
 			
 			isTextureChanged = false;
@@ -170,10 +170,10 @@
 			armaturesMC.source = _armaturesXMLList;
 			
 			_skeletonData = XMLDataParser.parseSkeletonData(skeletonXML);
-			_textureAtlasData = XMLDataParser.parseTextureAtlasData(textureAtlasXML, textureData);
-			_textureAtlasData.movieClipToBitmapData();
+			_textureAtlas = new NativeTextureAtlas(textureData, textureAtlasXML)
+			_textureAtlas.movieClipToBitmapData();
 			_baseFactory.addSkeletonData(_skeletonData);
-			_baseFactory.addTextureAtlasData(_textureAtlasData);
+			_baseFactory.addTextureAtlas(_textureAtlas);
 			
 			MessageDispatcher.dispatchEvent(MessageDispatcher.CHANGE_IMPORT_DATA, skeletonName);
 			

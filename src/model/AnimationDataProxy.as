@@ -1,6 +1,7 @@
 ﻿package model
 {
 	import dragonBones.objects.AnimationData;
+	import dragonBones.objects.ArmatureData;
 	import dragonBones.objects.MovementBoneData;
 	import dragonBones.objects.MovementData;
 	import dragonBones.objects.XMLDataParser;
@@ -200,7 +201,9 @@
 		
 		internal function updateBoneParent(boneName:String):void
 		{
-			XMLDataParser.parseAnimationData(_xml, ImportDataProxy.getInstance().skeletonData);
+			var animationData:AnimationData = ImportDataProxy.getInstance().skeletonData.getAnimationData(animationName);
+			var armatureData:ArmatureData = ImportDataProxy.getInstance().skeletonData.getArmatureData(animationName);
+			XMLDataParser.parseAnimationData(_xml, animationData, armatureData);
 		}
 		
 		private function updateMovement():void

@@ -3,9 +3,10 @@ package control
 	import flash.display.Loader;
 	import flash.display.LoaderInfo;
 	import flash.display.MovieClip;
-	import flash.display.Sprite;
 	import flash.events.Event;
 	import flash.events.IOErrorEvent;
+	import flash.net.URLLoader;
+	import flash.net.URLLoaderDataFormat;
 	import flash.net.URLRequest;
 	import flash.system.LoaderContext;
 	import flash.utils.ByteArray;
@@ -21,6 +22,7 @@ package control
 	{
 		public static var instance:FLAExportSWFCommand = new FLAExportSWFCommand();
 		
+		private var _urlLoader:URLLoader;
 		private var _loaderContext:LoaderContext;
 		
 		private var _textureAtlasXML:XML;
@@ -28,6 +30,9 @@ package control
 		
 		public function FLAExportSWFCommand()
 		{
+			_urlLoader = new URLLoader();
+			_urlLoader.dataFormat = URLLoaderDataFormat.BINARY;
+			
 			_loaderContext = new LoaderContext(false)
 			_loaderContext.allowCodeImport = true;
 		}
@@ -46,30 +51,40 @@ package control
 			var swfURL:String = e.parameters[0];
 			if(swfURL)
 			{
-				var loader:Loader = new Loader();
-				loader.contentLoaderInfo.addEventListener(IOErrorEvent.IO_ERROR, loaderHandler);
-				loader.contentLoaderInfo.addEventListener(Event.COMPLETE, loaderHandler);
-				loader.load(new URLRequest(swfURL), _loaderContext);
+				_urlLoader.addEventListener(IOErrorEvent.IO_ERROR, urlLoaderHandler);
+				_urlLoader.addEventListener(Event.COMPLETE, urlLoaderHandler);
+				_urlLoader.load(new URLRequest(swfURL));
 			}
 		}
 		
-		private function loaderHandler(e:Event):void
+		private function urlLoaderHandler(e:Event):void
 		{
-			var loaderInfo:LoaderInfo = e.target as LoaderInfo;
-			loaderInfo.removeEventListener(IOErrorEvent.IO_ERROR, loaderHandler);
-			loaderInfo.removeEventListener(Event.COMPLETE, loaderHandler);
+			_urlLoader.removeEventListener(IOErrorEvent.IO_ERROR, urlLoaderHandler);
+			_urlLoader.removeEventListener(Event.COMPLETE, urlLoaderHandler);
 			switch(e.type)
 			{
 				case IOErrorEvent.IO_ERROR:
 					MessageDispatcher.dispatchEvent(IOErrorEvent.IO_ERROR);
 					break;
 				case Event.COMPLETE:
-					var content:MovieClip = (loaderInfo.content as Sprite).getChildAt(0) as MovieClip;
-					content.stop();
-					_textureBytes = make(loaderInfo.bytes, _textureAtlasXML);
-					MessageDispatcher.dispatchEvent(MessageDispatcher.FLA_TEXTURE_ATLAS_SWF_LOADED, content, _textureBytes);
+					_textureBytes = make(_urlLoader.data, _textureAtlasXML);
+					
+					var loader:Loader = new Loader();
+					loader.contentLoaderInfo.addEventListener(Event.COMPLETE, loaderCompleteHandler);
+					loader.loadBytes(_textureBytes, _loaderContext);
 					break;
 			}
+		}
+		
+		private function loaderCompleteHandler(e:Event):void
+		{
+			var loaderInfo:LoaderInfo = e.target as LoaderInfo;
+			loaderInfo.removeEventListener(Event.COMPLETE, loaderCompleteHandler);
+			
+			var content:MovieClip = (loaderInfo.content as MovieClip).getChildAt(0) as MovieClip;
+			content.stop();
+			
+			MessageDispatcher.dispatchEvent(MessageDispatcher.FLA_TEXTURE_ATLAS_SWF_LOADED, content, _textureBytes);
 		}
 	}
 }
