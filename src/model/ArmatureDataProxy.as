@@ -169,7 +169,7 @@ package model
 				parentName = boneXML.attribute(ConstValues.A_PARENT);
 				if (parentName)
 				{
-					parentXML = dic[parentName] || XMLDataParser.getElementByAttribute(boneXMLList, ConstValues.A_NAME, parentName)[0];
+					parentXML = dic[parentName] || XMLDataParser.getElementsByAttribute(boneXMLList, ConstValues.A_NAME, parentName)[0];
 					if (parentXML)
 					{
 						delete boneXMLList[i];

@@ -24,9 +24,9 @@
 		private var _textureAtlasXML:XML;
 		
 		private var _subTextureXMLList:XMLList;
+		private var _armatureXMLList:XMLList;
 		private var _totalCount:int;
-		private var _armatureNameList:Array;
-		private var _subTextureAddedIndex:int;
+		private var _loadIndex:int;
 		
 		public function LoadFLADataCommand()
 		{
@@ -56,9 +56,13 @@
 			else
 			{
 				//start load armature data
-				_armatureNameList = result.split(",");
-				_totalCount = _armatureNameList.length - 1;
-				MessageDispatcher.dispatchEvent(MessageDispatcher.LOAD_FLADATA, _totalCount, _armatureNameList.shift());
+				var _resultXML:XML = XML(result);
+				var _flaDomName:String = _resultXML.attribute(ConstValues.A_NAME);
+				_armatureXMLList = _resultXML.elements(ConstValues.ARMATURE);
+				
+				_totalCount = _armatureXMLList.length();
+				_loadIndex = _totalCount - 1;
+				MessageDispatcher.dispatchEvent(MessageDispatcher.LOAD_FLADATA, _totalCount, _flaDomName);
 				if(_totalCount > 0)
 				{
 					_isLoading = true;
@@ -70,10 +74,15 @@
 		
 		private function readNextArmature():void
 		{
-			var armatureName:String = _armatureNameList.shift();
-			MessageDispatcher.dispatchEvent(MessageDispatcher.LOAD_ARMATURE_DATA, armatureName, _totalCount - _armatureNameList.length, _totalCount);
+			var armatureXML:XML = _armatureXMLList[_loadIndex];
+			var armatureName:String = armatureXML.attribute(ConstValues.A_NAME);
+			var scale:Number = Number(armatureXML.attribute("scale"));
+			
+			MessageDispatcher.dispatchEvent(MessageDispatcher.LOAD_ARMATURE_DATA, armatureName, _totalCount - _loadIndex, _totalCount);
 			MessageDispatcher.addEventListener(JSFLProxy.GENERATE_ARMATURE, readNextArmatureHandler);
-			_jsflProxy.generateArmature(armatureName);
+			_jsflProxy.generateArmature(armatureName, scale);
+			delete _armatureXMLList[_loadIndex];
+			_loadIndex --;
 		}
 		
 		private function readNextArmatureHandler(e:Message):void
@@ -86,7 +95,7 @@
 				addSkeletonXML(skeletonXML);
 			}
 			
-			if(_armatureNameList.length > 0)
+			if(_loadIndex >= 0)
 			{
 				readNextArmature();
 			}
@@ -102,26 +111,42 @@
 		private function clearTextureAtlasSWFHandler(e:Message):void
 		{
 			MessageDispatcher.removeEventListener(JSFLProxy.CLEAR_TEXTURE_SWFITEM, clearTextureAtlasSWFHandler);
-			_textureAtlasXML = _skeletonXML.elements(ConstValues.TEXTURE_ATLAS)[0];
-			_textureAtlasXML[ConstValues.AT + ConstValues.A_NAME] = _skeletonXML[ConstValues.AT + ConstValues.A_NAME];
-			delete _skeletonXML[ConstValues.TEXTURE_ATLAS];
+			
+			_textureAtlasXML = <{ConstValues.TEXTURE_ATLAS} {ConstValues.A_NAME} = {_skeletonXML.attribute(ConstValues.A_NAME)}/>;
+			
+			var displayXMLList:XMLList = _skeletonXML.elements(ConstValues.ARMATURES).elements(ConstValues.ARMATURE).elements(ConstValues.BONE).elements(ConstValues.DISPLAY);
+			
+			for each(var displayXML:XML in displayXMLList)
+			{
+				if(int(displayXML.attribute(ConstValues.A_IS_ARMATURE)) != 1)
+				{
+					var displayName:String = displayXML.attribute(ConstValues.A_NAME);
+					var subTextureXML:XML = XMLDataParser.getElementsByAttribute(_textureAtlasXML.elements(ConstValues.SUB_TEXTURE), ConstValues.A_NAME, displayName)[0];
+					if(!subTextureXML)
+					{
+						subTextureXML = <{ConstValues.SUB_TEXTURE} {ConstValues.A_NAME} = {displayName}/>;
+						_textureAtlasXML.appendChild(subTextureXML);
+					}
+				}
+			}
+			
 			_subTextureXMLList = _textureAtlasXML.elements(ConstValues.SUB_TEXTURE);
 			_totalCount = _subTextureXMLList.length();
-			_subTextureAddedIndex = _totalCount - 1;
+			_loadIndex = _totalCount - 1;
 			//start to place texture
 			readNextSubTexture();
 		}
 		
 		private function readNextSubTexture():void
 		{
-			var subTextureName:String = _subTextureXMLList[_subTextureAddedIndex].attribute(ConstValues.A_NAME)
-			MessageDispatcher.dispatchEvent(MessageDispatcher.LOAD_TEXTURE_DATA, subTextureName, _totalCount - _subTextureAddedIndex, _totalCount);
+			var subTextureName:String = _subTextureXMLList[_loadIndex].attribute(ConstValues.A_NAME)
+			MessageDispatcher.dispatchEvent(MessageDispatcher.LOAD_TEXTURE_DATA, subTextureName, _totalCount - _loadIndex, _totalCount);
 			
 			MessageDispatcher.addEventListener(JSFLProxy.ADD_TEXTURE_TO_SWFITEM, readNextSubTextureHandler);
-			_jsflProxy.addTextureToSWFItem(subTextureName, _subTextureAddedIndex == 0);
+			_jsflProxy.addTextureToSWFItem(subTextureName, _loadIndex == 0);
 			
-			delete _subTextureXMLList[_subTextureAddedIndex];
-			_subTextureAddedIndex --;
+			delete _subTextureXMLList[_loadIndex];
+			_loadIndex --;
 		}
 		
 		private function readNextSubTextureHandler(e:Message):void
@@ -135,7 +160,7 @@
 				_textureAtlasXML.appendChild(subTextureXML);
 			}
 			
-			if(_subTextureAddedIndex >= 0)
+			if(_loadIndex >= 0)
 			{
 				readNextSubTexture();
 			}
@@ -178,7 +203,7 @@
 				for each(node2 in xmlList2)
 				{
 					nodeName = node2.attribute(ConstValues.A_NAME);
-					node1 = XMLDataParser.getElementByAttribute(xmlList1, ConstValues.A_NAME, nodeName)[0];
+					node1 = XMLDataParser.getElementsByAttribute(xmlList1, ConstValues.A_NAME, nodeName)[0];
 					if(node1)
 					{
 						delete xmlList1[node1.childIndex()];
@@ -191,25 +216,12 @@
 				for each(node2 in xmlList2)
 				{
 					nodeName = node2.attribute(ConstValues.A_NAME);
-					node1 = XMLDataParser.getElementByAttribute(xmlList1, ConstValues.A_NAME, nodeName)[0];
+					node1 = XMLDataParser.getElementsByAttribute(xmlList1, ConstValues.A_NAME, nodeName)[0];
 					if(node1)
 					{
 						delete xmlList1[node1.childIndex()];
 					}
 					_skeletonXML.elements(ConstValues.ANIMATIONS).appendChild(node2);
-				}
-				
-				xmlList1 = _skeletonXML.elements(ConstValues.TEXTURE_ATLAS).elements(ConstValues.SUB_TEXTURE);
-				xmlList2 = skeletonXML.elements(ConstValues.TEXTURE_ATLAS).elements(ConstValues.SUB_TEXTURE);
-				for each(node2 in xmlList2)
-				{
-					nodeName = node2.attribute(ConstValues.A_NAME);
-					node1 = XMLDataParser.getElementByAttribute(xmlList1, ConstValues.A_NAME, nodeName)[0];
-					if(node1)
-					{
-						delete xmlList1[node1.childIndex()];
-					}
-					_skeletonXML.elements(ConstValues.TEXTURE_ATLAS).appendChild(node2);
 				}
 			}
 			else

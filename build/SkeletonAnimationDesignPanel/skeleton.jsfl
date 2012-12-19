@@ -85,7 +85,6 @@ var currentFrameBackup;
 var xml;
 var armaturesXML;
 var animationsXML;
-var textureAtlasXML;
 
 var armatureXML;
 var animationXML;
@@ -370,15 +369,6 @@ function getDisplayXML(_boneXML, _imageName, _isArmature){
 	return _xml;
 }
 
-function getTextureXML(_imageName){
-	var _xml = textureAtlasXML[SUB_TEXTURE].(@name == _imageName)[0];
-	if(!_xml){
-		_xml = <{SUB_TEXTURE} {A_NAME} = {_imageName}/>;
-		textureAtlasXML.appendChild(_xml);
-	}
-	return _xml;
-}
-
 function generateMovement(_item, _mainFrame, _layers){
 	var _start = _mainFrame.frame.startFrame;
 	var _duration = _mainFrame.duration;
@@ -413,7 +403,7 @@ function generateMovement(_item, _mainFrame, _layers){
 				_frameDuration= _frame.duration;
 			}
 			_symbol = getBoneSymbol(_frame.elements);
-			if(!_symbol){
+			if(!_symbol||!_symbol.visible){
 				continue;
 			}
 			if(!_movementBoneXML){
@@ -538,14 +528,11 @@ function generateFrame(_frame, _boneName, _symbol, _z){
 		var _backupAnimationXML = animationXML;
 		var _backupArmatureConnectionXML = armatureConnectionXML;
 		
-		Skeleton.generateArmature(_imageName, null, _isChildArmature);
+		Skeleton.generateArmature(_imageName,1, false, _isChildArmature);
 		
 		armatureXML = _backupArmatureXML;
 		animationXML = _backupAnimationXML;
 		armatureConnectionXML = _backupArmatureConnectionXML;
-		
-	}else{
-		getTextureXML(_imageName);
 	}
 	
 	var _str = isSpecialFrame(_frame, MOVEMENT_PREFIX, true);
@@ -663,19 +650,18 @@ Skeleton.getArmatureList = function(_isSelected){
 	currentDomName = currentDom.name.split(".")[0];
 	
 	var _items = _isSelected?currentLibrary.getSelectedItems():currentLibrary.items;
-	
-	//first arr item is current fla domname
-	var _importItems = [currentDomName];
+	var _xml = <{ARMATURES} {A_NAME} = {currentDomName}/>;
 	for each(var _item in _items){
 		if((_item.symbolType == MOVIE_CLIP || _item.symbolType == GRAPHIC) && isArmatureItem(_item)){
 			formatName(_item);
-			_importItems.push(_item.name);
+			var _itemXML = <{ARMATURE} {A_NAME} = {_item.name} scale = {1}/>
+			_xml.appendChild(_itemXML);
 		}
 	}
-	return _importItems;
+	return _xml.toXMLString();
 }
 
-Skeleton.generateArmature = function(_armatureName, _isNewXML, _isChildArmature){
+Skeleton.generateArmature = function(_armatureName, _scale, _isNewXML, _isChildArmature){
 	var _item = currentLibrary.items[currentLibrary.findItemIndex(_armatureName)];
 	if(!_item){
 		return false;
@@ -684,10 +670,8 @@ Skeleton.generateArmature = function(_armatureName, _isNewXML, _isChildArmature)
 		xml = <{SKELETON} {A_NAME} = {currentDomName} {A_FRAME_RATE} = {currentDom.frameRate}/>;
 		armaturesXML = <{ARMATURES}/>;
 		animationsXML = <{ANIMATIONS}/>;
-		textureAtlasXML = <{TEXTURE_ATLAS}/>;
 		xml.appendChild(armaturesXML);
 		xml.appendChild(animationsXML);
-		xml.appendChild(textureAtlasXML);
 	}
 	if(armaturesXML[ARMATURE].(@name == _armatureName)[0]){
 		return false;
@@ -749,7 +733,6 @@ Skeleton.clearTextureSWFItem = function(){
 	xml = null;
 	armaturesXML = null;
 	animationsXML = null;
-	textureAtlasXML = null;
 
 	armatureXML = null;
 	animationXML = null;

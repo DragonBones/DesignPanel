@@ -327,21 +327,10 @@
 						if(_boneBinder.visible)
 						{
 							_boneBinder.visible = false;
-							//if(_boneDisplaySelected && _boneDisplayRollOver && mouseTarget == _boneDisplayRollOver)
-							//{
-								//boneAddToParent();
-							//}
-							
-							/*if(mouseTarget != _boneDisplaySelected)
+							if(_boneDisplaySelected && _boneDisplayRollOver && mouseTarget == _boneDisplayRollOver)
 							{
-								if(_boneDisplaySelected && _isMouseDown)
-								{
-									if(!checkBoneParent(_boneDisplaySelected, mouseTarget))
-									{
-										return null;
-									}
-								}
-							}*/
+								boneAddToParent();
+							}
 						}
 						else if(mouseTarget)
 						{
@@ -398,10 +387,22 @@
 							_boneDisplayRollOver.filters = null;
 							_boneDisplayRollOver = null;
 						}
-						_boneDisplayRollOver = mouseTarget;
-						if(_boneDisplayRollOver && _boneDisplayRollOver != _boneDisplaySelected && _boneRolloverFilter.color)
+						
+						if(mouseTarget && mouseTarget != _boneDisplaySelected)
 						{
-							_boneDisplayRollOver.filters = [_boneRolloverFilter];
+							if(_boneDisplaySelected && _isMouseDown)
+							{
+								if(!checkBoneParent(_boneDisplaySelected, mouseTarget))
+								{
+									return null;
+								}
+							}
+							
+							_boneDisplayRollOver = mouseTarget;
+							if(_boneRolloverFilter.color)
+							{
+								_boneDisplayRollOver.filters = [_boneRolloverFilter];
+							}
 						}
 					}
 				}

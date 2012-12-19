@@ -246,8 +246,8 @@
 		/**
 		 * Get armature data by name
 		 */
-		public function generateArmature(_armatureName:String):void{
-			runJSFLMethod(GENERATE_ARMATURE, "Skeleton.generateArmature", _armatureName, true);
+		public function generateArmature(_armatureName:String, _scale:Number):void{
+			runJSFLMethod(GENERATE_ARMATURE, "Skeleton.generateArmature", _armatureName, _scale, true);
 		}
 		
 		/**

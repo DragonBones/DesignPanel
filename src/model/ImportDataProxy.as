@@ -47,7 +47,7 @@
 			{
 				if(name)
 				{
-					return XMLDataParser.getElementByAttribute(xmlList, ConstValues.A_NAME, name)[0];
+					return XMLDataParser.getElementsByAttribute(xmlList, ConstValues.A_NAME, name)[0];
 				}
 				if(returnFirst)
 				{

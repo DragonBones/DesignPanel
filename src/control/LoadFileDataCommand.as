@@ -250,7 +250,7 @@ package control
 			{
 				e.target.removeEventListener(Event.COMPLETE, spliceBitmapDataStep);
 				var bitmap:Bitmap = e.target.content as Bitmap;
-				var subTextureXML:XML = XMLDataParser.getElementByAttribute(_textureAtlasXML.elements(ConstValues.SUB_TEXTURE), ConstValues.A_NAME, _imageName)[0];
+				var subTextureXML:XML = XMLDataParser.getElementsByAttribute(_textureAtlasXML.elements(ConstValues.SUB_TEXTURE), ConstValues.A_NAME, _imageName)[0];
 				if(subTextureXML)
 				{
 					_helpRect.x = int(subTextureXML.attribute(ConstValues.A_X));
