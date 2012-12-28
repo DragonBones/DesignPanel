@@ -110,38 +110,13 @@
 							checkLoop.enabled = true;
 							sliderTweenEasing.value = _importDataProxy.animationDataProxy.tweenEasing;
 							sliderTweenEasing.enabled = true;
+							
+							_importDataProxy.animationDataProxy.loop;
 						}
 						break;
 					case MessageDispatcher.CHANGE_MOVEMENT_BONE_DATA:
 						_movementBoneName = e.parameters[0];
-						var boneScale:Number = _importDataProxy.animationDataProxy.boneScale;
-						var boneDelay:Number = _importDataProxy.animationDataProxy.boneDelay;
-						
-						if(isNaN(boneScale))
-						{
-							numScale.enabled = false;
-							sliderScale.enabled = false;
-						}
-						else
-						{
-							numScale.enabled = true;
-							sliderScale.enabled = true;
-							numScale.value = boneScale;
-							sliderScale.value = boneScale;
-						}
-						
-						if(isNaN(boneDelay))
-						{
-							numDelay.enabled = false;
-							sliderDelay.enabled = false;
-						}
-						else
-						{
-							numDelay.enabled = true;
-							sliderDelay.enabled = true;
-							numDelay.value = boneDelay;
-							sliderDelay.value = boneDelay;
-						}
+						updateScaleAndDelay();
 						break;
 					case MessageDispatcher.MOVEMENT_CHANGE:
 					case MessageDispatcher.MOVEMENT_START:
@@ -158,7 +133,8 @@
 			
 			private function valueChangeHandler(e:Event):void
 			{
-				switch(e.target){
+				switch(e.target)
+				{
 					case sliderDurationTo:
 						_importDataProxy.animationDataProxy.durationTo = sliderDurationTo.value;
 						numDurationTo.value = _importDataProxy.animationDataProxy.durationTo;
@@ -185,7 +161,7 @@
 					case btnPlay:
 						if(_importDataProxy.armature)
 						{
-							if(!btnPlay.selected)
+							if(_importDataProxy.armature.animation.isPlaying)
 							{
 								_importDataProxy.armature.animation.stop();
 							}
@@ -206,6 +182,7 @@
 						break;
 					case checkLoop:
 						_importDataProxy.animationDataProxy.loop = checkLoop.selected;
+						updateScaleAndDelay();
 						break;
 					case sliderScale:
 						numScale.value = sliderScale.value;
@@ -220,17 +197,45 @@
 				}
 			}
 			
+			private function updateScaleAndDelay():void
+			{
+				var boneScale:Number = _importDataProxy.animationDataProxy.boneScale;
+				var boneDelay:Number = _importDataProxy.animationDataProxy.boneDelay;
+				var loop:Boolean = _importDataProxy.animationDataProxy.loop;
+				
+				if(isNaN(boneScale) || !loop)
+				{
+					numScale.enabled = false;
+					sliderScale.enabled = false;
+				}
+				else
+				{
+					numScale.enabled = true;
+					sliderScale.enabled = true;
+					numScale.value = boneScale;
+					sliderScale.value = boneScale;
+				}
+				
+				if(isNaN(boneDelay) || !loop)
+				{
+					numDelay.enabled = false;
+					sliderDelay.enabled = false;
+				}
+				else
+				{
+					numDelay.enabled = true;
+					sliderDelay.enabled = true;
+					numDelay.value = boneDelay;
+					sliderDelay.value = boneDelay;
+				}
+			}
+			
 			private function updatePlayAndPauseBtn():void
 			{
 				if(_importDataProxy.armature)
 				{
 					btnPlay.enabled = true;
-					if(_importDataProxy.armature.animation.isPause)
-					{
-						btnPlay.label = resourceManager.getString('resources','play');
-						btnPlay.selected = false;
-					}
-					else if(_importDataProxy.armature.animation.isComplete)
+					if(_importDataProxy.armature.animation.isPause || _importDataProxy.armature.animation.isComplete)
 					{
 						btnPlay.label = resourceManager.getString('resources','play');
 						btnPlay.selected = false;

@@ -148,8 +148,6 @@ function formatName(_obj){
 	var _name = _obj.name;
 	if(!_name){
 		_obj.name = _name = "unnamed" + Math.round(Math.random()*10000);
-	}else if(_name.indexOf(DELIM_CHAR) >= 0){
-		_obj.name = _name = replaceString(_name, DELIM_CHAR, "");
 	}
 	return _name;
 }
@@ -171,7 +169,7 @@ function formatSameName(_obj, _dic){
 
 //to determine whether the frame is not a easing frame.
 function isNoEasingFrame(_frame){
-	return _frame.labelType == LABEL_TYPE_NAME && _frame.name.indexOf(NO_EASING) >= 0;
+	return _frame.labelType == LABEL_TYPE_NAME && _frame.name.indexOf(NO_EASING) == 0;
 }
 
 //To determine whether the frame is special frame
@@ -192,7 +190,19 @@ function isSpecialFrame(_frame, _framePrefix, _returnName){
 
 //To determine whether the frame is a main frame
 function isMainFrame(_frame){
-	return _frame.labelType == LABEL_TYPE_NAME && !isNoEasingFrame(_frame) && !isSpecialFrame(_frame, EVENT_PREFIX) && !isSpecialFrame(_frame, MOVEMENT_PREFIX);
+	if(_frame.labelType == LABEL_TYPE_NAME)
+	{
+		if(isSpecialFrame(_frame, EVENT_PREFIX) || isSpecialFrame(_frame, MOVEMENT_PREFIX))
+		{
+			return false;
+		}
+		if(_frame.name.indexOf(NO_EASING) == 0 && _frame.name.length == 1)
+		{
+			return false;
+		}
+		return true;
+	}
+	return false;
 }
 
 //To determine whether the layer is main label layer
@@ -372,7 +382,15 @@ function getDisplayXML(_boneXML, _imageName, _isArmature){
 function generateMovement(_item, _mainFrame, _layers){
 	var _start = _mainFrame.frame.startFrame;
 	var _duration = _mainFrame.duration;
-	var _movementXML = getMovementXML(_mainFrame.frame.name, _duration, _item);
+	var _movementName = _mainFrame.frame.name;
+	if(isNoEasingFrame(_mainFrame.frame))
+	{
+		var _noAutoEasing = true;
+		_movementName = _movementName.substr(1);
+	}
+	
+	
+	var _movementXML = getMovementXML(_movementName, _duration, _item);
 	
 	var _boneNameDic = {};
 	var _boneZDic = {};
@@ -432,7 +450,7 @@ function generateMovement(_item, _mainFrame, _layers){
 				
 				break;
 			}
-			_frameXML = generateFrame(_frame, _boneName, _symbol, _z, _layers, Math.max(_frame.startFrame, _start));
+			_frameXML = generateFrame(_frame, _boneName, _symbol, _z, _noAutoEasing);
 			addFrameToMovementBone(_frameXML, _frameStart, _frameDuration, _movementBoneXML);
 		}
 	}
@@ -500,7 +518,7 @@ function generateMovement(_item, _mainFrame, _layers){
 	animationXML.appendChild(_movementXML);
 }
 
-function generateFrame(_frame, _boneName, _symbol, _z){
+function generateFrame(_frame, _boneName, _symbol, _z, _noAutoEasing){
 	var _frameXML = <{FRAME}/>;
 	_frameXML[AT + A_X] = formatNumber(_symbol.transformX);
 	_frameXML[AT + A_Y] = formatNumber(_symbol.transformY);
@@ -540,25 +558,56 @@ function generateFrame(_frame, _boneName, _symbol, _z){
 		_frameXML[AT + A_MOVEMENT] = _str;
 	}
 	
-	//generate tween easing frame
-	if(isNoEasingFrame(_frame)){
-		//For key frame with '^', will not generate tween easing.
-		_frameXML[AT + A_TWEEN_EASING] = NaN;
-	}else if(_frame.tweenType == "motion"){
-		_frameXML[AT + A_TWEEN_EASING] = formatNumber(_frame.tweenEasing * 0.01);
-		var _tweenRotate = NaN;
-		switch(_frame.motionTweenRotate){
-			case "clockwise":
-				_tweenRotate = _frame.motionTweenRotateTimes;
-				break;
-			case "counter-clockwise":
-				_tweenRotate = - _frame.motionTweenRotateTimes;
-				break;
+	
+	//ease
+	if(_noAutoEasing)
+	{
+		if(_frame.tweenType != "motion")
+		{
+			_frameXML[AT + A_TWEEN_EASING] = NaN;
 		}
-		if(!isNaN(_tweenRotate)){
-			_frameXML[AT + A_TWEEN_ROTATE_] = _tweenRotate;
+		else
+		{
+			_frameXML[AT + A_TWEEN_EASING] = formatNumber(_frame.tweenEasing * 0.01);
+			var _tweenRotate = NaN;
+			switch(_frame.motionTweenRotate){
+				case "clockwise":
+					_tweenRotate = _frame.motionTweenRotateTimes;
+					break;
+				case "counter-clockwise":
+					_tweenRotate = - _frame.motionTweenRotateTimes;
+					break;
+			}
+			if(!isNaN(_tweenRotate)){
+				_frameXML[AT + A_TWEEN_ROTATE_] = _tweenRotate;
+			}
 		}
 	}
+	else
+	{
+		if(isNoEasingFrame(_frame))
+		{
+			_frameXML[AT + A_TWEEN_EASING] = NaN;
+		}
+		else if(_frame.tweenType == "motion")
+		{
+			_frameXML[AT + A_TWEEN_EASING] = formatNumber(_frame.tweenEasing * 0.01);
+			var _tweenRotate = NaN;
+			switch(_frame.motionTweenRotate){
+				case "clockwise":
+					_tweenRotate = _frame.motionTweenRotateTimes;
+					break;
+				case "counter-clockwise":
+					_tweenRotate = - _frame.motionTweenRotateTimes;
+					break;
+			}
+			if(!isNaN(_tweenRotate)){
+				_frameXML[AT + A_TWEEN_ROTATE_] = _tweenRotate;
+			}
+		}
+	}
+	
+	
 	
 	//event
 	_str = isSpecialFrame(_frame, EVENT_PREFIX, true);

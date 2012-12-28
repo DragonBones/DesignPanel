@@ -188,15 +188,12 @@
 			_armature.addEventListener(dragonBones.events.AnimationEvent.MOVEMENT_CHANGE, aramtureEventHandler);
 			_armature.addEventListener(dragonBones.events.AnimationEvent.START, aramtureEventHandler);
 			_armature.addEventListener(dragonBones.events.AnimationEvent.COMPLETE, aramtureEventHandler);
+			WorldClock.clock.add(_armature);
 		}
 		
 		public function render():void
 		{
 			WorldClock.update();
-			if(_armature)
-			{
-				_armature.update();
-			}
 		}
 		
 		public function updateTextures():void
@@ -250,7 +247,7 @@
 				{
 					var boneData:BoneData = _skeletonData.getArmatureData(armatureName).getBoneData(boneName);
 					var bone:Bone = armature.getBone(boneName);
-					bone.origin.copy(boneData);
+					bone._origin.copy(boneData);
 					armature.addBone(bone, boneData.parent);
 				}
 				for each(bone in armature._boneDepthList)
@@ -264,6 +261,7 @@
 		{
 			if(_armature)
 			{
+				WorldClock.clock.remove(_armature);
 				_armature.removeEventListener(dragonBones.events.AnimationEvent.MOVEMENT_CHANGE, aramtureEventHandler);
 				_armature.removeEventListener(dragonBones.events.AnimationEvent.START, aramtureEventHandler);
 				_armature.removeEventListener(dragonBones.events.AnimationEvent.COMPLETE, aramtureEventHandler);
