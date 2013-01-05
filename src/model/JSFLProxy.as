@@ -24,6 +24,7 @@
 		public static const ADD_TEXTURE_TO_SWFITEM:String = "addTextureToSWFItem";
 		public static const PACK_TEXTURES:String = "packTextures";
 		public static const EXPORT_SWF:String = "exportSWF";
+		public static const COPY_ARMATURE_FROM:String = "copyArmatureFrom";
 		
 		private static const LOCAL_CONNECTION_NAME:String = "_SkeletonDesignPanelLocalConnection";
 		private static const CONNECTION_METHOD_NAME:String = "connectionMethodName";
@@ -31,265 +32,323 @@
 		
 		private static const JSFL_URL:String = "SkeletonAnimationDesignPanel/skeleton.jsfl";
 		
-		private static var instance:JSFLProxy;
+		private static var _instance:JSFLProxy;
 		public static function getInstance():JSFLProxy
 		{
-			if(!instance)
+			if(!_instance)
 			{
-				instance = new JSFLProxy();
+				_instance = new JSFLProxy();
 			}
-			return instance;
+			return _instance;
 		}
 		
-		private static function xmlToString(_xml:XML):String
+		private static function xmlToString(xml:XML):String
 		{
-			return <a a={_xml.toXMLString()}/>.@a[0].toXMLString();
+			return <a a={xml.toXMLString()}/>.@a[0].toXMLString();
 		}
 		
 		private static function jsflTrace(...arg):String
 		{
-			var _str:String = "";
-			for(var _i:int = 0;_i < arg.length;_i ++)
+			var str:String = "";
+			var length:uint = arg.length;
+			for(var i:int = 0;i < length;i ++)
 			{
-				if(_i!=0)
+				if(i != 0)
 				{
-					_str += ", ";
+					str += ", ";
 				}
-				_str += arg[_i];
+				str += arg[i];
 			}
-			MMExecute("fl.trace(\"" +_str+ "\");");
-			return _str;
+			MMExecute("fl.trace(\"" +str+ "\");");
+			return str;
 		}
 		
-		private var clientID:uint;
-		private var urlLoader:URLLoader;
-		private var localConnectionSender:LocalConnection;
-		private var localConnectionReceiver:LocalConnection;
-		
-		private var helpByteArray:ByteArray;
+		private var _clientID:uint;
+		private var _exClientID:uint;
+		private var _urlLoader:URLLoader;
+		private var _localConnectionSender:LocalConnection;
+		private var _localConnectionReceiver:LocalConnection;
+		private var _helpByteArray:ByteArray;
 		
 		/**
 		 * Determine if JSFLAPI isAvailable
 		 */
-		public function get isAvailable():Boolean{
-			try{
+		public function get isAvailable():Boolean
+		{
+			try
+			{
 				MMExecute("fl;");
 				return true;
-			}catch(_e:Error){}
+			}
+			catch(e:Error)
+			{
+			}
 			return false;
 		}
 		
-		public function JSFLProxy(){
-			if (instance) {
+		public function JSFLProxy()
+		{
+			if (_instance) 
+			{
 				throw new IllegalOperationError("Singleton already constructed!");
 			}
 			init();
 		}
 		
-		private function init():void{
-			clientID = Math.random() * 0xFFFFFFFF;
+		private function init():void
+		{
+			_clientID = Math.random() * 0xFFFFFFFF;
 			
-			helpByteArray = new ByteArray();
+			_helpByteArray = new ByteArray();
 			
-			localConnectionSender = new LocalConnection();
-			localConnectionSender.allowDomain("*");
-			localConnectionSender.client = {};
-			localConnectionSender.client[CONNECTION_METHOD_NAME] = senderConnectMethod;
-			localConnectionSender.addEventListener(StatusEvent.STATUS, senderConnectStatusHandler);
+			_localConnectionSender = new LocalConnection();
+			_localConnectionSender.allowDomain("*");
+			_localConnectionSender.client = {};
+			_localConnectionSender.client[CONNECTION_METHOD_NAME] = senderConnectMethod;
+			_localConnectionSender.addEventListener(StatusEvent.STATUS, senderConnectStatusHandler);
 			
-			try {
-				localConnectionSender.connect(LOCAL_CONNECTION_NAME + clientID);
+			try 
+			{
+				_localConnectionSender.connect(LOCAL_CONNECTION_NAME + _clientID);
 				trace("localConnectionSender connect success!");
-			} catch (_e:*){
+			}
+			catch (e:Error)
+			{
 				throw new Error("localConnectionSender connect error!");
 			}
 			
-			if(isAvailable){
-				localConnectionReceiver = new LocalConnection();
-				localConnectionReceiver.allowDomain("*");
-				localConnectionReceiver.client = {};
-				localConnectionReceiver.client[CONNECTION_METHOD_NAME] = receiverConnectMethod;
-				localConnectionReceiver.addEventListener(StatusEvent.STATUS, receiverConnectStatusHandler);
+			if(isAvailable)
+			{
+				_localConnectionReceiver = new LocalConnection();
+				_localConnectionReceiver.allowDomain("*");
+				_localConnectionReceiver.client = {};
+				_localConnectionReceiver.client[CONNECTION_METHOD_NAME] = receiverConnectMethod;
+				_localConnectionReceiver.addEventListener(StatusEvent.STATUS, receiverConnectStatusHandler);
 				
-				try {
-					localConnectionReceiver.connect(LOCAL_CONNECTION_NAME);
+				try 
+				{
+					_localConnectionReceiver.connect(LOCAL_CONNECTION_NAME);
 					JSFLProxy.jsflTrace("localConnectionReceiver connect success!");
-				} catch (_e:*){
+				} 
+				catch (e:Error)
+				{
 					throw new Error("localConnectionReceiver connect error!");
 				}
 				
-				urlLoader = new URLLoader();
-				urlLoader.addEventListener(Event.COMPLETE, jsflLoadHandler);
-				urlLoader.addEventListener(IOErrorEvent.IO_ERROR, jsflLoadHandler);
-				urlLoader.load(new URLRequest (JSFL_URL));
+				_urlLoader = new URLLoader();
+				_urlLoader.addEventListener(Event.COMPLETE, jsflLoadHandler);
+				_urlLoader.addEventListener(IOErrorEvent.IO_ERROR, jsflLoadHandler);
+				_urlLoader.load(new URLRequest (JSFL_URL));
 			}
 		}
 		
-		private function jsflLoadHandler(_e:Event):void{
-			urlLoader.removeEventListener(Event.COMPLETE, jsflLoadHandler);
-			urlLoader.removeEventListener(IOErrorEvent.IO_ERROR, jsflLoadHandler);
-			switch(_e.type){
+		private function jsflLoadHandler(e:Event):void
+		{
+			_urlLoader.removeEventListener(Event.COMPLETE, jsflLoadHandler);
+			_urlLoader.removeEventListener(IOErrorEvent.IO_ERROR, jsflLoadHandler);
+			switch(e.type)
+			{
 				case IOErrorEvent.IO_ERROR:
 					throw new Error("JSFL load error!");
 					break;
 				case Event.COMPLETE:
-					if(isAvailable){
-						MMExecute(_e.target.data);
+					if(isAvailable)
+					{
+						MMExecute(e.target.data);
 					}
 					break;
 			}
 		}
 		
-		public function runJSFLCode(_type:String, _code:String):void{
-			helpByteArray.position = 0;
-			helpByteArray.length = 0;
-			helpByteArray.writeUTFBytes(_code);
-			if(helpByteArray.length > 40 * 1024){
-				var _isBytesResult:Boolean = true;
-				helpByteArray.compress();
+		public function runJSFLCode(type:String, code:String):void
+		{
+			_helpByteArray.position = 0;
+			_helpByteArray.length = 0;
+			_helpByteArray.writeUTFBytes(code);
+			if(_helpByteArray.length > 40 * 1024)
+			{
+				var isBytesResult:Boolean = true;
+				_helpByteArray.compress();
 			}
 			//trace("clientID:" + clientID, "type:" + _type, "code:" + _code);
 			
-			localConnectionSender.send(
+			_localConnectionSender.send(
 				LOCAL_CONNECTION_NAME, 
 				CONNECTION_METHOD_NAME, 
-				clientID, 
-				_type, 
-				_isBytesResult?helpByteArray:_code
+				_clientID, 
+				type, 
+				isBytesResult?_helpByteArray:code
 			);
 		}
 		
-		public function runJSFLMethod(_type:String, _method:String, ...args):void{
-			var _code:String = _method + "(";
-			for each(var _arg:Object in args){
-				if(_arg is Number || _arg is Boolean){
-					_code += _arg + ",";
-				}else if(_arg is XML){
+		public function runJSFLMethod(type:String, method:String, ...args):void
+		{
+			var code:String = method + "(";
+			for each(var arg:Object in args)
+			{
+				if(arg is Number || arg is Boolean)
+				{
+					code += arg + ",";
+				}
+				else if(arg is XML)
+				{
 					XML.prettyIndent = -1;
-					var _xmlString:String = xmlToString(_arg as XML);
+					var xmlString:String = xmlToString(arg as XML);
 					XML.prettyIndent = 1;
-					_code += "'" + _xmlString + "',";
-				}else{
-					_code += "'" + _arg + "',";
+					code += "'" + xmlString + "',";
+				}
+				else
+				{
+					code += "'" + arg + "',";
 				}
 			}
 			
-			if(args.length > 0){
-				_code = _code.substr(0, _code.length -1);
+			if(args.length > 0)
+			{
+				code = code.substr(0, code.length -1);
 			}
 			
-			_code += ");";
+			code += ");";
 			
-			runJSFLCode(_type, _code);
+			runJSFLCode(type, code);
 		}
 		
-		private function receiverConnectMethod(_clientID:uint, _type:String, _code:*):void {
-			if(_code is ByteArray){
-				_code.position = 0;
-				_code.uncompress();
+		private function receiverConnectMethod(clientID:uint, type:String, code:*):void 
+		{
+			if(code is ByteArray)
+			{
+				code.position = 0;
+				code.uncompress();
 			}
-			
-			if(_clientID != clientID){
-				//JSFLProxy.jsflTrace("clientID:" + _clientID, "type:" + _type, "code:" + _code);
+			if(clientID != _clientID)
+			{
+				//JSFLProxy.jsflTrace("clientID:" + clientID, "type:" + type, "code:" + code);
 			}
-			
-			try {
-				var _result:String = MMExecute(_code);
-				helpByteArray.position = 0;
-				helpByteArray.length = 0;
-				helpByteArray.writeUTFBytes(_result);
-				if(helpByteArray.length > 40 * 1024){
-					var _isBytesResult:Boolean = true;
-					helpByteArray.compress();
+			try 
+			{
+				_exClientID = clientID;
+				var result:String = MMExecute(code);
+				_helpByteArray.position = 0;
+				_helpByteArray.length = 0;
+				_helpByteArray.writeUTFBytes(result);
+				if(_helpByteArray.length > 40 * 1024)
+				{
+					var isBytesResult:Boolean = true;
+					_helpByteArray.compress();
 				}
 				
-				localConnectionReceiver.send(
-					LOCAL_CONNECTION_NAME + _clientID, 
+				_localConnectionReceiver.send(
+					LOCAL_CONNECTION_NAME + clientID, 
 					CONNECTION_METHOD_NAME, 
-					_clientID, 
-					_type,
-					_isBytesResult?helpByteArray:_result
+					clientID, 
+					type,
+					isBytesResult?_helpByteArray:result
 				);
-			}catch(_e:Error){
+			}
+			catch(_e:Error)
+			{
 				throw new Error("localConnectionReceiver connect error!");
 			}
 		}
 		
-		private function senderConnectMethod(_clientID:uint, _type:String, _result:*):void {
-			if(_result is ByteArray){
-				_result.position = 0;
-				_result.uncompress();
+		private function senderConnectMethod(clientID:uint, type:String, result:*):void 
+		{
+			if(result is ByteArray)
+			{
+				result.position = 0;
+				result.uncompress();
 			}
-			//trace("clientID:" + _clientID, "type:" + _type, "result:" + _result);
-			if(_type){
-				MessageDispatcher.dispatchEvent(_type, _result);
-			}
-		}
-		
-		private function senderConnectStatusHandler(_e:StatusEvent):void {
-			if (_e.level == STATUS) {
+			//trace("clientID:" + clientID, "type:" + type, "result:" + result);
+			if(type)
+			{
+				MessageDispatcher.dispatchEvent(type, result);
 			}
 		}
 		
-		private function receiverConnectStatusHandler(_e:StatusEvent):void {
-			if (_e.level == STATUS) {
+		private function senderConnectStatusHandler(e:StatusEvent):void 
+		{
+			if (e.level == STATUS) 
+			{
+			}
+		}
+		
+		private function receiverConnectStatusHandler(e:StatusEvent):void 
+		{
+			if (e.level == STATUS) 
+			{
 			}
 		}
 		
 		/**
 		 * Get armatures from current fla file's library
 		 */
-		public function getArmatureList(_isSelected:Boolean):void{
-			runJSFLMethod(GET_ARMATURE_LIST, "Skeleton.getArmatureList", _isSelected);
+		public function getArmatureList(isSelected:Boolean):void
+		{
+			runJSFLMethod(GET_ARMATURE_LIST, "dragonBones.getArmatureList", isSelected);
 		}
 		
 		/**
 		 * Get armature data by name
 		 */
-		public function generateArmature(_armatureName:String, _scale:Number):void{
-			runJSFLMethod(GENERATE_ARMATURE, "Skeleton.generateArmature", _armatureName, _scale, true);
+		public function generateArmature(armatureName:String, scale:Number):void
+		{
+			runJSFLMethod(GENERATE_ARMATURE, "dragonBones.generateArmature", armatureName, scale, true);
 		}
 		
 		/**
 		 * Clear texture container for texture placement 
 		 */
-		public function clearTextureSWFItem():void{
-			runJSFLMethod(CLEAR_TEXTURE_SWFITEM, "Skeleton.clearTextureSWFItem");
+		public function clearTextureSWFItem():void
+		{
+			runJSFLMethod(CLEAR_TEXTURE_SWFITEM, "dragonBones.clearTextureSWFItem");
 		}
 		
 		/**
 		 * Place texture to swfitem by name
 		 */
-		public function addTextureToSWFItem(_textureName:String, _isLast:Boolean = false):void{
-			runJSFLMethod(ADD_TEXTURE_TO_SWFITEM, "Skeleton.addTextureToSWFItem", _textureName, _isLast);
+		public function addTextureToSWFItem(textureName:String, isLast:Boolean = false):void
+		{
+			runJSFLMethod(ADD_TEXTURE_TO_SWFITEM, "dragonBones.addTextureToSWFItem", textureName, isLast);
 		}
 		
 		/**
 		 * Place texture by textureAtlasXML data
 		 */
-		public function packTextures(_textureAtlasXML:XML):void{
-			runJSFLMethod(PACK_TEXTURES, "Skeleton.packTextures", _textureAtlasXML);
+		public function packTextures(textureAtlasXML:XML):void
+		{
+			runJSFLMethod(PACK_TEXTURES, "dragonBones.packTextures", textureAtlasXML);
 		}
 		
 		/**
 		 * Export textures to swf
 		 */
-		public function exportSWF():void{
-			runJSFLMethod(EXPORT_SWF, "Skeleton.exportSWF");
+		public function exportSWF():void
+		{
+			runJSFLMethod(EXPORT_SWF, "dragonBones.exportSWF");
 		}
 		
 		/**
 		 * Update skeleton structure data from XML to fla file
 		 */
-		public function changeArmatureConnection(_armatureName:String, _armatureXML:XML):void{
-			runJSFLMethod(null, "Skeleton.changeArmatureConnection", _armatureName, _armatureXML);
+		public function changeArmatureConnection(armatureName:String, armatureXML:XML):void
+		{
+			runJSFLMethod(null, "dragonBones.changeArmatureConnection", armatureName, armatureXML);
 		}
 		
 		/**
 		 * Update movement data from XML data to fla file
 		 */
-		public function changeMovement(_armatureName:String, _movementName:String, _movementXML:XML):void{
-			runJSFLMethod(null, "Skeleton.changeMovement", _armatureName, _movementName, _movementXML);
+		public function changeMovement(armatureName:String, movementName:String, movementXML:XML):void
+		{
+			runJSFLMethod(null, "dragonBones.changeMovement", armatureName, movementName, movementXML);
+		}
+		
+		/**
+		 * Update movement data from XML data to fla file
+		 */
+		public function copyArmatureFrom(copyArmatureName:String, rawArmatureName:String, armatureXML:XML, copyAnimationXML:XML):void
+		{
+			runJSFLMethod(null, "dragonBones.copyArmatureFrom", copyArmatureName, rawArmatureName, armatureXML, copyAnimationXML);
 		}
 	}
 }

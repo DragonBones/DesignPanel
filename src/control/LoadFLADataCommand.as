@@ -14,7 +14,7 @@
 	
 	public class LoadFLADataCommand
 	{
-		public static var instance:LoadFLADataCommand = new LoadFLADataCommand();
+		public static const instance:LoadFLADataCommand = new LoadFLADataCommand();
 		
 		private var _isLoading:Boolean;
 		

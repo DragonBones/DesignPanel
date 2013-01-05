@@ -8,6 +8,8 @@
 		  creationComplete="addedToStageHandler()">
 	<fx:Script>
 		<![CDATA[
+			import control.CopyAramtureCommand;
+			
 			import dragonBones.utils.ConstValues;
 			import dragonBones.utils.dragonBones_internal;
 			
@@ -21,6 +23,7 @@
 			import mx.events.DragEvent;
 			import mx.events.ListEvent;
 			
+			import spark.events.GridEvent;
 			import spark.events.GridSelectionEvent;
 			
 			use namespace dragonBones_internal;
@@ -35,11 +38,13 @@
 				movementList.dataProvider = _importDataProxy.animationDataProxy.movementsMC;
 				displayList.dataProvider = _importDataProxy.armatureDataProxy.displaysMC;
 				
-				armatureList.addEventListener(GridSelectionEvent.SELECTION_CHANGE, onArmatureChangeHandler);
-				movementList.addEventListener(GridSelectionEvent.SELECTION_CHANGE, onMovementChangeHandler);
+				armatureList.doubleClickEnabled = true;
+				armatureList.addEventListener(GridSelectionEvent.SELECTION_CHANGE, armatureHandler);
+				armatureList.addEventListener(GridEvent.GRID_DOUBLE_CLICK, armatureHandler);
+				movementList.addEventListener(GridSelectionEvent.SELECTION_CHANGE, movementHandler);
 				
-				boneTree.addEventListener(ListEvent.CHANGE, onBoneChangeHandler);
-				boneTree.addEventListener(DragEvent.DRAG_COMPLETE, onBoneDragCompleteHandler);
+				boneTree.addEventListener(ListEvent.CHANGE, boneHandler);
+				boneTree.addEventListener(DragEvent.DRAG_COMPLETE, boneHandler);
 				
 				MessageDispatcher.addEventListener(MessageDispatcher.CHANGE_ARMATURE_DATA, commandHandler);
 				MessageDispatcher.addEventListener(MessageDispatcher.CHANGE_MOVEMENT_DATA, commandHandler);
@@ -75,38 +80,71 @@
 				}
 			}
 			
-			private function onArmatureChangeHandler(e:Event):void
+			private function armatureHandler(e:Event):void
 			{
-				var armatureName:String = ImportDataProxy.getElementName(armatureList.selectedItem as XML);
-				_importDataProxy.armatureDataProxy.setData(_importDataProxy.getArmatureXMLByName(armatureName));
+				switch(e.type)
+				{
+					case GridSelectionEvent.SELECTION_CHANGE:
+						var armatureXML:XML = armatureList.selectedItem as XML;
+						var armatureName:String = armatureXML?armatureXML.attribute(ConstValues.A_NAME):"";
+						_importDataProxy.armatureDataProxy.setData(_importDataProxy.getArmatureXMLByName(armatureName));
+						break;
+					case GridEvent.GRID_DOUBLE_CLICK:
+						if(armatureList.selectedIndex > 0)
+						{
+							armatureXML = armatureList.selectedItem as XML;
+							if(armatureXML)
+							{
+								
+								var copyAramtureXML:XML = armatureList.dataProvider.getItemAt(armatureList.selectedIndex - 1) as XML;
+								armatureName = copyAramtureXML.attribute(ConstValues.A_NAME);
+								var animationXML:XML = _importDataProxy.getAnimationXMLByName(armatureName);
+								if(animationXML)
+								{
+									CopyAramtureCommand.instance.copyArmatureFrom(
+										copyAramtureXML, 
+										armatureXML, 
+										animationXML, 
+										_importDataProxy.skeletonData.getAnimationData(armatureName)
+									);
+								}
+							}
+						}
+						break;
+				}
 			}
 			
-			private function onMovementChangeHandler(e:Event):void
+			private function movementHandler(e:Event):void
 			{
-				var movementName:String = ImportDataProxy.getElementName(movementList.selectedItem as XML);
+				var movementXML:XML = movementList.selectedItem as XML;
+				var movementName:String = movementXML?movementXML.attribute(ConstValues.A_NAME):"";
 				_importDataProxy.animationDataProxy.changeMovement(movementName);
 			}
 			
-			private function onBoneChangeHandler(e:Event):void
+			private function boneHandler(e:Event):void
 			{
-				var boneName:String = ImportDataProxy.getElementName(boneTree.selectedItem as XML);
-				_importDataProxy.armatureDataProxy.changeBone(boneName);
-				_importDataProxy.animationDataProxy.changeMovementBone(boneName);
-			}
-			
-			private function onBoneDragCompleteHandler(e:DragEvent):void
-			{
-				if(boneTree.lastMoveNode)
+				switch(e.type)
 				{
-					var boneName:String = ImportDataProxy.getElementName(boneTree.lastMoveNode);
-					var parentXML:XML = boneTree.lastMoveNode.parent();
-					var parentName:String = ImportDataProxy.getElementName(parentXML);
-					if(parentXML.name() != boneTree.lastMoveNode.name())
-					{
-						parentName = null;
-					}
-					
-					_importDataProxy.armatureDataProxy.updateBoneParent(boneName, parentName);
+					case ListEvent.CHANGE:
+						var boneXML:XML = boneTree.selectedItem as XML;
+						var boneName:String = boneXML?boneXML.attribute(ConstValues.A_NAME):"";
+						_importDataProxy.armatureDataProxy.changeBone(boneName);
+						_importDataProxy.animationDataProxy.changeMovementBone(boneName);
+						break;
+					case DragEvent.DRAG_COMPLETE:
+						if(boneTree.lastMoveNode)
+						{
+							boneName = boneTree.lastMoveNode.attribute(ConstValues.A_NAME);
+							var parentXML:XML = boneTree.lastMoveNode.parent();
+							var parentName:String = parentXML.attribute(ConstValues.A_NAME);
+							if(parentXML.name() != boneTree.lastMoveNode.name())
+							{
+								parentName = null;
+							}
+							
+							_importDataProxy.armatureDataProxy.updateBoneParent(boneName, parentName);
+						}
+						break;
 				}
 			}
 			
@@ -114,7 +152,7 @@
 			{
 				for each(var eachItem:XML in list.dataProvider)
 				{
-					if(ImportDataProxy.getElementName(eachItem) == itemName)
+					if(eachItem.attribute(ConstValues.A_NAME) == itemName)
 					{
 						return eachItem;
 					}

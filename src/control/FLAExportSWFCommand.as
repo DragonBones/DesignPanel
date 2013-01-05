@@ -20,7 +20,7 @@ package control
 	
 	public class FLAExportSWFCommand
 	{
-		public static var instance:FLAExportSWFCommand = new FLAExportSWFCommand();
+		public static const instance:FLAExportSWFCommand = new FLAExportSWFCommand();
 		
 		private var _urlLoader:URLLoader;
 		private var _loaderContext:LoaderContext;

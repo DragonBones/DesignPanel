@@ -33,17 +33,17 @@
 		
 		public function get animationName():String
 		{
-			return ImportDataProxy.getElementName(_xml);
+			return _xml?_xml.attribute(ConstValues.A_NAME):"";
 		}
 		
 		public function get movementName():String
 		{
-			return ImportDataProxy.getElementName(_movementXML);
+			return _movementXML?_movementXML.attribute(ConstValues.A_NAME):"";
 		}
 		
 		public function get boneName():String
 		{
-			return ImportDataProxy.getElementName(_movementBoneXML);
+			return _movementBoneXML?_movementBoneXML.attribute(ConstValues.A_NAME):"";
 		}
 		
 		public function get durationTo():Number

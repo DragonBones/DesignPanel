@@ -29,17 +29,17 @@ package model
 		
 		public function get armatureName():String
 		{
-			return ImportDataProxy.getElementName(_xml);
+			return _xml?_xml.attribute(ConstValues.A_NAME):"";
 		}
 		
 		public function get boneName():String
 		{
-			return ImportDataProxy.getElementName(_boneXML);
+			return _boneXML?_boneXML.attribute(ConstValues.A_NAME):"";
 		}
 		
 		public function get displayName():String
 		{
-			return ImportDataProxy.getElementName(_displayXML);
+			return _displayXML?_displayXML.attribute(ConstValues.A_NAME):"";
 		}
 		
 		public function ArmatureDataProxy()

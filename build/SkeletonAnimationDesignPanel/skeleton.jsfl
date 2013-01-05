@@ -1,4 +1,4 @@
-﻿var Skeleton = {};
+﻿var dragonBones = {};
 (function(){
 
 var SKELETON = "skeleton";
@@ -77,7 +77,6 @@ var TEXTURE_SWF = "armatureTextureSWF.swf";
 var helpPoint = {x:0, y:0};
 
 var currentDom;
-var currentLibrary;
 var currentDomName;
 var currentItemBackup;
 var currentFrameBackup;
@@ -546,7 +545,7 @@ function generateFrame(_frame, _boneName, _symbol, _z, _noAutoEasing){
 		var _backupAnimationXML = animationXML;
 		var _backupArmatureConnectionXML = armatureConnectionXML;
 		
-		Skeleton.generateArmature(_imageName,1, false, _isChildArmature);
+		dragonBones.generateArmature(_imageName,1, false, _isChildArmature);
 		
 		armatureXML = _backupArmatureXML;
 		animationXML = _backupAnimationXML;
@@ -681,10 +680,9 @@ function addFrameToMovementBone(_frameXML, _start, _duration, _movementBoneXML){
 	_movementBoneXML.appendChild(_frameXML);
 }
 
-Skeleton.getArmatureList = function(_isSelected){
+dragonBones.getArmatureList = function(_isSelected){
 	fl.outputPanel.clear();
 	currentDom = fl.getDocumentDOM();
-	currentLibrary = currentDom?currentDom.library:null;
 	if(errorDOM()){
 		return false;
 	}
@@ -698,7 +696,7 @@ Skeleton.getArmatureList = function(_isSelected){
 	
 	currentDomName = currentDom.name.split(".")[0];
 	
-	var _items = _isSelected?currentLibrary.getSelectedItems():currentLibrary.items;
+	var _items = _isSelected?currentDom.library.getSelectedItems():currentDom.library.items;
 	var _xml = <{ARMATURES} {A_NAME} = {currentDomName}/>;
 	for each(var _item in _items){
 		if((_item.symbolType == MOVIE_CLIP || _item.symbolType == GRAPHIC) && isArmatureItem(_item)){
@@ -710,8 +708,8 @@ Skeleton.getArmatureList = function(_isSelected){
 	return _xml.toXMLString();
 }
 
-Skeleton.generateArmature = function(_armatureName, _scale, _isNewXML, _isChildArmature){
-	var _item = currentLibrary.items[currentLibrary.findItemIndex(_armatureName)];
+dragonBones.generateArmature = function(_armatureName, _scale, _isNewXML, _isChildArmature){
+	var _item = currentDom.library.items[currentDom.library.findItemIndex(_armatureName)];
 	if(!_item){
 		return false;
 	}
@@ -774,11 +772,11 @@ Skeleton.generateArmature = function(_armatureName, _scale, _isNewXML, _isChildA
 	return xml.toXMLString();
 }
 
-Skeleton.clearTextureSWFItem = function(){
-	if(!currentLibrary.itemExists(TEXTURE_SWF_ITEM)){
-		currentLibrary.addNewItem(MOVIE_CLIP, TEXTURE_SWF_ITEM);
+dragonBones.clearTextureSWFItem = function(){
+	if(!currentDom.library.itemExists(TEXTURE_SWF_ITEM)){
+		currentDom.library.addNewItem(MOVIE_CLIP, TEXTURE_SWF_ITEM);
 	}
-	currentLibrary.editItem(TEXTURE_SWF_ITEM);
+	currentDom.library.editItem(TEXTURE_SWF_ITEM);
 	xml = null;
 	armaturesXML = null;
 	animationsXML = null;
@@ -794,8 +792,8 @@ Skeleton.clearTextureSWFItem = function(){
 	_timeline.insertBlankKeyframe(1);
 }
 
-Skeleton.addTextureToSWFItem = function(_textureName, _isLast){
-	var _item = currentLibrary.items[currentLibrary.findItemIndex(_textureName)];
+dragonBones.addTextureToSWFItem = function(_textureName, _isLast){
+	var _item = currentDom.library.items[currentDom.library.findItemIndex(_textureName)];
 	if(!_item){
 		return false;
 	}
@@ -807,7 +805,7 @@ Skeleton.addTextureToSWFItem = function(_textureName, _isLast){
 	var _putSuccess;
 	var _tryTimes = 0;
 	do{
-		_putSuccess = currentLibrary.addItemToDocument(helpPoint, _textureName);
+		_putSuccess = currentDom.library.addItemToDocument(helpPoint, _textureName);
 		_tryTimes ++;
 	}while(!_putSuccess && _tryTimes < 5);
 	if(!_putSuccess){
@@ -828,7 +826,7 @@ Skeleton.addTextureToSWFItem = function(_textureName, _isLast){
 	if(_isLast){
 		_timeline.removeFrames(1, 1);
 		if(currentItemBackup){
-			currentLibrary.editItem(currentItemBackup.name);
+			currentDom.library.editItem(currentItemBackup.name);
 			currentDom.getTimeline().currentFrame = currentFrameBackup;
 		}
 	}else{
@@ -837,12 +835,12 @@ Skeleton.addTextureToSWFItem = function(_textureName, _isLast){
 	return _subTextureXML.toXMLString();
 }
 
-Skeleton.packTextures = function(_textureAtlasXML){
+dragonBones.packTextures = function(_textureAtlasXML){
 	if(errorDOM()){
 		return false;
 	}
 	
-	if(!currentLibrary.itemExists(TEXTURE_SWF_ITEM)){
+	if(!currentDom.library.itemExists(TEXTURE_SWF_ITEM)){
 		return false;
 	}
 	_textureAtlasXML = XML(_textureAtlasXML).toXMLString();
@@ -852,7 +850,7 @@ Skeleton.packTextures = function(_textureAtlasXML){
 	
 	var _subTextureXMLList = _textureAtlasXML[SUB_TEXTURE];
 	
-	var _textureItem = currentLibrary.items[currentLibrary.findItemIndex(TEXTURE_SWF_ITEM)];
+	var _textureItem = currentDom.library.items[currentDom.library.findItemIndex(TEXTURE_SWF_ITEM)];
 	var _timeline = _textureItem.timeline;
 	_timeline.currentFrame = 0;
 	var _name;
@@ -879,12 +877,12 @@ Skeleton.packTextures = function(_textureAtlasXML){
 	return true;
 }
 
-Skeleton.exportSWF = function(){
+dragonBones.exportSWF = function(){
 	if(errorDOM()){
 		return "";
 	}
 	
-	if(!currentLibrary.itemExists(TEXTURE_SWF_ITEM)){
+	if(!currentDom.library.itemExists(TEXTURE_SWF_ITEM)){
 		return "";
 	}
 	var _folderURL = fl.configURI;
@@ -901,16 +899,16 @@ Skeleton.exportSWF = function(){
 		FLfile.createFolder(_folderURL);
 	}
 	var _swfURL = _folderURL + _pathDelimiter + TEXTURE_SWF;
-	currentLibrary.items[currentLibrary.findItemIndex(TEXTURE_SWF_ITEM)].exportSWF(_swfURL);
+	currentDom.library.items[currentDom.library.findItemIndex(TEXTURE_SWF_ITEM)].exportSWF(_swfURL);
 	return _swfURL;
 }
 
 //Write armatureConnection data by armatureName
-Skeleton.changeArmatureConnection = function(_armatureName, _data){
+dragonBones.changeArmatureConnection = function(_armatureName, _data){
 	if(errorDOM()){
 		return false;
 	}
-	var _item = currentLibrary.items[currentLibrary.findItemIndex(_armatureName)];
+	var _item = currentDom.library.items[currentDom.library.findItemIndex(_armatureName)];
 	if(!_item){
 		trace("cannot find " + _armatureName + " element，please make sure your fla file is synchronized！");
 		return false;
@@ -922,11 +920,11 @@ Skeleton.changeArmatureConnection = function(_armatureName, _data){
 	return true;
 }
 
-Skeleton.changeMovement = function(_armatureName, _movementName, _data){
+dragonBones.changeMovement = function(_armatureName, _movementName, _data){
 	if(errorDOM()){
 		return false;
 	}
-	var _item = currentLibrary.items[currentLibrary.findItemIndex(_armatureName)];
+	var _item = currentDom.library.items[currentDom.library.findItemIndex(_armatureName)];
 	if(!_item){
 		trace("cannot find " + _armatureName + " element，please make sure your fla file is synchronized！");
 		return false;
@@ -955,6 +953,198 @@ Skeleton.changeMovement = function(_armatureName, _movementName, _data){
 	_item.symbolType = GRAPHIC;
 	_item.symbolType = MOVIE_CLIP;
 	return true;
+}
+
+dragonBones.copyArmatureFrom = function(copyArmatureName, rawArmatureName, armatureXML, copyAnimationXML)
+{
+	if(errorDOM())
+	{
+		return false;
+	}
+	var rawItem = currentDom.library.items[currentDom.library.findItemIndex(rawArmatureName)];
+	if(!rawItem)
+	{
+		trace("cannot find " + rawArmatureName + " element，please make sure your fla file is synchronized！");
+		return false;
+	}
+	
+	copyAnimationXML = XML(copyAnimationXML).toXMLString();
+	copyAnimationXML = replaceString(copyAnimationXML, "&lt;", "<");
+	copyAnimationXML = replaceString(copyAnimationXML, "&gt;", ">");
+	copyAnimationXML = XML(copyAnimationXML);
+	var movementXMLList = copyAnimationXML[MOVEMENT];
+	
+	//获取 rawItem 中的元件列表
+	var rawMark = {};
+	var rawNameList = [];
+	for each(var layer in rawItem.timeline.layers)
+	{
+		var boneName = layer.name;
+		var rawTextureList = [];
+		rawMark[boneName] = rawTextureList;
+		rawNameList.push(boneName);
+		for each(var frame in filterKeyFrames(layer.frames))
+		{
+			var boneSymbol = getBoneSymbol(frame.elements);
+			if(boneSymbol)
+			{
+				var textureName = boneSymbol.libraryItem.name;
+				if(rawTextureList.indexOf(textureName) == -1)
+				{
+					rawTextureList.push(textureName);
+				}
+			}
+		}
+	}
+	
+	//复制 rawItem 中的所有帧
+	currentDom.library.editItem(rawItem.name);
+	rawItem.timeline.selectAllFrames();
+	rawItem.timeline.copyFrames();
+	
+	//复制元件
+	currentDom.library.duplicateItem(copyArmatureName);
+	var selectedItems = currentDom.library.getSelectedItems();
+	var copyArmature = selectedItems[selectedItems.length - 1];
+	var copyTimeline = copyArmature.timeline;
+	currentDom.library.editItem(copyArmature.name);
+	
+	var mainLayer = isArmatureItem(copyArmature).shift();
+	
+	var movementRanges = [];
+	var movementList = [];
+	for each(frame in mainLayer.frames)
+	{
+		var startFrame = frame.startFrame;
+		if(movementRanges.indexOf(startFrame) == -1)
+		{
+			movementRanges.push(startFrame);
+			movementList.push(frame.name);
+		}
+	}
+	movementRanges.shift();
+	movementRanges.push(3000);
+	
+	var layerID = 0;
+	for each(layer in copyTimeline.layers)
+	{
+		boneName = layer.name;
+		rawTextureList = rawMark[boneName];
+		var copyTextureList = [];
+		if(rawTextureList)
+		{
+			rawMark[boneName] = layerID;
+			layer.locked = false;
+			layer.visible = true;
+			copyTimeline.currentLayer = layerID;
+			var frameID = 0;
+			var movementID = 0;
+			for each(frame in filterKeyFrames(layer.frames))
+			{
+				boneSymbol = getBoneSymbol(frame.elements);
+				if(boneSymbol)
+				{
+					var startFrame = frame.startFrame;
+					while(startFrame >= movementRanges[movementID])
+					{
+						frameID = 0;
+						movementID ++;
+					}
+					var movementName = movementList[movementID];
+					
+					textureName = boneSymbol.libraryItem.name;
+					var subListID = copyTextureList.indexOf(textureName);
+					if(subListID == -1)
+					{
+						subListID = copyTextureList.length;
+						copyTextureList.push(textureName);
+					}
+					if(subListID >= rawTextureList.length)
+					{
+						subListID = rawTextureList.length - 1;
+					}
+					textureName = rawTextureList[subListID];
+					copyTimeline.currentFrame = frame.startFrame;
+					currentDom.selectNone();
+					boneSymbol.selected = true;
+					currentDom.swapElement(textureName);
+					boneSymbol = currentDom.selection[0];
+					
+					var movementXML = movementXMLList.(@name == movementName)[0];
+					if(movementXML)
+					{
+						var boneXML = movementXML[BONE].(@name == boneName)[0];
+						if(boneXML)
+						{
+							var frameXML = boneXML[FRAME][frameID];
+							boneSymbol.x = Number(frameXML[AT + A_X]) - Number(frameXML[AT + A_PIVOT_X]);
+							boneSymbol.y = Number(frameXML[AT + A_Y]) - Number(frameXML[AT + A_PIVOT_Y]);
+							boneSymbol.scaleX = Number(frameXML[AT + A_SCALE_X]);
+							boneSymbol.scaleY = Number(frameXML[AT + A_SCALE_Y]);
+							boneSymbol.skewX = Number(frameXML[AT + A_SKEW_X]);
+							boneSymbol.skewY = Number(frameXML[AT + A_SKEW_Y]);
+						}
+					}
+				}
+				frameID ++;
+			}
+		}
+		layerID ++;
+	}
+	
+	var copyLayers = copyTimeline.layers;
+	var copyLayerCount = copyTimeline.layerCount;
+	var exLayerID = copyLayerCount;
+	copyTimeline.currentLayer = copyLayerCount - 1;
+	//先把 rawItem 中的所有帧粘贴到 copyItem 的最下面
+	copyTimeline.addNewLayer("", "normal", false);
+	copyTimeline.pasteFrames(0, 3000);
+	
+	for each(boneName in rawNameList)
+	{
+		layerID = rawMark[boneName];
+		if(layerID > -1)
+		{
+			//如有同名动画图层，剪切动画图层并粘贴到此图层
+			copyTimeline.currentLayer = layerID;
+			layer = copyLayers[layerID];
+			if(layer)
+			{
+				copyTimeline.cutFrames(0, layer.frames.length);
+				copyTimeline.currentLayer = exLayerID;
+				copyTimeline.pasteFrames(0, 3000);
+			}
+		}
+		else
+		{
+			//否则补帧为最长帧数
+			copyTimeline.currentLayer = exLayerID;
+			copyTimeline.insertFrames(1, false, copyTimeline.frameCount - 1);
+		}
+		exLayerID ++;
+	}
+	
+	for(layerID = copyTimeline.layerCount - 1;layerID >= copyLayerCount;layerID --)
+	{
+		layer = copyTimeline.layers[layerID];
+		if(isMainLayer(layer))
+		{
+			copyTimeline.deleteLayer(layerID);
+		}
+	}
+	
+	//删除无用图层
+	layerID = copyLayerCount;
+	while(-- layerID >= 0)
+	{	
+		if(copyLayers[layerID] != mainLayer)
+		{
+			copyTimeline.deleteLayer(layerID);
+		}
+	}
+	dragonBones.changeArmatureConnection(copyArmature.name, armatureXML);
+	currentDom.library.deleteItem(rawArmatureName + "Copy");
+	copyArmature.name = rawArmatureName + "Copy";
 }
 
 })();

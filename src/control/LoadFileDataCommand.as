@@ -32,7 +32,7 @@ package control
 
 	public class LoadFileDataCommand
 	{
-		public static var instance:LoadFileDataCommand = new LoadFileDataCommand();
+		public static const instance:LoadFileDataCommand = new LoadFileDataCommand();
 		
 		private static const FILE_FILTER_ARRAY:Array = [new FileFilter("Exported data", "*." + String(["swf", "png", "zip"]).replace(/\,/g, ";*."))];
 		private static var _helpMatirx:Matrix = new Matrix();

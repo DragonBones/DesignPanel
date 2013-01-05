@@ -57,12 +57,6 @@
 			return null;
 		}
 		
-		public static function getElementName(xml:XML, key:String = null):String
-		{
-			key = key||ConstValues.A_NAME;
-			return xml?String(xml.attribute(key)):"";
-		}
-		
 		public var armaturesMC:XMLListCollection;
 		
 		public var isTextureChanged:Boolean;
@@ -74,7 +68,7 @@
 		
 		public function get skeletonName():String
 		{
-			return getElementName(_skeletonXML);
+			return _skeletonXML?_skeletonXML.attribute(ConstValues.A_NAME):"";
 		}
 		
 		public function get frameRate():int

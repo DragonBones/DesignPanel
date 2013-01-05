@@ -23,7 +23,7 @@ package control
 	
 	public class ExportDataCommand
 	{
-		public static var instance:ExportDataCommand = new ExportDataCommand();
+		public static const instance:ExportDataCommand = new ExportDataCommand();
 		
 		private static var _helpMatirx:Matrix = new Matrix();
 		
