@@ -346,9 +346,9 @@
 		/**
 		 * Update movement data from XML data to fla file
 		 */
-		public function copyArmatureFrom(copyArmatureName:String, rawArmatureName:String, armatureXML:XML, copyAnimationXML:XML):void
+		public function copyArmatureFrom(targetArmatureName:String, sourceArmatureName:String, targetArmatureXML:XML, sourceAnimationXML:XML):void
 		{
-			runJSFLMethod(null, "dragonBones.copyArmatureFrom", copyArmatureName, rawArmatureName, armatureXML, copyAnimationXML);
+			runJSFLMethod(COPY_ARMATURE_FROM, "dragonBones.copyArmatureFrom", targetArmatureName, sourceArmatureName, targetArmatureXML, sourceAnimationXML);
 		}
 	}
 }

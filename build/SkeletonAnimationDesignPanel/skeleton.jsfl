@@ -304,6 +304,8 @@ function getMovementXML(_movementName, _duration, _item){
 				_xml[AT + A_DURATION_TWEEN] = _movementXML[AT + A_DURATION_TWEEN];
 			}else{
 				_xml[AT + A_DURATION_TWEEN] = _duration;
+				_movementXML[AT + A_DURATION] = _duration;
+				_movementXML[AT + A_DURATION_TWEEN] = _duration;
 			}
 			_xml[AT + A_LOOP] = _movementXML[AT + A_LOOP];
 			_xml[AT + A_TWEEN_EASING] = _movementXML[AT + A_TWEEN_EASING].length()?_movementXML[AT + A_TWEEN_EASING]:NaN;
@@ -799,21 +801,22 @@ dragonBones.addTextureToSWFItem = function(_textureName, _isLast){
 	}
 	
 	var _timeline = currentDom.getTimeline();
-	
 	_timeline.currentFrame = 0;
 	helpPoint.x = helpPoint.y = 0;
-	var _putSuccess;
 	var _tryTimes = 0;
+	var _putSuccess = false;
+	var _symbol;
+	currentDom.selectNone();
 	do{
 		_putSuccess = currentDom.library.addItemToDocument(helpPoint, _textureName);
+		_symbol = currentDom.selection[0]
 		_tryTimes ++;
-	}while(!_putSuccess && _tryTimes < 5);
-	if(!_putSuccess){
+	}while((!_putSuccess || !_symbol) && _tryTimes < 5);
+	if(!_symbol){
 		trace("内存不足导致放置贴图失败！请尝试重新导入。");
 		return false;
 	}
 	
-	_symbol = currentDom.selection[0];
 	if(_symbol.symbolType != MOVIE_CLIP){
 		_symbol.symbolType = MOVIE_CLIP;
 	}
@@ -955,7 +958,7 @@ dragonBones.changeMovement = function(_armatureName, _movementName, _data){
 	return true;
 }
 
-dragonBones.copyArmatureFrom = function(copyArmatureName, rawArmatureName, armatureXML, copyAnimationXML)
+dragonBones.copyArmatureFrom = function(rawArmatureName, copyArmatureName, armatureXML, copyAnimationXML)
 {
 	if(errorDOM())
 	{
@@ -1077,12 +1080,28 @@ dragonBones.copyArmatureFrom = function(copyArmatureName, rawArmatureName, armat
 						if(boneXML)
 						{
 							var frameXML = boneXML[FRAME][frameID];
-							boneSymbol.x = Number(frameXML[AT + A_X]) - Number(frameXML[AT + A_PIVOT_X]);
-							boneSymbol.y = Number(frameXML[AT + A_Y]) - Number(frameXML[AT + A_PIVOT_Y]);
-							boneSymbol.scaleX = Number(frameXML[AT + A_SCALE_X]);
-							boneSymbol.scaleY = Number(frameXML[AT + A_SCALE_Y]);
-							boneSymbol.skewX = Number(frameXML[AT + A_SKEW_X]);
-							boneSymbol.skewY = Number(frameXML[AT + A_SKEW_Y]);
+							
+							helpPoint.x = Number(frameXML[AT + A_X]);
+							helpPoint.y = Number(frameXML[AT + A_Y]);
+							helpPoint.scaleX = Number(frameXML[AT + A_SCALE_X]);
+							helpPoint.scaleY = Number(frameXML[AT + A_SCALE_Y]);
+							helpPoint.skewX = Number(frameXML[AT + A_SKEW_X]) / 180 * Math.PI;
+							helpPoint.skewY = Number(frameXML[AT + A_SKEW_Y]) / 180 * Math.PI;
+							helpPoint.pivotX = Number(frameXML[AT + A_PIVOT_X]);
+							helpPoint.pivotY = Number(frameXML[AT + A_PIVOT_Y]);
+							
+							var matrix = boneSymbol.matrix;
+							matrix.a = helpPoint.scaleX * Math.cos(helpPoint.skewY)
+							matrix.b = helpPoint.scaleX * Math.sin(helpPoint.skewY)
+							matrix.c = -helpPoint.scaleY * Math.sin(helpPoint.skewX);
+							matrix.d = helpPoint.scaleY * Math.cos(helpPoint.skewX);
+							matrix.tx = helpPoint.x - (matrix.a * helpPoint.pivotX + matrix.c * helpPoint.pivotY);
+							matrix.ty = helpPoint.y - (matrix.b * helpPoint.pivotX + matrix.d * helpPoint.pivotY);
+							
+							helpPoint.x = helpPoint.pivotX;
+							helpPoint.y = helpPoint.pivotY;
+							boneSymbol.matrix = matrix;
+							boneSymbol.setTransformationPoint(helpPoint);
 						}
 					}
 				}

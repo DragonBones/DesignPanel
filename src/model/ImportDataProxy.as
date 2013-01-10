@@ -179,9 +179,9 @@
 			disposeArmature();
 			
 			_armature = _baseFactory.buildArmature(armatureName);
-			_armature.addEventListener(dragonBones.events.AnimationEvent.MOVEMENT_CHANGE, aramtureEventHandler);
-			_armature.addEventListener(dragonBones.events.AnimationEvent.START, aramtureEventHandler);
-			_armature.addEventListener(dragonBones.events.AnimationEvent.COMPLETE, aramtureEventHandler);
+			_armature.addEventListener(dragonBones.events.AnimationEvent.MOVEMENT_CHANGE, armatureEventHandler);
+			_armature.addEventListener(dragonBones.events.AnimationEvent.START, armatureEventHandler);
+			_armature.addEventListener(dragonBones.events.AnimationEvent.COMPLETE, armatureEventHandler);
 			WorldClock.clock.add(_armature);
 		}
 		
@@ -217,7 +217,7 @@
 			updateOrigin(_armature, armatureName, boneName);
 		}
 		
-		private function aramtureEventHandler(e:AnimationEvent):void
+		private function armatureEventHandler(e:AnimationEvent):void
 		{
 			switch(e.type)
 			{
@@ -256,9 +256,9 @@
 			if(_armature)
 			{
 				WorldClock.clock.remove(_armature);
-				_armature.removeEventListener(dragonBones.events.AnimationEvent.MOVEMENT_CHANGE, aramtureEventHandler);
-				_armature.removeEventListener(dragonBones.events.AnimationEvent.START, aramtureEventHandler);
-				_armature.removeEventListener(dragonBones.events.AnimationEvent.COMPLETE, aramtureEventHandler);
+				_armature.removeEventListener(dragonBones.events.AnimationEvent.MOVEMENT_CHANGE, armatureEventHandler);
+				_armature.removeEventListener(dragonBones.events.AnimationEvent.START, armatureEventHandler);
+				_armature.removeEventListener(dragonBones.events.AnimationEvent.COMPLETE, armatureEventHandler);
 				_armature.dispose();
 			}
 			_armature = null;

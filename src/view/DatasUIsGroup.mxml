@@ -8,7 +8,7 @@
 		  creationComplete="addedToStageHandler()">
 	<fx:Script>
 		<![CDATA[
-			import control.CopyAramtureCommand;
+			import control.CopyArmatureCommand;
 			
 			import dragonBones.utils.ConstValues;
 			import dragonBones.utils.dragonBones_internal;
@@ -96,16 +96,16 @@
 							if(armatureXML)
 							{
 								
-								var copyAramtureXML:XML = armatureList.dataProvider.getItemAt(armatureList.selectedIndex - 1) as XML;
-								armatureName = copyAramtureXML.attribute(ConstValues.A_NAME);
-								var animationXML:XML = _importDataProxy.getAnimationXMLByName(armatureName);
-								if(animationXML)
+								var sourceArmatureXML:XML = armatureList.dataProvider.getItemAt(armatureList.selectedIndex - 1) as XML;
+								var sourceArmatureName:String = sourceArmatureXML.attribute(ConstValues.A_NAME);
+								var sourceAnimationXML:XML = _importDataProxy.getAnimationXMLByName(sourceArmatureName);
+								if(sourceAnimationXML)
 								{
-									CopyAramtureCommand.instance.copyArmatureFrom(
-										copyAramtureXML, 
+									CopyArmatureCommand.instance.copyArmatureFrom(
 										armatureXML, 
-										animationXML, 
-										_importDataProxy.skeletonData.getAnimationData(armatureName)
+										sourceArmatureXML, 
+										sourceAnimationXML, 
+										_importDataProxy.skeletonData
 									);
 								}
 							}
