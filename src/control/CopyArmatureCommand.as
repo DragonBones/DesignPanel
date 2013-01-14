@@ -29,7 +29,8 @@ package control
 		
 		private var _boneData:BoneData;
 		private var _frameNode:Node;
-		private var _parentFrameNode:Node;
+		private var _parentFrameData:FrameData;
+		private var _tweenFrameData:FrameData;
 		private var _helpMatrix:Matrix;
 		private var _helpPoint:Point;
 		
@@ -37,7 +38,8 @@ package control
 		{
 			_boneData = new BoneData();
 			_frameNode = new Node();
-			_parentFrameNode = new Node();
+			_parentFrameData = new FrameData();
+			_tweenFrameData = new FrameData();
 			_helpMatrix = new Matrix();
 			_helpPoint = new Point();
 		}
@@ -123,24 +125,28 @@ package control
 						var parentName:String = boneXML.attribute(ConstValues.A_PARENT);
 						var parentXML:XML = XMLDataParser.getElementsByAttribute(targetBoneXMLList, ConstValues.A_NAME, parentName)[0];
 						XMLDataParser.parseBoneData(boneXML, parentXML, _boneData);
+						
 						var movementBoneXMLList:XMLList = movementXML.elements(ConstValues.BONE);
 						var movementBoneXML:XML = XMLDataParser.getElementsByAttribute(movementBoneXMLList, ConstValues.A_NAME, boneName)[0];
-						if(parentName)
+						var parentMovementBoneXML:XML = XMLDataParser.getElementsByAttribute(movementBoneXMLList, ConstValues.A_NAME, parentName)[0];
+						
+						if(parentMovementBoneXML)
 						{
-							var parentMovementBoneXML:XML = XMLDataParser.getElementsByAttribute(movementBoneXMLList, ConstValues.A_NAME, parentName)[0];
-							var parentFrameXMLList:XMLList = parentMovementBoneXML.elements(ConstValues.FRAME);
-							var parentFrameXML:XML = null;
-							var parentFrameCount:uint = parentFrameXMLList.length();
 							var i:uint = 0;
 							var parentTotalDuration:uint = 0;
+							var totalDuration:uint = 0;
 							var currentDuration:uint = 0;
+							var parentFrameXMLList:XMLList = parentMovementBoneXML.elements(ConstValues.FRAME);
+							var parentFrameCount:uint = parentFrameXMLList.length();
+							var parentFrameXML:XML = null;
 						}
-						var totalDuration:uint = 0;
+						
 						var frameXMLList:XMLList = movementBoneXML.elements(ConstValues.FRAME);
-						for each(var frameXML:XML in frameXMLList)
+						var frameCount:uint = frameXMLList.length();
+						for(var j:int = 0;j < frameCount;j ++)
 						{
-							var index:int = frameXML.childIndex();
-							var frameData:FrameData = movementBoneData.getFrameDataAt(index);
+							var frameXML:XML = frameXMLList[j];
+							var frameData:FrameData = movementBoneData.getFrameDataAt(j);
 							
 							_frameNode.x = _boneData.x + frameData.x;
 							_frameNode.y = _boneData.y + frameData.y;
@@ -150,7 +156,8 @@ package control
 							_frameNode.scaleY = _boneData.scaleY + frameData.scaleY;
 							_frameNode.pivotX = _boneData.pivotX + frameData.pivotX;
 							_frameNode.pivotY = _boneData.pivotY + frameData.pivotY;
-							if(parentName)
+							
+							if(parentMovementBoneXML)
 							{
 								while(i < parentFrameCount && (parentFrameXML?(totalDuration < parentTotalDuration || totalDuration >= parentTotalDuration + currentDuration):true))
 								{
@@ -159,23 +166,33 @@ package control
 									currentDuration = int(parentFrameXML.attribute(ConstValues.A_DURATION));
 									i++;
 								}
+								
+								XMLDataParser.parseFrameData(parentFrameXML, _parentFrameData);
+								
 								var tweenFrameXML:XML = parentFrameXMLList[i];
-								var passedFrame:int = totalDuration - parentTotalDuration;
-								if(tweenFrameXML && passedFrame > 0)
+								var progress:Number;
+								if(tweenFrameXML)
 								{
-									parentFrameXML = XMLDataParser.getTweenFrameXML(parentFrameXML, tweenFrameXML, passedFrame, currentDuration);
+									progress = (totalDuration - parentTotalDuration) / currentDuration;
 								}
-								XMLDataParser.parseNode(parentFrameXML, _parentFrameNode);
-								TransformUtils.nodeToMatrix(_parentFrameNode, _helpMatrix);
+								else
+								{
+									tweenFrameXML = parentFrameXML;
+									progress = 0;
+								}
+								XMLDataParser.parseFrameData(tweenFrameXML, _tweenFrameData);
+								var parentNode:Node = TransformUtils.getTweenNode(_parentFrameData, _tweenFrameData, progress, _parentFrameData.tweenEasing);
+								TransformUtils.nodeToMatrix(parentNode, _helpMatrix);
 								
 								_helpPoint.x = _frameNode.x;
 								_helpPoint.y = _frameNode.y;
 								_helpPoint = _helpMatrix.transformPoint(_helpPoint);
 								_frameNode.x = _helpPoint.x;
 								_frameNode.y = _helpPoint.y;
-								_frameNode.skewX += _parentFrameNode.skewX;
-								_frameNode.skewY += _parentFrameNode.skewY;
+								_frameNode.skewX += _parentFrameData.skewX;
+								_frameNode.skewY += _parentFrameData.skewY;
 							}
+							totalDuration += int(frameXML.attribute(ConstValues.A_DURATION));
 							
 							frameXML[ConstValues.AT + ConstValues.A_X] = _frameNode.x;
 							frameXML[ConstValues.AT + ConstValues.A_Y] = _frameNode.y;
@@ -185,8 +202,6 @@ package control
 							frameXML[ConstValues.AT + ConstValues.A_SCALE_Y] = _frameNode.scaleY;
 							frameXML[ConstValues.AT + ConstValues.A_PIVOT_X] = _frameNode.pivotX;
 							frameXML[ConstValues.AT + ConstValues.A_PIVOT_Y] = _frameNode.pivotY;
-							
-							totalDuration += int(frameXML[ConstValues.AT + ConstValues.A_DURATION]);
 						}
 					}
 				}
