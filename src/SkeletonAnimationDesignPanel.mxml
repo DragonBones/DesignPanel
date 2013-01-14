@@ -4,8 +4,12 @@
 			   xmlns:mx="library://ns.adobe.com/flex/mx"
 			   xmlns:view="view.*"
 			   addedToStage="addedToStageHandler()"
-			   preloader="prevloadClasses.Prevloader"
+			   preloader="prevloadClasses.Prevloader" width="1024" height="768"
 			   >
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+		<view:CopyWindow id="copyWindow"/>
+	</fx:Declarations>
 	<fx:Script>
 		<![CDATA[
 			import control.LoadFileDataCommand;
@@ -219,6 +223,12 @@
 				PopUpManager.centerPopUp(window);
 			}
 			
+			private function popUpCopyWindow():void
+			{
+				PopUpManager.addPopUp(copyWindow, this, true);
+				PopUpManager.centerPopUp(copyWindow);
+			}
+			
 			private function navIndexChangeHandler(event:Event):void
 			{
 				switch(event.target.selectedChild)
@@ -272,7 +282,7 @@
 	<fx:Metadata>
 		[ResourceBundle("resources")]
 	</fx:Metadata>
-	<mx:TabNavigator y="10" width="100%" height="100%" tabHeight="35" tabOffset="150" paddingTop="2" paddingBottom="2" paddingLeft="2" paddingRight="2"
+	<mx:TabNavigator y="10" width="100%" height="100%" tabHeight="35" tabOffset="230" paddingTop="2" paddingBottom="2" paddingLeft="2" paddingRight="2"
 					 creationPolicy="all"
 					 change="navIndexChangeHandler(event)">
 		<s:NavigatorContent width="100%" height="100%" label="{resourceManager.getString('resources','editor')}">
@@ -308,6 +318,10 @@
 	<s:Button x="77" y="10" width="68" height="24" cornerRadius="0"
 			  label="{resourceManager.getString('resources','export')}"
 			  click="{exportData()}"
+			  />
+	<s:Button x="150" y="10" width="68" height="24" cornerRadius="0"
+			  label="Copy"
+			  click="{popUpCopyWindow()}"
 			  />
 	<s:HGroup y="10" left="450" right="10" horizontalAlign="right" gap="10">
 		<s:Label height="24" text="{resourceManager.getString('resources','frameRate')}"

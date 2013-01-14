@@ -1,0 +1,162 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:TitleWindow xmlns:fx="http://ns.adobe.com/mxml/2009" 
+			   xmlns:s="library://ns.adobe.com/flex/spark" 
+			   xmlns:mx="library://ns.adobe.com/flex/mx" width="800" height="600" xmlns:components="view.components.*" close="closeCopySession()" show="CopyDataProxy.getInstance().openNewCopySession()" xmlns:view="view.*">
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	<fx:Script>
+		<![CDATA[
+			import dragonBones.utils.ConstValues;
+			
+			import model.CopyDataProxy;
+			import model.ImportDataProxy;
+			
+			import mx.managers.PopUpManager;
+			
+			private static const CENTER_SPACE:int=60;
+			
+			private function closeCopySession():void
+			{
+				PopUpManager.removePopUp(this);
+				CopyDataProxy.getInstance().closeCopySession();
+			}
+			
+		]]>
+	</fx:Script>
+	<s:VGroup width="100%" height="100%" paddingBottom="10" paddingLeft="10" paddingRight="10"
+			  paddingTop="10">
+		<s:HGroup width="100%">
+			<s:Group width="50%">
+				<s:layout>
+					<s:BasicLayout/>
+				</s:layout>
+				<s:DropDownList id="sourceArmatures" y="0" width="80%"
+								horizontalCenter="0"
+								selectedItem="@{CopyDataProxy.getInstance().selectedSourceArmature}"
+								labelField="{ConstValues.AT + ConstValues.A_NAME}">
+					<s:dataProvider>
+						<s:XMLListCollection source="{CopyDataProxy.getInstance().copyArmaturesData}"/>
+					</s:dataProvider>
+				</s:DropDownList>
+			</s:Group>
+			<s:Group height="100%" width="{CENTER_SPACE}">
+				
+			</s:Group>
+			<s:Group width="50%">
+				<s:layout>
+					<s:BasicLayout/>
+				</s:layout>
+				<s:DropDownList id="destinationArmatures" width="80%"
+								horizontalCenter="0"
+								selectedItem="@{CopyDataProxy.getInstance().selectedDestinationArmature}"
+								labelField="{ConstValues.AT + ConstValues.A_NAME}">
+					<s:dataProvider>
+						<s:XMLListCollection source="{CopyDataProxy.getInstance().copyArmaturesData}"/>
+					</s:dataProvider>
+				</s:DropDownList>
+			</s:Group>
+		</s:HGroup>
+
+		<mx:TabNavigator width="100%" height="200">
+			<s:NavigatorContent label="Bones" width="100%" height="100%">
+				<s:layout>
+					<s:BasicLayout/>
+				</s:layout>
+				<s:HGroup width="100%" height="100%">
+					<s:Group width="50%" height="100%">
+						<mx:Tree width="100%" height="100%"
+											 labelField="{ConstValues.AT + ConstValues.A_NAME}" textRollOverColor="#CCCCCC"
+											 textSelectedColor="#CCCCCC"
+											 folderClosedIcon="@Embed(source='./assets/armature_icon.png')"
+											 folderOpenIcon="@Embed(source='./assets/armature_open_icon.png')"
+											 defaultLeafIcon="@Embed(source='./assets/bone_icon.png')">
+							<mx:dataProvider>
+								<s:XMLListCollection source="{CopyDataProxy.getInstance().selectedSourceBoneList}">
+								</s:XMLListCollection>
+							</mx:dataProvider>
+						</mx:Tree>
+					</s:Group>
+					<s:Group height="100%" width="{CENTER_SPACE}">
+						<s:Button label="copy" horizontalCenter="0" verticalCenter="0" width="50" enabled="{CopyDataProxy.getInstance().boneCopyable}" click="CopyDataProxy.getInstance().executeBoneCopy()"/>
+					</s:Group>
+					<s:Group width="50%" height="100%">
+						<mx:Tree width="100%" height="100%"
+								  labelField="{ConstValues.AT + ConstValues.A_NAME}" textRollOverColor="#CCCCCC"
+								  textSelectedColor="#CCCCCC"
+								  folderClosedIcon="@Embed(source='./assets/armature_icon.png')"
+								  folderOpenIcon="@Embed(source='./assets/armature_open_icon.png')"
+								  defaultLeafIcon="@Embed(source='./assets/bone_icon.png')">
+							 <mx:dataProvider>
+								 <s:XMLListCollection source="{CopyDataProxy.getInstance().selectedDestinaionBonelist}">
+								 </s:XMLListCollection>
+							 </mx:dataProvider>
+						 </mx:Tree>
+					</s:Group>
+				</s:HGroup>
+			</s:NavigatorContent>
+			<s:NavigatorContent label="behavior" width="100%" height="100%">
+				<s:HGroup width="100%" height="100%">
+					<s:Group width="50%" height="100%">
+						<s:DataGrid width="100%" height="100%" sortableColumns="false" selectedItem="@{CopyDataProxy.getInstance().selectedSourceBehavior}">
+							<s:columns>
+								<s:ArrayList>
+									<s:GridColumn dataField="{ConstValues.AT + ConstValues.A_NAME}" headerText="{resourceManager.getString('resources','behaviorList')}"/>
+								</s:ArrayList>
+							</s:columns>
+							<s:dataProvider>
+								<s:XMLListCollection source="{CopyDataProxy.getInstance().selectedSourceBehaviorList}">
+								</s:XMLListCollection>
+							</s:dataProvider>
+						</s:DataGrid>
+					</s:Group>
+					<s:Group height="100%" width="{CENTER_SPACE}">
+						<s:Button label="copy" horizontalCenter="0" verticalCenter="0" width="50" enabled="{CopyDataProxy.getInstance().behaviorCopyable}" click="CopyDataProxy.getInstance().executeBehaviorCopy()"/>
+					</s:Group>
+					<s:Group width="50%" height="100%">
+						<s:DataGrid width="100%" height="100%" sortableColumns="false" selectedItem="@{CopyDataProxy.getInstance().selectedDestinationBehavior}">
+							<s:columns>
+								<s:ArrayList>
+									<s:GridColumn dataField="{ConstValues.AT + ConstValues.A_NAME}" headerText="{resourceManager.getString('resources','behaviorList')}"/>
+								</s:ArrayList>
+							</s:columns>
+							<s:dataProvider>
+								<s:XMLListCollection source="{CopyDataProxy.getInstance().selectedDestinaionBehaviorList}">
+								</s:XMLListCollection>
+							</s:dataProvider>
+						</s:DataGrid>
+					</s:Group>
+				</s:HGroup>
+			</s:NavigatorContent>
+		</mx:TabNavigator>
+		
+		<s:HGroup width="100%" height="100%">
+			<s:Group width="50%" height="100%">
+				<s:layout>
+					<s:BasicLayout/>
+				</s:layout>
+				<components:AnimationReviewPannel width="100%" height="100%" armature="{CopyDataProxy.getInstance().sourceDisplayArmature}"/>
+			</s:Group>
+			<s:Group height="100%" width="{CENTER_SPACE/2}">
+				<s:layout>
+					<s:BasicLayout/>
+				</s:layout>
+			<mx:VRule height="100%" horizontalCenter="0"/>
+			</s:Group>
+			<s:Group width="50%" height="100%">
+				<s:layout>
+					<s:BasicLayout/>
+				</s:layout>
+				<components:AnimationReviewPannel width="100%" height="100%" armature="{CopyDataProxy.getInstance().destinationDisplayArmature}"/>
+			</s:Group>
+		</s:HGroup>
+	
+		<s:Group width="100%">
+			<s:layout>
+				<s:BasicLayout/>
+			</s:layout>
+			<s:Button right="100" label="Save"/>
+			<s:Button right="10" label="Cancel" click="closeCopySession()"/>
+		</s:Group>
+	</s:VGroup>
+</s:TitleWindow>

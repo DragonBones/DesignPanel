@@ -12,6 +12,7 @@ package model
 	
 	use namespace dragonBones_internal;
 	
+	[Bindable]
 	/**
 	 * Manage selected armature data
 	 */
