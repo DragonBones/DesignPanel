@@ -1,5 +1,6 @@
 package model
 {
+	import dragonBones.objects.ArmatureData;
 	import dragonBones.objects.XMLDataParser;
 	import dragonBones.utils.ConstValues;
 	import dragonBones.utils.dragonBones_internal;
@@ -137,19 +138,22 @@ package model
 			
 			if(isChange)
 			{
+				var armatureData:ArmatureData = ImportDataProxy.getInstance().skeletonData.getArmatureData(armatureName);
 				XMLDataParser.parseBoneData(
 					boneXML,
 					parentXML,
-					ImportDataProxy.getInstance().skeletonData.getArmatureData(armatureName).getBoneData(name)
-				)
+					armatureData.getBoneData(name)
+				);
+				
+				armatureData.updateBoneList();
+				
+				ImportDataProxy.getInstance().animationDataProxy.updateBoneParent(boneName);
+				bonesMC.source = getBoneList();
 				
 				if(!ImportDataProxy.getInstance().isExportedSource)
 				{
 					JSFLProxy.getInstance().changeArmatureConnection(armatureName, _xml);
 				}
-				
-				ImportDataProxy.getInstance().animationDataProxy.updateBoneParent(boneName);
-				bonesMC.source = getBoneList();
 				
 				MessageDispatcher.dispatchEvent(MessageDispatcher.UPDATE_BONE_PARENT, name, parentName);
 			}

@@ -498,6 +498,7 @@
 							{
 								_boneDisplaySelected.filters = [_boneHighlightFilter];
 							}
+							_boneDisplayRollOver = null;
 						}
 					}
 				}
