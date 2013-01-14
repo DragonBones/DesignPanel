@@ -129,9 +129,8 @@ package model
 				selectedDestinaionBonelist = _selectedDestinationArmature[ConstValues.BONE].copy();
 				selectedDestinaionBehaviorList = _selectedDestinationArmature[ConstValues.ANIMATION][ConstValues.MOVEMENT].copy();
 				destinationDisplayArmature = _copyFactory.buildArmature(_selectedDestinationArmature.@[ConstValues.A_NAME]);
-				var behavious:XMLList = _selectedDestinationArmature[ConstValues.ANIMATION][ConstValues.MOVEMENT];
-				if (behavious.length() > 0)
-					selectedDestinationBehavior = behavious[0];
+				if (selectedDestinaionBehaviorList.length() > 0)
+					selectedDestinationBehavior = selectedDestinaionBehaviorList[0];
 				else
 					selectedDestinationBehavior = null;
 			}
@@ -159,9 +158,8 @@ package model
 				selectedSourceBoneList = _selectedSourceArmature[ConstValues.BONE].copy();
 				selectedSourceBehaviorList = _selectedSourceArmature[ConstValues.ANIMATION][ConstValues.MOVEMENT].copy();
 				sourceDisplayArmature = _copyFactory.buildArmature(_selectedSourceArmature.@[ConstValues.A_NAME]);
-				var behaviors:XMLList = _selectedSourceArmature[ConstValues.ANIMATION][ConstValues.MOVEMENT];
-				if (behaviors.length() > 0)
-					selectedSourceBehavior = behaviors[0];
+				if (selectedSourceBehaviorList.length() > 0)
+					selectedSourceBehavior = selectedSourceBehaviorList[0];
 				else
 					selectedSourceBehavior = null;
 			}
@@ -277,7 +275,7 @@ package model
 			var boneTree:XMLList = generateBoneTree(plattenDestinationBones);
 			delete selectedDestinationArmature[ConstValues.BONE];
 			selectedDestinationArmature.appendChild(boneTree);
-			selectedDestinaionBonelist = boneTree;
+			selectedDestinaionBonelist = boneTree.copy();
 			
 			
 			resetDestinationSkeletonData();
@@ -296,8 +294,7 @@ package model
 			var copiedDestinationBehaviors:XMLList = copyBehaviors(selectedSourceBehaviorList, selectedDestinaionBehaviorList, _sharedBoneNames, _destinationBoneNames);
 			var destinationName:String = selectedDestinationArmature.@[ConstValues.A_NAME];
 			
-			var temp:XMLList = copiedDestinationBehaviors.copy();
-			delete temp.@original;
+			
 			var container:XML = <{ConstValues.ANIMATION}/>;
 			container.@[ConstValues.A_NAME] = destinationName;
 			container.appendChild(copiedDestinationBehaviors);
@@ -305,6 +302,7 @@ package model
 			//update selectedDestinationArmature
 			delete _selectedDestinationArmature[ConstValues.ANIMATION];
 			_selectedDestinationArmature.appendChild(container);
+			
 			
 			//update _copySkeletonXML;
 			delete _copySkeletonXML[ConstValues.ANIMATIONS][ConstValues.ANIMATION].(@[ConstValues.A_NAME] == destinationName)[0];
@@ -314,12 +312,13 @@ package model
 			
 			resetDestinationSkeletonData();
 			//occur to update
-			var temp1:XML = selectedDestinationBehavior;
-			var temp2:XML = selectedDestinationArmature;
+			//var temp1:XML = selectedDestinationBehavior;
+			var temp:XML = selectedDestinationArmature;
+			var selectedBehaviorName:String=selectedDestinationBehavior.@[ConstValues.A_NAME];
 			selectedDestinationArmature = null;
 			selectedDestinationBehavior = null;
-			selectedDestinationArmature = temp2;
-			selectedDestinationBehavior = temp1;
+			selectedDestinationArmature = temp;
+			selectedDestinationBehavior = selectedDestinationArmature[ConstValues.ANIMATION][ConstValues.MOVEMENT].(@[ConstValues.A_NAME]==selectedBehaviorName)[0];
 		}
 		
 		
