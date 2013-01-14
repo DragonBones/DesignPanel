@@ -291,7 +291,7 @@ package model
 		
 		public function executeBehaviorCopy():void
 		{
-			var copiedDestinationBehaviors:XMLList = copyBehaviors(selectedSourceBehaviorList, selectedDestinaionBehaviorList, _sharedBoneNames, _destinationBoneNames);
+			var copiedDestinationBehaviors:XMLList = copyBehaviors(selectedSourceBehaviorList, selectedDestinaionBehaviorList, _sharedBoneNames, selectedSourceBoneList.copy(),selectedDestinaionBonelist.copy());
 			var destinationName:String = selectedDestinationArmature.@[ConstValues.A_NAME];
 			
 			
@@ -394,7 +394,7 @@ package model
 						
 						//check behaviors
 						
-						var copiedDestinationBehaviors:XMLList = copyBehaviors(selectedSourceBehaviorList, selectedDestinaionBehaviorList, _sharedBoneNames, _destinationBoneNames);
+						var copiedDestinationBehaviors:XMLList = copyBehaviors(selectedSourceBehaviorList, selectedDestinaionBehaviorList, _sharedBoneNames, selectedSourceBoneList.copy(),selectedDestinaionBonelist.copy());
 						if (selectedDestinaionBehaviorList == copiedDestinationBehaviors)
 						{
 							trace("Behavior is the same after copied!");
@@ -505,27 +505,35 @@ package model
 		
 		
 		
-		private function copyBehaviors(sourceBehaviors:XMLList, destinationBehaviors:XMLList, sharedBoneNames:Vector.<String>, destinationBoneNames:XMLList):XMLList
+		private function copyBehaviors(sourceBehaviors:XMLList, destinationBehaviors:XMLList, sharedBoneNames:Vector.<String>, sourceBoneList:XMLList,destinaionBonelist:XMLList):XMLList
 		{
 			var copyContainer:XML = <container/>
+			//save the existing behaviors
 			copyContainer.appendChild(destinationBehaviors.copy());
+			
+			
+			//
+			//calculate the relative coordinates of sourceBoneList and destinaionBonelist
+			//
+			
+			
 			for each (var sourceBehavior:XML in sourceBehaviors)
 			{
 				var sourceBehaviorName:String = sourceBehavior.@[ConstValues.A_NAME];
 				if (destinationBehaviors.(@[ConstValues.A_NAME] == sourceBehaviorName).length() == 0)
 				{
-					copyContainer.appendChild(copyBehavior(sourceBehaviorName, sourceBehavior, sharedBoneNames, destinationBoneNames));
+					copyContainer.appendChild(copyBehavior(sourceBehaviorName, sourceBehavior, sharedBoneNames, sourceBoneList,destinaionBonelist));
 				}
 				else
 				{
-					//todo: how to do in this case?
+					//todo: Duplication of name, how to do in this case?
 				}
 			}
 			
 			return copyContainer.children();
 		}
 		
-		private function copyBehavior(behaviorName:String, sourceBehavior:XML, sharedBoneNames:Vector.<String>, destinationBoneNames:XMLList):XML
+		private function copyBehavior(behaviorName:String, sourceBehavior:XML, sharedBoneNames:Vector.<String>, sourceBoneList:XMLList,destinaionBonelist:XMLList):XML
 		{
 			var copiedBehavior:XML = sourceBehavior.copy();
 			copiedBehavior.@[ConstValues.A_NAME] = behaviorName;
@@ -533,15 +541,11 @@ package model
 			//remove all children
 			copiedBehavior.setChildren(new XMLList());
 			
-			for each (var boneName:String in destinationBoneNames)
+			for each(var boneName:String in sharedBoneNames)
 			{
-				if (sharedBoneNames.indexOf(boneName) != -1)
-					copiedBehavior.appendChild(sourceBehavior[ConstValues.BONE].(@[ConstValues.A_NAME] == boneName));
-				else
-				{
-					//todo: how to do in this case?
-				}
+				//todo: calculate the final frame data of this behavior 
 			}
+			
 			return copiedBehavior;
 		}
 	
