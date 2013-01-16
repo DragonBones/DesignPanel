@@ -16,7 +16,6 @@ var FRAME = "f";
 var TEXTURE_ATLAS = "TextureAtlas";
 var SUB_TEXTURE = "SubTexture";
 
-var AT = "@";
 var A_FRAME_RATE = "frameRate";
 var A_NAME = "name";
 var A_START = "st";
@@ -258,6 +257,41 @@ function isArmatureItem(_item, _isChildArmature){
 	return null;
 }
 
+function getMainFrameList(_keyFrames){
+	var _length = _keyFrames.length;
+	var _nameDic = {};
+	
+	var _frame;
+	var _mainFrame;
+	var _isEndFrame;
+	var _mainFrameList = [];
+	
+	for(var _iF = 0;_iF < _length;_iF ++){
+		_frame = _keyFrames[_iF];
+		if(isMainFrame(_frame)){
+			//new main frame
+			_mainFrame = {};
+			_mainFrame.frame = _frame;
+			_mainFrame.duration = _frame.duration;
+			_mainFrame.frames = [_frame];
+			formatSameName(_frame, _nameDic);
+		}else if(_mainFrame){
+			//continue
+			_mainFrame.duration += _frame.duration;
+			_mainFrame.frames.push(_frame);
+		}else{
+			//ignore
+			continue;
+		}
+		_isEndFrame = _iF + 1 == _length || isMainFrame(_keyFrames[_iF + 1]);
+		if(_mainFrame && _isEndFrame){
+			//end
+			_mainFrameList.push(_mainFrame);
+		}
+	}
+	return _mainFrameList;
+}
+
 //filter bone symbol from all elements in a frame.
 function getBoneSymbol(_elements){
 	for each(var _element in _elements){
@@ -292,31 +326,31 @@ function getMovementXML(_movementName, _duration, _item){
 		var _animationXML = XML(_item.getData(ANIMATION_DATA));
 		var _movementXML = _animationXML[MOVEMENT].(@name == _movementName)[0];
 	}
-	_xml[AT + A_DURATION] = _duration;
+	_xml.@[A_DURATION] = _duration;
 	if(_movementXML){
-		_xml[AT + A_DURATION_TO] = _movementXML[AT + A_DURATION_TO];
+		_xml.@[A_DURATION_TO] = _movementXML.@[A_DURATION_TO];
 	}else{
-		_xml[AT + A_DURATION_TO] = 6;
+		_xml.@[A_DURATION_TO] = 6;
 	}
 	if(_duration > 1){
 		if(_movementXML){
-			if(_xml[AT + A_DURATION] == _movementXML[AT + A_DURATION]){
-				_xml[AT + A_DURATION_TWEEN] = _movementXML[AT + A_DURATION_TWEEN];
+			if(_xml.@[A_DURATION] == _movementXML.@[A_DURATION]){
+				_xml.@[A_DURATION_TWEEN] = _movementXML.@[A_DURATION_TWEEN];
 			}else{
-				_xml[AT + A_DURATION_TWEEN] = _duration;
-				_movementXML[AT + A_DURATION] = _duration;
-				_movementXML[AT + A_DURATION_TWEEN] = _duration;
+				_xml.@[A_DURATION_TWEEN] = _duration;
+				_movementXML.@[A_DURATION] = _duration;
+				_movementXML.@[A_DURATION_TWEEN] = _duration;
 			}
-			_xml[AT + A_LOOP] = _movementXML[AT + A_LOOP];
-			_xml[AT + A_TWEEN_EASING] = _movementXML[AT + A_TWEEN_EASING].length()?_movementXML[AT + A_TWEEN_EASING]:NaN;
+			_xml.@[A_LOOP] = _movementXML.@[A_LOOP];
+			_xml.@[A_TWEEN_EASING] = _movementXML.@[A_TWEEN_EASING].length()?_movementXML.@[A_TWEEN_EASING]:NaN;
 		}else{
-			_xml[AT + A_DURATION_TWEEN] = _duration > 2?_duration:10;
+			_xml.@[A_DURATION_TWEEN] = _duration > 2?_duration:10;
 			if(_duration == 2){
-				_xml[AT + A_LOOP] = 1;
-				_xml[AT + A_TWEEN_EASING] = 2;
+				_xml.@[A_LOOP] = 1;
+				_xml.@[A_TWEEN_EASING] = 2;
 			}else{
-				_xml[AT + A_LOOP] = 0;
-				_xml[AT + A_TWEEN_EASING] = NaN;
+				_xml.@[A_LOOP] = 0;
+				_xml.@[A_TWEEN_EASING] = NaN;
 			}
 		}
 	}
@@ -327,17 +361,17 @@ function getMovementBoneXML(_movementXML, _boneName, _item){
 	var _xml = _movementXML[BONE].(@name == _boneName)[0];
 	if(!_xml){
 		_xml = <{BONE} {A_NAME} = {_boneName}/>;
-		_xml[AT + A_MOVEMENT_SCALE] = 1;
-		_xml[AT + A_MOVEMENT_DELAY] = 0;
+		_xml.@[A_MOVEMENT_SCALE] = 1;
+		_xml.@[A_MOVEMENT_DELAY] = 0;
 		if(_item.hasData(ANIMATION_DATA)){
 			var _animationXML = XML(_item.getData(ANIMATION_DATA));
-			_movementName = _movementXML[AT + A_NAME];
+			_movementName = _movementXML.@[A_NAME];
 			var _movementXMLBackup = _animationXML[MOVEMENT].(@name == _movementName)[0];
 			if(_movementXMLBackup){
 				var _boneXML = _movementXMLBackup[BONE].(@name == _boneName)[0];
 				if(_boneXML){
-					_xml[AT + A_MOVEMENT_SCALE] = _boneXML[AT + A_MOVEMENT_SCALE];
-					_xml[AT + A_MOVEMENT_DELAY] = _boneXML[AT + A_MOVEMENT_DELAY];
+					_xml.@[A_MOVEMENT_SCALE] = _boneXML.@[A_MOVEMENT_SCALE];
+					_xml.@[A_MOVEMENT_DELAY] = _boneXML.@[A_MOVEMENT_DELAY];
 				}
 			}
 		}
@@ -351,18 +385,18 @@ function getBoneXML(_name, _frameXML){
 	if(!_xml){
 		_xml = <{BONE} {A_NAME} = {_name}/>;
 		var _connectionXML = armatureConnectionXML[BONE].(@name == _name)[0];
-		if(_connectionXML && _connectionXML[AT + A_PARENT][0]){
-			_xml[AT + A_PARENT] = _connectionXML[AT + A_PARENT];
+		if(_connectionXML && _connectionXML.@[A_PARENT][0]){
+			_xml.@[A_PARENT] = _connectionXML.@[A_PARENT];
 		}
-		_xml[AT + A_X] = _frameXML[AT + A_X];
-		_xml[AT + A_Y] = _frameXML[AT + A_Y];
-		_xml[AT + A_SKEW_X] = _frameXML[AT + A_SKEW_X];
-		_xml[AT + A_SKEW_Y] = _frameXML[AT + A_SKEW_Y];
-		_xml[AT + A_SCALE_X] = _frameXML[AT + A_SCALE_X];
-		_xml[AT + A_SCALE_Y] = _frameXML[AT + A_SCALE_Y];
-		_xml[AT + A_PIVOT_X] = _frameXML[AT + A_PIVOT_X];
-		_xml[AT + A_PIVOT_Y] = _frameXML[AT + A_PIVOT_Y];
-		_xml[AT + A_Z] = _frameXML[AT + A_Z];
+		_xml.@[A_X] = _frameXML.@[A_X];
+		_xml.@[A_Y] = _frameXML.@[A_Y];
+		_xml.@[A_SKEW_X] = _frameXML.@[A_SKEW_X];
+		_xml.@[A_SKEW_Y] = _frameXML.@[A_SKEW_Y];
+		_xml.@[A_SCALE_X] = _frameXML.@[A_SCALE_X];
+		_xml.@[A_SCALE_Y] = _frameXML.@[A_SCALE_Y];
+		_xml.@[A_PIVOT_X] = _frameXML.@[A_PIVOT_X];
+		_xml.@[A_PIVOT_Y] = _frameXML.@[A_PIVOT_Y];
+		_xml.@[A_Z] = _frameXML.@[A_Z];
 		armatureXML.appendChild(_xml);
 	}
 	return _xml;
@@ -373,7 +407,7 @@ function getDisplayXML(_boneXML, _imageName, _isArmature){
 	if(!_xml){
 		_xml = <{DISPLAY} {A_NAME} = {_imageName}/>;
 		if(_isArmature){
-			_xml[AT + A_IS_ARMATURE] = 1;
+			_xml.@[A_IS_ARMATURE] = 1;
 		}
 		_boneXML.appendChild(_xml);
 	}
@@ -461,39 +495,39 @@ function generateMovement(_item, _mainFrame, _layers){
 	var _frameIndex;
 	
 	for each(var _movementBoneXML in _movementXML[BONE]){
-		_boneName = _movementBoneXML[AT + A_NAME];
+		_boneName = _movementBoneXML.@[A_NAME];
 		var _prevFrameXML = null;
 		for each(_frameXML in _movementBoneXML[FRAME]){
-			_frameStart = Number(_frameXML[AT + A_START]);
+			_frameStart = Number(_frameXML.@[A_START]);
 			if(_frameXML.childIndex() == 0){
 				if(_frameStart > 0){
 					_movementBoneXML.prependChild(<{FRAME} {A_DURATION} = {_frameStart} {A_DISPLAY_INDEX} = "-1"/>);
 				}
 			}else {
-				_prevStart = Number(_prevFrameXML[AT + A_START]);
-				_prevDuration = Number(_prevFrameXML[AT + A_DURATION]);
+				_prevStart = Number(_prevFrameXML.@[A_START]);
+				_prevDuration = Number(_prevFrameXML.@[A_DURATION]);
 				if(_frameStart > _prevStart + _prevDuration){
 					_movementBoneXML.insertChildBefore(_frameXML, <{FRAME} {A_DURATION} = {_frameStart - _prevStart - _prevDuration} {A_DISPLAY_INDEX} = "-1"/>);
 				}
 			}
 			if(_frameXML.childIndex() == _movementBoneXML[FRAME].length() - 1){
-				_frameStart = Number(_frameXML[AT + A_START]);
-				_prevDuration = Number(_frameXML[AT + A_DURATION]);
+				_frameStart = Number(_frameXML.@[A_START]);
+				_prevDuration = Number(_frameXML.@[A_DURATION]);
 				if(_frameStart + _prevDuration < _duration){
 					_movementBoneXML.appendChild(<{FRAME} {A_DURATION} = {_duration - _frameStart - _prevDuration} {A_DISPLAY_INDEX} = "-1"/>);
 				}
 			}
 			//tweenRotate property is for the end point of tween instead of start point
 			//sometimes, x0 need to be ingored
-			if(_prevFrameXML && _prevFrameXML[AT + A_TWEEN_ROTATE_][0]){
-				var _dSkY = Number(_frameXML[AT + A_SKEW_Y]) - Number(_prevFrameXML[AT + A_SKEW_Y]);
+			if(_prevFrameXML && _prevFrameXML.@[A_TWEEN_ROTATE_][0]){
+				var _dSkY = Number(_frameXML.@[A_SKEW_Y]) - Number(_prevFrameXML.@[A_SKEW_Y]);
 				if(_dSkY < -180){
 					_dSkY += 360;
 				}
 				if(_dSkY > 180){
 					_dSkY -= 360;
 				}
-				_tweenRotate = Number(_prevFrameXML[AT + A_TWEEN_ROTATE_]);
+				_tweenRotate = Number(_prevFrameXML.@[A_TWEEN_ROTATE_]);
 				if(_dSkY !=0){
 					if(_dSkY < 0){
 						if(_tweenRotate >= 0){
@@ -505,14 +539,14 @@ function generateMovement(_item, _mainFrame, _layers){
 						}
 					}
 				}
-				_frameXML[AT + A_TWEEN_ROTATE] = _tweenRotate;
-				delete _prevFrameXML[AT + A_TWEEN_ROTATE_];
+				_frameXML.@[A_TWEEN_ROTATE] = _tweenRotate;
+				delete _prevFrameXML.@[A_TWEEN_ROTATE_];
 			}
 			
 			_prevFrameXML = _frameXML;
 		}
 	}
-	delete _movementXML[BONE][FRAME][AT + A_START];
+	delete _movementXML[BONE][FRAME].@[A_START];
 	
 	generateMovementEventFrames(_movementXML, _mainFrame);
 	
@@ -521,16 +555,16 @@ function generateMovement(_item, _mainFrame, _layers){
 
 function generateFrame(_frame, _boneName, _symbol, _z, _noAutoEasing){
 	var _frameXML = <{FRAME}/>;
-	_frameXML[AT + A_X] = formatNumber(_symbol.transformX);
-	_frameXML[AT + A_Y] = formatNumber(_symbol.transformY);
-	_frameXML[AT + A_SKEW_X] = formatNumber(_symbol.skewX);
-	_frameXML[AT + A_SKEW_Y] = formatNumber(_symbol.skewY);
-	_frameXML[AT + A_SCALE_X] = formatNumber(_symbol.scaleX);
-	_frameXML[AT + A_SCALE_Y] = formatNumber(_symbol.scaleY);
+	_frameXML.@[A_X] = formatNumber(_symbol.transformX);
+	_frameXML.@[A_Y] = formatNumber(_symbol.transformY);
+	_frameXML.@[A_SKEW_X] = formatNumber(_symbol.skewX);
+	_frameXML.@[A_SKEW_Y] = formatNumber(_symbol.skewY);
+	_frameXML.@[A_SCALE_X] = formatNumber(_symbol.scaleX);
+	_frameXML.@[A_SCALE_Y] = formatNumber(_symbol.scaleY);
 	helpPoint = _symbol.getTransformationPoint();
-	_frameXML[AT + A_PIVOT_X] = formatNumber(helpPoint.x, 1);
-	_frameXML[AT + A_PIVOT_Y] = formatNumber(helpPoint.y, 1);
-	_frameXML[AT + A_Z] = _z;
+	_frameXML.@[A_PIVOT_X] = formatNumber(helpPoint.x, 1);
+	_frameXML.@[A_PIVOT_Y] = formatNumber(helpPoint.y, 1);
+	_frameXML.@[A_Z] = _z;
 	
 	var _boneXML = getBoneXML(_boneName, _frameXML);
 	
@@ -541,7 +575,7 @@ function generateFrame(_frame, _boneName, _symbol, _z, _noAutoEasing){
 	
 	var _displayXML = getDisplayXML(_boneXML, _imageName, _isArmature);
 	
-	_frameXML[AT + A_DISPLAY_INDEX] = _displayXML.childIndex();
+	_frameXML.@[A_DISPLAY_INDEX] = _displayXML.childIndex();
 	if(_isArmature){
 		var _backupArmatureXML = armatureXML;
 		var _backupAnimationXML = animationXML;
@@ -556,7 +590,7 @@ function generateFrame(_frame, _boneName, _symbol, _z, _noAutoEasing){
 	
 	var _str = isSpecialFrame(_frame, MOVEMENT_PREFIX, true);
 	if(_str){
-		_frameXML[AT + A_MOVEMENT] = _str;
+		_frameXML.@[A_MOVEMENT] = _str;
 	}
 	
 	
@@ -565,11 +599,11 @@ function generateFrame(_frame, _boneName, _symbol, _z, _noAutoEasing){
 	{
 		if(_frame.tweenType != "motion")
 		{
-			_frameXML[AT + A_TWEEN_EASING] = NaN;
+			_frameXML.@[A_TWEEN_EASING] = NaN;
 		}
 		else
 		{
-			_frameXML[AT + A_TWEEN_EASING] = formatNumber(_frame.tweenEasing * 0.01);
+			_frameXML.@[A_TWEEN_EASING] = formatNumber(_frame.tweenEasing * 0.01);
 			var _tweenRotate = NaN;
 			switch(_frame.motionTweenRotate){
 				case "clockwise":
@@ -580,7 +614,7 @@ function generateFrame(_frame, _boneName, _symbol, _z, _noAutoEasing){
 					break;
 			}
 			if(!isNaN(_tweenRotate)){
-				_frameXML[AT + A_TWEEN_ROTATE_] = _tweenRotate;
+				_frameXML.@[A_TWEEN_ROTATE_] = _tweenRotate;
 			}
 		}
 	}
@@ -588,11 +622,11 @@ function generateFrame(_frame, _boneName, _symbol, _z, _noAutoEasing){
 	{
 		if(isNoEasingFrame(_frame))
 		{
-			_frameXML[AT + A_TWEEN_EASING] = NaN;
+			_frameXML.@[A_TWEEN_EASING] = NaN;
 		}
 		else if(_frame.tweenType == "motion")
 		{
-			_frameXML[AT + A_TWEEN_EASING] = formatNumber(_frame.tweenEasing * 0.01);
+			_frameXML.@[A_TWEEN_EASING] = formatNumber(_frame.tweenEasing * 0.01);
 			var _tweenRotate = NaN;
 			switch(_frame.motionTweenRotate){
 				case "clockwise":
@@ -603,7 +637,7 @@ function generateFrame(_frame, _boneName, _symbol, _z, _noAutoEasing){
 					break;
 			}
 			if(!isNaN(_tweenRotate)){
-				_frameXML[AT + A_TWEEN_ROTATE_] = _tweenRotate;
+				_frameXML.@[A_TWEEN_ROTATE_] = _tweenRotate;
 			}
 		}
 	}
@@ -613,12 +647,12 @@ function generateFrame(_frame, _boneName, _symbol, _z, _noAutoEasing){
 	//event
 	_str = isSpecialFrame(_frame, EVENT_PREFIX, true);
 	if(_str){
-		_frameXML[AT + A_EVENT] = _str;
+		_frameXML.@[A_EVENT] = _str;
 	}
 
 	//sound
 	if(_frame.soundName){
-		_frameXML[AT + A_SOUND] = _frame.soundLibraryItem.linkageClassName || _frame.soundName;
+		_frameXML.@[A_SOUND] = _frame.soundLibraryItem.linkageClassName || _frame.soundName;
 		var _soundEffect;
 		switch(_frame.soundEffect){
 			case "left channel":
@@ -641,7 +675,7 @@ function generateFrame(_frame, _boneName, _symbol, _z, _noAutoEasing){
 				break;
 		}
 		if(_soundEffect){
-			_frameXML[AT + A_SOUND_EFFECT] = _soundEffect;
+			_frameXML.@[A_SOUND_EFFECT] = _soundEffect;
 		}
 	}
 	
@@ -657,13 +691,13 @@ function generateMovementEventFrames(_movementXML, _mainFrame){
 			var _movement = isSpecialFrame(_frame, MOVEMENT_PREFIX, true);
 			var _sound = _frame.soundName && (_frame.soundLibraryItem.linkageClassName || _frame.soundName);
 			if(_event){
-				_eventXML[AT + A_EVENT] = _event;
+				_eventXML.@[A_EVENT] = _event;
 			}
 			if(_movement){
-				_eventXML[AT + A_MOVEMENT] = _movement;
+				_eventXML.@[A_MOVEMENT] = _movement;
 			}
 			if(_sound){
-				_frameXML[AT + A_SOUND] = _sound;
+				_frameXML.@[A_SOUND] = _sound;
 			}
 			_movementXML.appendChild(_eventXML);
 		}
@@ -671,10 +705,10 @@ function generateMovementEventFrames(_movementXML, _mainFrame){
 }
 
 function addFrameToMovementBone(_frameXML, _start, _duration, _movementBoneXML){
-	_frameXML[AT + A_START] = _start;
-	_frameXML[AT + A_DURATION] = _duration;
+	_frameXML.@[A_START] = _start;
+	_frameXML.@[A_DURATION] = _duration;
 	for each(var _eachFrameXML in _movementBoneXML[FRAME]){
-		if(Number(_eachFrameXML[AT + A_START]) > _start){
+		if(Number(_eachFrameXML.@[A_START]) > _start){
 			_movementBoneXML.insertChildBefore(_eachFrameXML, _frameXML);
 			return;
 		}
@@ -726,51 +760,25 @@ dragonBones.generateArmature = function(_armatureName, _scale, _isNewXML, _isChi
 		return false;
 	}
 	
-	var _layersFiltered = isArmatureItem(_item, _isChildArmature);
-	var _mainLayer = _layersFiltered.shift();
-	
 	armatureXML = <{ARMATURE} {A_NAME} = {_armatureName}/>;
 	armaturesXML.appendChild(armatureXML);
 	animationXML = <{ANIMATION} {A_NAME} = {_armatureName}/>;
+	armatureConnectionXML = _item.hasData(ARMATURE_DATA)?XML(_item.getData(ARMATURE_DATA)):armatureXML;
+	
+	var _layersFiltered = isArmatureItem(_item, _isChildArmature);
+	var _mainLayer = _layersFiltered.shift();
+	var _mainFrameList = getMainFrameList(filterKeyFrames(_mainLayer.frames));
+	for each(var _mainFrame in _mainFrameList){
+		generateMovement(_item, _mainFrame, _layersFiltered);
+	}
+	
+	//setArmatureConnection(_item, armatureXML.toXMLString());
+	
 	//if frame count > 1, the skeleton have animation.
 	if(_mainLayer.frameCount > 1){
 		animationsXML.appendChild(animationXML);
 	}
 	
-	armatureConnectionXML = _item.hasData(ARMATURE_DATA)?XML(_item.getData(ARMATURE_DATA)):armatureXML;
-	
-	var _keyFrames = filterKeyFrames(_mainLayer.frames);
-	var _length = _keyFrames.length;
-	var _nameDic = {};
-	
-	var _frame;
-	var _mainFrame;
-	var _isEndFrame;
-	
-	for(var _iF = 0;_iF < _length;_iF ++){
-		_frame = _keyFrames[_iF];
-		if(isMainFrame(_frame)){
-			//new main frame
-			_mainFrame = {};
-			_mainFrame.frame = _frame;
-			_mainFrame.duration = _frame.duration;
-			_mainFrame.frames = [_frame];
-			formatSameName(_frame, _nameDic);
-		}else if(_mainFrame){
-			//continue
-			_mainFrame.duration += _frame.duration;
-			_mainFrame.frames.push(_frame);
-		}else{
-			//ignore
-			continue;
-		}
-		_isEndFrame = _iF + 1 == _length || isMainFrame(_keyFrames[_iF + 1]);
-		if(_mainFrame && _isEndFrame){
-			//end
-			generateMovement(_item, _mainFrame, _layersFiltered);
-		}
-	}
-	//setArmatureConnection(_item, armatureXML.toXMLString());
 	return xml.toXMLString();
 }
 
@@ -821,10 +829,10 @@ dragonBones.addTextureToSWFItem = function(_textureName, _isLast){
 		_symbol.symbolType = MOVIE_CLIP;
 	}
 	var _subTextureXML = <{SUB_TEXTURE} {A_NAME} = {_textureName}/>;
-	_subTextureXML[AT + A_PIVOT_X] = formatNumber(_symbol.x - _symbol.left);
-	_subTextureXML[AT + A_PIVOT_Y] = formatNumber(_symbol.y - _symbol.top);
-	_subTextureXML[AT + A_WIDTH] = Math.ceil(_symbol.width);
-	_subTextureXML[AT + A_HEIGHT] = Math.ceil(_symbol.height);
+	_subTextureXML.@[A_PIVOT_X] = formatNumber(_symbol.x - _symbol.left);
+	_subTextureXML.@[A_PIVOT_Y] = formatNumber(_symbol.y - _symbol.top);
+	_subTextureXML.@[A_WIDTH] = Math.ceil(_symbol.width);
+	_subTextureXML.@[A_HEIGHT] = Math.ceil(_symbol.height);
 	
 	if(_isLast){
 		_timeline.removeFrames(1, 1);
@@ -873,8 +881,8 @@ dragonBones.packTextures = function(_textureAtlasXML){
 			if(_texture.skewY != 0){
 				_texture.skewY = 0;
 			}
-			_texture.x += Number(_subTextureXML[AT + A_X]) - _texture.left;
-			_texture.y += Number(_subTextureXML[AT + A_Y]) - _texture.top;
+			_texture.x += Number(_subTextureXML.@[A_X]) - _texture.left;
+			_texture.y += Number(_subTextureXML.@[A_Y]) - _texture.top;
 		}
 	}
 	return true;
@@ -958,212 +966,174 @@ dragonBones.changeMovement = function(_armatureName, _movementName, _data){
 	return true;
 }
 
-dragonBones.copyArmatureFrom = function(rawArmatureName, copyArmatureName, armatureXML, copyAnimationXML)
+dragonBones.copyMovement = function(targetArmatureName, sourceArmatureName, sourceMovementName, sourceMovementXML)
 {
 	if(errorDOM())
 	{
 		return false;
 	}
-	var rawItem = currentDom.library.items[currentDom.library.findItemIndex(rawArmatureName)];
-	if(!rawItem)
+	
+	var targetArmature = currentDom.library.items[currentDom.library.findItemIndex(targetArmatureName)];
+	var sourceArmature = currentDom.library.items[currentDom.library.findItemIndex(sourceArmatureName)];
+	var unfoundName = !targetArmature?targetArmatureName:(!sourceArmature?sourceArmatureName:null);
+	if(unfoundName)
 	{
-		trace("cannot find " + rawArmatureName + " element，please make sure your fla file is synchronized！");
+		trace("cannot find " + unfoundName + " element，please make sure your fla file is synchronized！");
 		return false;
 	}
 	
-	copyAnimationXML = XML(copyAnimationXML).toXMLString();
-	copyAnimationXML = replaceString(copyAnimationXML, "&lt;", "<");
-	copyAnimationXML = replaceString(copyAnimationXML, "&gt;", ">");
-	copyAnimationXML = XML(copyAnimationXML);
-	var movementXMLList = copyAnimationXML[MOVEMENT];
-	
-	//获取 rawItem 中的元件列表
-	var rawMark = {};
-	var rawNameList = [];
-	for each(var layer in rawItem.timeline.layers)
+	//获取 targetArmature 中的元件列表
+	var targetLayers = isArmatureItem(targetArmature);
+	var targetMainLayer = targetLayers.shift();
+	var targetMainFrameList = getMainFrameList(filterKeyFrames(targetMainLayer.frames));
+	for each(var mainFrame in targetMainFrameList)
 	{
+		if(mainFrame.frame.name == sourceMovementName)
+		{
+			//拥有同名动画
+			return false;
+		}
+	}
+	
+	var targetTimeline = targetArmature.timeline;
+	var targetStartFrame = targetTimeline.frameCount;
+	var targetMark = {};
+	var targetLayerIndexs = {};
+	for each(var layer in targetLayers)
+	{
+		var layerIndex = targetTimeline.layers.indexOf(layer);
 		var boneName = layer.name;
-		var rawTextureList = [];
-		rawMark[boneName] = rawTextureList;
-		rawNameList.push(boneName);
+		targetLayerIndexs[boneName] = layerIndex;
+		
+		var targetTextureList = [];
+		targetMark[boneName] = targetTextureList;
 		for each(var frame in filterKeyFrames(layer.frames))
 		{
 			var boneSymbol = getBoneSymbol(frame.elements);
 			if(boneSymbol)
 			{
 				var textureName = boneSymbol.libraryItem.name;
-				if(rawTextureList.indexOf(textureName) == -1)
+				if(targetTextureList.indexOf(textureName) == -1)
 				{
-					rawTextureList.push(textureName);
+					targetTextureList.push(textureName);
 				}
 			}
 		}
 	}
 	
-	//复制 rawItem 中的所有帧
-	currentDom.library.editItem(rawItem.name);
-	rawItem.timeline.selectAllFrames();
-	rawItem.timeline.copyFrames();
+	var sourceLayers = isArmatureItem(sourceArmature);
+	var sourceMainLayer = sourceLayers[0];
+	var sourceMainFrameList = getMainFrameList(filterKeyFrames(sourceMainLayer.frames));
 	
-	//复制元件
-	currentDom.library.duplicateItem(copyArmatureName);
-	var selectedItems = currentDom.library.getSelectedItems();
-	var copyArmature = selectedItems[selectedItems.length - 1];
-	var copyTimeline = copyArmature.timeline;
-	currentDom.library.editItem(copyArmature.name);
-	
-	var mainLayer = isArmatureItem(copyArmature).shift();
-	
-	var movementRanges = [];
-	var movementList = [];
-	for each(frame in mainLayer.frames)
+	for each(var mainFrame in sourceMainFrameList)
 	{
-		var startFrame = frame.startFrame;
-		if(movementRanges.indexOf(startFrame) == -1)
+		if(mainFrame.frame.name == sourceMovementName)
 		{
-			movementRanges.push(startFrame);
-			movementList.push(frame.name);
+			break;
 		}
 	}
-	movementRanges.shift();
-	movementRanges.push(3000);
 	
-	var layerID = 0;
-	for each(layer in copyTimeline.layers)
+	sourceMovementXML = XML(sourceMovementXML).toXMLString();
+	sourceMovementXML = replaceString(sourceMovementXML, "&lt;", "<");
+	sourceMovementXML = replaceString(sourceMovementXML, "&gt;", ">");
+	sourceMovementXML = XML(sourceMovementXML);
+	
+	var sourceStartFrame = mainFrame.frame.startFrame;
+	var sourceDuration = mainFrame.duration;
+	var sourceTimeline = sourceArmature.timeline;
+	
+	var targetLayerIndex;
+	var boneName = layer.name;
+	for each(var layer in sourceLayers)
 	{
-		boneName = layer.name;
-		rawTextureList = rawMark[boneName];
-		var copyTextureList = [];
-		if(rawTextureList)
+		if(sourceMainLayer == layer)
 		{
-			rawMark[boneName] = layerID;
-			layer.locked = false;
-			layer.visible = true;
-			copyTimeline.currentLayer = layerID;
-			var frameID = 0;
-			var movementID = 0;
-			for each(frame in filterKeyFrames(layer.frames))
-			{
-				boneSymbol = getBoneSymbol(frame.elements);
-				if(boneSymbol)
-				{
-					var startFrame = frame.startFrame;
-					while(startFrame >= movementRanges[movementID])
-					{
-						frameID = 0;
-						movementID ++;
-					}
-					var movementName = movementList[movementID];
-					
-					textureName = boneSymbol.libraryItem.name;
-					var subListID = copyTextureList.indexOf(textureName);
-					if(subListID == -1)
-					{
-						subListID = copyTextureList.length;
-						copyTextureList.push(textureName);
-					}
-					if(subListID >= rawTextureList.length)
-					{
-						subListID = rawTextureList.length - 1;
-					}
-					textureName = rawTextureList[subListID];
-					copyTimeline.currentFrame = frame.startFrame;
-					currentDom.selectNone();
-					boneSymbol.selected = true;
-					currentDom.swapElement(textureName);
-					boneSymbol = currentDom.selection[0];
-					
-					var movementXML = movementXMLList.(@name == movementName)[0];
-					if(movementXML)
-					{
-						var boneXML = movementXML[BONE].(@name == boneName)[0];
-						if(boneXML)
-						{
-							var frameXML = boneXML[FRAME][frameID];
-							
-							helpPoint.x = Number(frameXML[AT + A_X]);
-							helpPoint.y = Number(frameXML[AT + A_Y]);
-							helpPoint.scaleX = Number(frameXML[AT + A_SCALE_X]);
-							helpPoint.scaleY = Number(frameXML[AT + A_SCALE_Y]);
-							helpPoint.skewX = Number(frameXML[AT + A_SKEW_X]) / 180 * Math.PI;
-							helpPoint.skewY = Number(frameXML[AT + A_SKEW_Y]) / 180 * Math.PI;
-							helpPoint.pivotX = Number(frameXML[AT + A_PIVOT_X]);
-							helpPoint.pivotY = Number(frameXML[AT + A_PIVOT_Y]);
-							
-							var matrix = boneSymbol.matrix;
-							matrix.a = helpPoint.scaleX * Math.cos(helpPoint.skewY)
-							matrix.b = helpPoint.scaleX * Math.sin(helpPoint.skewY)
-							matrix.c = -helpPoint.scaleY * Math.sin(helpPoint.skewX);
-							matrix.d = helpPoint.scaleY * Math.cos(helpPoint.skewX);
-							matrix.tx = helpPoint.x - (matrix.a * helpPoint.pivotX + matrix.c * helpPoint.pivotY);
-							matrix.ty = helpPoint.y - (matrix.b * helpPoint.pivotX + matrix.d * helpPoint.pivotY);
-							
-							helpPoint.x = helpPoint.pivotX;
-							helpPoint.y = helpPoint.pivotY;
-							boneSymbol.matrix = matrix;
-							boneSymbol.setTransformationPoint(helpPoint);
-						}
-					}
-				}
-				frameID ++;
-			}
-		}
-		layerID ++;
-	}
-	
-	var copyLayers = copyTimeline.layers;
-	var copyLayerCount = copyTimeline.layerCount;
-	var exLayerID = copyLayerCount;
-	copyTimeline.currentLayer = copyLayerCount - 1;
-	//先把 rawItem 中的所有帧粘贴到 copyItem 的最下面
-	copyTimeline.addNewLayer("", "normal", false);
-	copyTimeline.pasteFrames(0, 3000);
-	
-	for each(boneName in rawNameList)
-	{
-		layerID = rawMark[boneName];
-		if(layerID > -1)
-		{
-			//如有同名动画图层，剪切动画图层并粘贴到此图层
-			copyTimeline.currentLayer = layerID;
-			layer = copyLayers[layerID];
-			if(layer)
-			{
-				copyTimeline.cutFrames(0, layer.frames.length);
-				copyTimeline.currentLayer = exLayerID;
-				copyTimeline.pasteFrames(0, 3000);
-			}
+			boneName = null;
+			targetLayerIndex = targetTimeline.layers.indexOf(targetMainLayer);
 		}
 		else
 		{
-			//否则补帧为最长帧数
-			copyTimeline.currentLayer = exLayerID;
-			copyTimeline.insertFrames(1, false, copyTimeline.frameCount - 1);
+			boneName = layer.name;
+			targetLayerIndex = targetLayerIndexs[boneName];
+			if(!targetLayerIndex && targetLayerIndex != 0)
+			{
+				continue;
+			}
 		}
-		exLayerID ++;
-	}
-	
-	for(layerID = copyTimeline.layerCount - 1;layerID >= copyLayerCount;layerID --)
-	{
-		layer = copyTimeline.layers[layerID];
-		if(isMainLayer(layer))
+		
+		currentDom.library.editItem(sourceArmatureName);
+		sourceTimeline.currentLayer = sourceTimeline.layers.indexOf(layer);
+		sourceTimeline.copyFrames(sourceStartFrame, sourceStartFrame + sourceDuration);
+		
+		currentDom.library.editItem(targetArmatureName);
+		targetTimeline.currentLayer = targetLayerIndex;
+		targetTimeline.pasteFrames(targetStartFrame, targetStartFrame + sourceDuration);
+		
+		if(boneName)
 		{
-			copyTimeline.deleteLayer(layerID);
+			var movementBoneXML = sourceMovementXML[BONE].(@name == boneName)[0];
+			if(!movementBoneXML)
+			{
+				continue;
+			}
+			layer = targetTimeline.layers[targetLayerIndex];
+			layer.locked = false;
+			layer.visible = true;
+			var targetTextureList = targetMark[boneName];
+			var copyTextureList = [];
+			var currentFrame = 0;
+			var frames = layer.frames;
+			for each(var frameXML in movementBoneXML[FRAME])
+			{
+				var frame = frames[targetStartFrame + currentFrame];
+				currentFrame += Number(frameXML.@[A_DURATION]);
+				var boneSymbol = getBoneSymbol(frame.elements);
+				if(!boneSymbol)
+				{
+					continue;
+				}
+				var textureName = boneSymbol.libraryItem.name;
+				var subListID = copyTextureList.indexOf(textureName);
+				if(subListID == -1)
+				{
+					subListID = copyTextureList.length;
+					copyTextureList.push(textureName);
+				}
+				if(subListID >= targetTextureList.length)
+				{
+					subListID = targetTextureList.length - 1;
+				}
+				textureName = targetTextureList[subListID];
+				targetTimeline.currentFrame = frame.startFrame;
+				currentDom.selectNone();
+				boneSymbol.selected = true;
+				currentDom.swapElement(textureName);
+				boneSymbol = currentDom.selection[0];
+				
+				helpPoint.x = Number(frameXML.@[A_X]);
+				helpPoint.y = Number(frameXML.@[A_Y]);
+				helpPoint.scaleX = Number(frameXML.@[A_SCALE_X]);
+				helpPoint.scaleY = Number(frameXML.@[A_SCALE_Y]);
+				helpPoint.skewX = Number(frameXML.@[A_SKEW_X]) / 180 * Math.PI;
+				helpPoint.skewY = Number(frameXML.@[A_SKEW_Y]) / 180 * Math.PI;
+				helpPoint.pivotX = Number(frameXML.@[A_PIVOT_X]);
+				helpPoint.pivotY = Number(frameXML.@[A_PIVOT_Y]);
+				
+				var matrix = boneSymbol.matrix;
+				matrix.a = helpPoint.scaleX * Math.cos(helpPoint.skewY)
+				matrix.b = helpPoint.scaleX * Math.sin(helpPoint.skewY)
+				matrix.c = -helpPoint.scaleY * Math.sin(helpPoint.skewX);
+				matrix.d = helpPoint.scaleY * Math.cos(helpPoint.skewX);
+				matrix.tx = helpPoint.x - (matrix.a * helpPoint.pivotX + matrix.c * helpPoint.pivotY);
+				matrix.ty = helpPoint.y - (matrix.b * helpPoint.pivotX + matrix.d * helpPoint.pivotY);
+				
+				helpPoint.x = helpPoint.pivotX;
+				helpPoint.y = helpPoint.pivotY;
+				boneSymbol.matrix = matrix;
+				boneSymbol.setTransformationPoint(helpPoint);
+			}
 		}
 	}
-	
-	//删除无用图层
-	layerID = copyLayerCount;
-	while(-- layerID >= 0)
-	{	
-		if(copyLayers[layerID] != mainLayer)
-		{
-			copyTimeline.deleteLayer(layerID);
-		}
-	}
-	dragonBones.changeArmatureConnection(copyArmature.name, armatureXML);
-	currentDom.library.deleteItem(rawArmatureName + "Copy");
-	copyArmature.name = rawArmatureName + "Copy";
 }
 
 })();

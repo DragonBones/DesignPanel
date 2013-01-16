@@ -90,24 +90,22 @@
 						_importDataProxy.armatureDataProxy.setData(_importDataProxy.getArmatureXMLByName(armatureName));
 						break;
 					case GridEvent.GRID_DOUBLE_CLICK:
-						if(armatureList.selectedIndex > 0)
+						var sourceIndex:int = armatureList.selectedIndex > 0?armatureList.selectedIndex - 1:1;
+						armatureXML = armatureList.selectedItem as XML;
+						if(armatureXML)
 						{
-							armatureXML = armatureList.selectedItem as XML;
-							if(armatureXML)
+							
+							var sourceArmatureXML:XML = armatureList.dataProvider.getItemAt(sourceIndex) as XML;
+							var sourceArmatureName:String = sourceArmatureXML.attribute(ConstValues.A_NAME);
+							var sourceAnimationXML:XML = _importDataProxy.getAnimationXMLByName(sourceArmatureName);
+							if(sourceAnimationXML)
 							{
-								
-								var sourceArmatureXML:XML = armatureList.dataProvider.getItemAt(armatureList.selectedIndex - 1) as XML;
-								var sourceArmatureName:String = sourceArmatureXML.attribute(ConstValues.A_NAME);
-								var sourceAnimationXML:XML = _importDataProxy.getAnimationXMLByName(sourceArmatureName);
-								if(sourceAnimationXML)
-								{
-									CopyArmatureCommand.instance.copyArmatureFrom(
-										armatureXML, 
-										sourceArmatureXML, 
-										sourceAnimationXML, 
-										_importDataProxy.skeletonData
-									);
-								}
+								CopyArmatureCommand.instance.copyArmatureFrom(
+									armatureXML, 
+									sourceArmatureXML, 
+									sourceAnimationXML, 
+									_importDataProxy.skeletonData
+								);
 							}
 						}
 						break;

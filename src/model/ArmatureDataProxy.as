@@ -123,7 +123,7 @@ package model
 			{
 				if(boneXML.attribute(ConstValues.A_PARENT) != parentName)
 				{
-					boneXML[ConstValues.AT + ConstValues.A_PARENT] = parentName;
+					boneXML.@[ConstValues.A_PARENT] = parentName;
 					isChange = true;
 				}
 			}
@@ -132,7 +132,7 @@ package model
 				if(boneXML.attribute(ConstValues.A_PARENT).length() > 0)
 				{
 					isChange = true;
-					delete boneXML[ConstValues.AT + ConstValues.A_PARENT];
+					delete boneXML.@[ConstValues.A_PARENT];
 				}
 			}
 			

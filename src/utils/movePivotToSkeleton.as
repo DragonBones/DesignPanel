@@ -15,15 +15,15 @@ package utils
 				var pivotX:int = int(subTextureXML.attribute(ConstValues.A_PIVOT_X));
 				var pivotY:int = int(subTextureXML.attribute(ConstValues.A_PIVOT_Y));
 				
-				delete subTextureXML[ConstValues.AT + ConstValues.A_PIVOT_X];
-				delete subTextureXML[ConstValues.AT + ConstValues.A_PIVOT_Y];
+				delete subTextureXML.@[ConstValues.A_PIVOT_X];
+				delete subTextureXML.@[ConstValues.A_PIVOT_Y];
 				for each(var displayXML:XML in displayXMLList)
 				{
 					var displayName:String = displayXML.attribute(ConstValues.A_NAME);
 					if(displayName == subTextureName)
 					{
-						displayXML[ConstValues.AT + ConstValues.A_PIVOT_X] = pivotX;
-						displayXML[ConstValues.AT + ConstValues.A_PIVOT_Y] = pivotY;
+						displayXML.@[ConstValues.A_PIVOT_X] = pivotX;
+						displayXML.@[ConstValues.A_PIVOT_Y] = pivotY;
 					}
 				}
 			}

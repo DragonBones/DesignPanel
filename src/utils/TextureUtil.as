@@ -67,8 +67,8 @@
 				}
 				if(_isFit){
 					//place texture if size is fit
-					_subTextureXML[ConstValues.AT + ConstValues.A_X] = _rect.x;
-					_subTextureXML[ConstValues.AT + ConstValues.A_Y] = _rect.y;
+					_subTextureXML.@[ConstValues.A_X] = _rect.x;
+					_subTextureXML.@[ConstValues.A_Y] = _rect.y;
 					_subTextureList.splice(int(_iT), 1);
 					_remainRectList.splice(_rectID + 1, 0, new Rectangle(_rect.x + _width, _rect.y, _rect.width - _width, _rect.height));
 					_rect.y += _height;
@@ -95,8 +95,8 @@
 			
 			//calculate heightMax
 			_heightMax = getNearest2N(_heightMax - getLowestRect(_remainRectList).height);
-			_textureAtlasXML[ConstValues.AT + ConstValues.A_WIDTH] = _widthDefault;
-			_textureAtlasXML[ConstValues.AT + ConstValues.A_HEIGHT] = _heightMax;
+			_textureAtlasXML.@[ConstValues.A_WIDTH] = _widthDefault;
+			_textureAtlasXML.@[ConstValues.A_HEIGHT] = _heightMax;
 		}
 		
 		private static function sortTextureList(_subTextureXML1:XML, _subTextureXML2:XML):int{

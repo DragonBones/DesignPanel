@@ -148,7 +148,7 @@ package control
 							{
 								subTextureName = displayXML.attribute(ConstValues.A_NAME);
 								subTextureName = subTextureName.split("/").join("-");
-								displayXML[ConstValues.AT + ConstValues.A_NAME] = subTextureName;
+								displayXML.@[ConstValues.A_NAME] = subTextureName;
 							}
 							
 							for each(var subTextureXML:XML in textureAtlasXML.elements(ConstValues.SUB_TEXTURE))
@@ -162,7 +162,7 @@ package control
 								bitmapData.draw(_importDataProxy.textureAtlas.bitmapData, _helpMatirx);
 								subTextureName = subTextureXML.attribute(ConstValues.A_NAME);
 								subTextureName = subTextureName.split("/").join("-");
-								subTextureXML[ConstValues.AT + ConstValues.A_NAME] = subTextureName;
+								subTextureXML.@[ConstValues.A_NAME] = subTextureName;
 								zip.add(PNGEncoder.encode(bitmapData), GlobalConstValues.TEXTURE_NAME + "/" + subTextureName + GlobalConstValues.PNG_SUFFIX, date);
 								bitmapData.dispose();
 							}

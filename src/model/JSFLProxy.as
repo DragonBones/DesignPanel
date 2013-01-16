@@ -24,7 +24,7 @@
 		public static const ADD_TEXTURE_TO_SWFITEM:String = "addTextureToSWFItem";
 		public static const PACK_TEXTURES:String = "packTextures";
 		public static const EXPORT_SWF:String = "exportSWF";
-		public static const COPY_ARMATURE_FROM:String = "copyArmatureFrom";
+		public static const COPY_MOVEMENT:String = "copyArmatureFrom";
 		
 		private static const LOCAL_CONNECTION_NAME:String = "_SkeletonDesignPanelLocalConnection";
 		private static const CONNECTION_METHOD_NAME:String = "connectionMethodName";
@@ -346,9 +346,9 @@
 		/**
 		 * Update movement data from XML data to fla file
 		 */
-		public function copyArmatureFrom(targetArmatureName:String, sourceArmatureName:String, targetArmatureXML:XML, sourceAnimationXML:XML):void
+		public function copyMovement(targetArmatureName:String, sourceArmatureName:String, sourceMovementName:String, sourceMovementXML:XML):void
 		{
-			runJSFLMethod(COPY_ARMATURE_FROM, "dragonBones.copyArmatureFrom", targetArmatureName, sourceArmatureName, targetArmatureXML, sourceAnimationXML);
+			runJSFLMethod(COPY_MOVEMENT, "dragonBones.copyMovement", targetArmatureName, sourceArmatureName, sourceMovementName, sourceMovementXML);
 		}
 	}
 }

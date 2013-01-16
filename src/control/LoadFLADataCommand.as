@@ -184,7 +184,7 @@
 		private function flaExportSWFHandler(e:Message):void
 		{
 			_isLoading = false;
-			_skeletonXML[ConstValues.AT + ConstValues.A_VERSION] = ConstValues.VERSION;
+			_skeletonXML.@[ConstValues.A_VERSION] = ConstValues.VERSION;
 			MessageDispatcher.dispatchEvent(MessageDispatcher.LOAD_SWF_COMPLETE, _skeletonXML, _textureAtlasXML, e.parameters[0], e.parameters[1]);
 		}
 		

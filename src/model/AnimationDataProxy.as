@@ -58,7 +58,7 @@
 		{
 			if(_movementXML)
 			{
-				_movementXML[ConstValues.AT + ConstValues.A_DURATION_TO] = Math.round(value * ImportDataProxy.getInstance().frameRate);
+				_movementXML.@[ConstValues.A_DURATION_TO] = Math.round(value * ImportDataProxy.getInstance().frameRate);
 				updateMovement();
 			}
 		}
@@ -75,7 +75,7 @@
 		{
 			if(_movementXML)
 			{
-				_movementXML[ConstValues.AT + ConstValues.A_DURATION_TWEEN] = Math.round(value * ImportDataProxy.getInstance().frameRate);
+				_movementXML.@[ConstValues.A_DURATION_TWEEN] = Math.round(value * ImportDataProxy.getInstance().frameRate);
 				updateMovement();
 			}
 		}
@@ -88,7 +88,7 @@
 		{
 			if(_movementXML)
 			{
-				_movementXML[ConstValues.AT + ConstValues.A_LOOP] = value?1:0;
+				_movementXML.@[ConstValues.A_LOOP] = value?1:0;
 				updateMovement();
 			}
 		}
@@ -103,11 +103,11 @@
 			{
 				if(value<-1)
 				{
-					_movementXML[ConstValues.AT + ConstValues.A_TWEEN_EASING] = NaN;
+					_movementXML.@[ConstValues.A_TWEEN_EASING] = NaN;
 				}
 				else
 				{
-					_movementXML[ConstValues.AT + ConstValues.A_TWEEN_EASING] = value;
+					_movementXML.@[ConstValues.A_TWEEN_EASING] = value;
 				}
 				updateMovement();
 			}
@@ -125,7 +125,7 @@
 		{
 			if(_movementBoneXML)
 			{
-				_movementBoneXML[ConstValues.AT + ConstValues.A_MOVEMENT_SCALE] = value * 0.01;
+				_movementBoneXML.@[ConstValues.A_MOVEMENT_SCALE] = value * 0.01;
 				updateMovementBone();
 			}
 		}
@@ -142,7 +142,7 @@
 		{
 			if(_movementBoneXML)
 			{
-				_movementBoneXML[ConstValues.AT + ConstValues.A_MOVEMENT_DELAY] = value * 0.01;
+				_movementBoneXML.@[ConstValues.A_MOVEMENT_DELAY] = value * 0.01;
 				updateMovementBone();
 			}
 		}
