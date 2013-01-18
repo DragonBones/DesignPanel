@@ -149,7 +149,7 @@
 			<s:layout>
 				<s:BasicLayout/>
 			</s:layout>
-			<s:Button right="100" label="Save"/>
+			<s:Button right="100" label="Save" click="CopyDataProxy.getInstance().save()"/>
 			<s:Button right="10" label="Cancel" click="closeCopySession()"/>
 		</s:Group>
 	</s:VGroup>
