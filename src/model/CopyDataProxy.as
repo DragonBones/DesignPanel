@@ -592,7 +592,7 @@ package model
 			copiedBehavior.setChildren(new XMLList());
 			
 			var movmentData:MovementData = sourceAnimationData.getMovementData(behaviorName);
-			var movementBoneXMLList:XMLList = sourceBehavior[ConstValues.BONE];
+			var movementBoneXMLList:XMLList = sourceBehavior[ConstValues.BONE].copy();
 			for each (var boneName:String in sharedBoneNames)
 			{
 				var movementBoneData:MovementBoneData = movmentData.getMovementBoneData(boneName);
@@ -601,6 +601,7 @@ package model
 					var boneFramesContainer:XML = sourceBehavior[ConstValues.BONE].(@[ConstValues.A_NAME] == boneName)[0].copy();
 					delete boneFramesContainer[ConstValues.FRAME];
 					
+					//movementBoneXMLList will be changed in this function
 					copyBoneFrameData(movementBoneData, plattenDestinationBoneList, boneName, movementBoneXMLList, boneFramesContainer);
 					
 					copiedBehavior.appendChild(boneFramesContainer);
@@ -699,7 +700,7 @@ package model
 				}
 				
 				//写入关键帧坐标
-				var frameXML:XML = frameXMLList[j].copy();
+				var frameXML:XML = frameXMLList[j];
 				totalDuration += int(frameXML.attribute(ConstValues.A_DURATION));
 				frameXML.@[ConstValues.A_X] = _frameNode.x;
 				frameXML.@[ConstValues.A_Y] = _frameNode.y;
