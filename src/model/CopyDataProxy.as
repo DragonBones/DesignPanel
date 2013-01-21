@@ -469,10 +469,8 @@ package model
 		
 		//return a platten bone list
 		private static function copyBones(sourceBones:XMLList, destinationBones:XMLList, sharedBoneNames:Vector.<String>):XMLList
-		{
-			var plattenBones:XMLList = plattenBones(destinationBones);
-			delete plattenBones.@[ConstValues.A_PARENT];
-			
+		{			
+			var plattenBones:XMLList = plattenBones(destinationBones);			
 			var container:XML = <container/>;
 			container.appendChild(sourceBones.copy());
 			for each (var boneName:String in sharedBoneNames)
@@ -480,6 +478,8 @@ package model
 				var parentName:String = container.descendants().(@[ConstValues.A_NAME] == boneName).@[ConstValues.A_PARENT];
 				if (parentName)
 					plattenBones.(@[ConstValues.A_NAME] == boneName).@[ConstValues.A_PARENT] = parentName;
+				else
+					delete plattenBones.(@[ConstValues.A_NAME] == boneName).@[ConstValues.A_PARENT];
 			}
 			return plattenBones;
 		}
@@ -545,15 +545,15 @@ package model
 			return sharedBones;
 		}
 		
-		private static function generateSharedBonesInTree2(sourceBones:XMLList, container:XML, reciver:Vector.<String>):void
+		private static function generateSharedBonesInTree2(sourceBones:XMLList, container:XML, receiver:Vector.<String>):void
 		{
 			for each (var bone:XML in sourceBones)
 			{
 				var boneName:String = bone.@[ConstValues.A_NAME];
 				if (container.descendants().(@[ConstValues.A_NAME] == boneName).length())
 				{
-					reciver.push(boneName);
-					generateSharedBonesInTree2(bone.children(), container, reciver);
+					receiver.push(boneName);
+					generateSharedBonesInTree2(bone.children(), container, receiver);
 				}
 			}
 		}
