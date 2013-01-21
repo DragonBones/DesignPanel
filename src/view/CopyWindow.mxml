@@ -92,7 +92,7 @@
 				<s:Group height="100%" width="{CENTER_SPACE}">
 					<s:Button label="copy" horizontalCenter="0" verticalCenter="0" width="50" enabled="{CopyDataProxy.getInstance().behaviorCopyable}" click="CopyDataProxy.getInstance().executeBehaviorCopy()"/>
 					<s:Button bottom="5" width="50" label="del"
-							  click="CopyDataProxy.getInstance().executeBehaviorCopy()"
+							  click="CopyDataProxy.getInstance().executeBehaviorDelete()"
 							  enabled="{CopyDataProxy.getInstance().behaviorDeletable}"
 							  horizontalCenter="0"/>
 				</s:Group>

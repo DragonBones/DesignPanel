@@ -57,9 +57,6 @@ package model
 		private var _selectedMultipleSourceBehaviors:Vector.<Object>;
 		private var _selectedMultipleDestinationBehaviors:Vector.<Object>;
 		
-		//when change these value,the playing animation will be auto changed
-		private var _selectedDestinationBehavior:XML;
-		
 		
 		public var boneCopyable:Boolean;
 		public var behaviorCopyable:Boolean;
@@ -89,21 +86,6 @@ package model
 		{
 			_selectedMultipleSourceBehaviors = value;
 			checkBehaviorsCopyable();
-		}
-		
-		public function get selectedDestinationBehavior():*
-		{
-			return _selectedDestinationBehavior;
-		}
-		
-		
-		public function set selectedDestinationBehavior(value:*):void
-		{
-			_selectedDestinationBehavior = value;
-			if (_selectedDestinationBehavior && _destinationDisplayArmature)
-			{
-				_destinationDisplayArmature.animation.gotoAndPlay(_selectedDestinationBehavior.@[ConstValues.A_NAME]);
-			}
 		}
 		
 		public function playSourceBehavior(behavior:*):void
@@ -164,14 +146,11 @@ package model
 			_selectedDestinationArmature = value;
 			if (_selectedDestinationArmature)
 			{
-				var armatureName:String = _selectedDestinationArmature[ConstValues.A_NAME];
 				selectedDestinaionBonelist = _selectedDestinationArmature[ConstValues.BONE].copy();
 				selectedDestinaionBehaviorList = _selectedDestinationArmature[ConstValues.ANIMATION][ConstValues.MOVEMENT].copy();
 				destinationDisplayArmature = _copyFactory.buildArmature(_selectedDestinationArmature.@[ConstValues.A_NAME]);
 				if (selectedDestinaionBehaviorList.length() > 0)
-					selectedDestinationBehavior = selectedDestinaionBehaviorList[0];
-				else
-					selectedDestinationBehavior = null;
+					playDestinationBehavior(selectedDestinaionBehaviorList[0]);
 			}
 			else
 			{
@@ -332,8 +311,6 @@ package model
 			selectedSourceArmature = null;
 			selectedDestinationArmature = null;
 			
-			selectedDestinationBehavior = null;
-			
 			_copySkeletonXML = null;
 			_copyFactory = null;
 			
@@ -359,12 +336,9 @@ package model
 			
 			resetDestinationSkeletonData();
 			//occur to update
-			var temp1:XML = selectedDestinationBehavior;
-			var temp2:XML = selectedDestinationArmature;
+			var temp:XML = selectedDestinationArmature;
 			selectedDestinationArmature = null;
-			selectedDestinationBehavior = null;
-			selectedDestinationArmature = temp2;
-			selectedDestinationBehavior = temp1;
+			selectedDestinationArmature = temp;
 		}
 		
 		
@@ -392,16 +366,30 @@ package model
 			
 			resetDestinationSkeletonData();
 			//occur to update
-			
 			var temp:XML = selectedDestinationArmature;
-			var selectedBehaviorName:String = selectedDestinationBehavior ? selectedDestinationBehavior.@[ConstValues.A_NAME] : null;
 			selectedDestinationArmature = null;
-			selectedDestinationBehavior = null;
 			selectedDestinationArmature = temp;
-			if (selectedBehaviorName)
-				selectedDestinationBehavior = selectedDestinationArmature[ConstValues.ANIMATION][ConstValues.MOVEMENT].(@[ConstValues.A_NAME] == selectedBehaviorName)[0];
-			else
-				selectedDestinationBehavior = selectedDestinationArmature[ConstValues.ANIMATION][ConstValues.MOVEMENT][0];
+		}
+		
+		public function executeBehaviorDelete():void
+		{
+			for each(var behavior:XML in selectedMultipleDestinationBehaviors)
+			{
+				if(behavior.@original==false)
+				{
+					var behaviorName:String=behavior.@[ConstValues.A_NAME];
+					delete _selectedDestinationArmature[ConstValues.ANIMATION][ConstValues.MOVEMENT].(@[ConstValues.A_NAME]==behaviorName)[0];_selectedDestinationArmatureName
+					delete _copySkeletonXML[ConstValues.ANIMATIONS][ConstValues.ANIMATION].(@[ConstValues.A_NAME]==_selectedDestinationArmatureName)[ConstValues.MOVEMENT].(@[ConstValues.A_NAME]==behaviorName)[0];
+				}
+			}
+			resetDestinationSkeletonData();
+			//occur to update
+			selectedDestinaionBehaviorList = _selectedDestinationArmature[ConstValues.ANIMATION][ConstValues.MOVEMENT].copy();
+			destinationDisplayArmature = _copyFactory.buildArmature(_selectedDestinationArmature.@[ConstValues.A_NAME]);
+			if (selectedDestinaionBehaviorList.length() > 0)
+				playDestinationBehavior(selectedDestinaionBehaviorList[0]);
+			checkBehaviorsCopyable();
+			behaviorDeletable=false;
 		}
 		
 		
