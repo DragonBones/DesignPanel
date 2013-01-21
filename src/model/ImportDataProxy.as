@@ -105,6 +105,10 @@
 		{
 			return _skeletonData;
 		}
+		private function set skeletonData(value:SkeletonData)
+		{
+			_skeletonData = value;
+		}
 		
 		private var _textureAtlas:NativeTextureAtlas;
 		public function get textureAtlas():NativeTextureAtlas
@@ -163,7 +167,7 @@
 			
 			armaturesMC.source = _armaturesXMLList;
 			
-			_skeletonData = XMLDataParser.parseSkeletonData(skeletonXML);
+			skeletonData = XMLDataParser.parseSkeletonData(skeletonXML);
 			_textureAtlas = new NativeTextureAtlas(textureData, textureAtlasXML)
 			_textureAtlas.movieClipToBitmapData();
 			_baseFactory.addSkeletonData(_skeletonData);
