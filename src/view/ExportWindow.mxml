@@ -9,7 +9,6 @@
 		<![CDATA[
 			import mx.events.CloseEvent;
 			import mx.managers.PopUpManager;
-			import mx.resources.ResourceManager;
 			
 			import message.Message;
 			import message.MessageDispatcher;

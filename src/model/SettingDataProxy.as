@@ -145,7 +145,7 @@ package model
 			{
 				languageID = getData(LANGUAGE_ID);
 			}
-			else if (JSFLProxy.getInstance().isAvailable)
+			else if (JSFLProxy.isAvailable)
 			{
 				MessageDispatcher.addEventListener(LANGUAGE_ID, jsflProxyHandler);
 				JSFLProxy.getInstance().runJSFLCode(LANGUAGE_ID, "fl.languageCode;");

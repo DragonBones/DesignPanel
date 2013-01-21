@@ -18,7 +18,6 @@
 			
 			import mx.events.CloseEvent;
 			import mx.managers.PopUpManager;
-			import mx.resources.ResourceManager;
 			
 			private function importData():void
 			{
