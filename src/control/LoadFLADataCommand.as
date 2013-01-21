@@ -132,6 +132,12 @@
 			
 			_subTextureXMLList = _textureAtlasXML.elements(ConstValues.SUB_TEXTURE);
 			_totalCount = _subTextureXMLList.length();
+			
+			if(_totalCount == 0)
+			{
+				MessageDispatcher.dispatchEvent(MessageDispatcher.LOAD_FLADATA_ERROR);
+				return;
+			}
 			_loadIndex = _totalCount - 1;
 			//start to place texture
 			readNextSubTexture();

@@ -90,6 +90,10 @@
 						_importDataProxy.armatureDataProxy.setData(_importDataProxy.getArmatureXMLByName(armatureName));
 						break;
 					case GridEvent.GRID_DOUBLE_CLICK:
+						if(_importDataProxy.isExportedSource)
+						{
+							return;
+						}
 						var sourceIndex:int = armatureList.selectedIndex > 0?armatureList.selectedIndex - 1:1;
 						armatureXML = armatureList.selectedItem as XML;
 						if(armatureXML)

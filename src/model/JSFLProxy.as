@@ -32,6 +32,11 @@
 		
 		private static const JSFL_URL:String = "SkeletonAnimationDesignPanel/skeleton.jsfl";
 		
+		private static const MAX_SIZE:uint = 1024 * 35;
+		
+		private static var _sendByteArray:ByteArray = new ByteArray();
+		private static var _receiveByteArray:ByteArray = new ByteArray();
+		
 		private static var _instance:JSFLProxy;
 		public static function getInstance():JSFLProxy
 		{
@@ -42,38 +47,10 @@
 			return _instance;
 		}
 		
-		private static function xmlToString(xml:XML):String
-		{
-			return <a a={xml.toXMLString()}/>.@a[0].toXMLString();
-		}
-		
-		private static function jsflTrace(...arg):String
-		{
-			var str:String = "";
-			var length:uint = arg.length;
-			for(var i:int = 0;i < length;i ++)
-			{
-				if(i != 0)
-				{
-					str += ", ";
-				}
-				str += arg[i];
-			}
-			MMExecute("fl.trace(\"" +str+ "\");");
-			return str;
-		}
-		
-		private var _clientID:uint;
-		private var _exClientID:uint;
-		private var _urlLoader:URLLoader;
-		private var _localConnectionSender:LocalConnection;
-		private var _localConnectionReceiver:LocalConnection;
-		private var _helpByteArray:ByteArray;
-		
 		/**
 		 * Determine if JSFLAPI isAvailable
 		 */
-		public function get isAvailable():Boolean
+		public static function get isAvailable():Boolean
 		{
 			try
 			{
@@ -85,6 +62,89 @@
 			}
 			return false;
 		}
+		
+		public static function jsflTrace(...arg):void
+		{
+			if(isAvailable)
+			{
+				var str:String = "";
+				var length:uint = arg.length;
+				for(var i:int = 0;i < length;i ++)
+				{
+					if(i != 0)
+					{
+						str += ", ";
+					}
+					str += arg[i];
+				}
+				MMExecute("fl.trace(\"" +str+ "\");");
+			}
+			else
+			{
+				trace.apply(JSFLProxy, arg);
+			}
+		}
+		
+		private static function xmlToString(xml:XML):String
+		{
+			return <a a={xml.toXMLString()}/>.@a[0].toXMLString();
+		}
+		
+		private static function formatSendData(data:String):Array
+		{
+			var isBytes:Boolean = false;
+			_sendByteArray.position = 0;
+			_sendByteArray.length = 0;
+			_sendByteArray.writeObject(data);
+			if(_sendByteArray.length > MAX_SIZE)
+			{
+				isBytes = true;
+				_sendByteArray.compress();
+			}
+			
+			var list:Array = [];
+			var length:uint = _sendByteArray.length;
+			if(length > MAX_SIZE)
+			{
+				for(var i:uint = 0;i < length;i += MAX_SIZE)
+				{
+					var byteArray:ByteArray = new ByteArray();
+					byteArray.writeBytes(_sendByteArray, i, (i + MAX_SIZE < length)?MAX_SIZE:(length - i));
+					list.push(byteArray);
+				}
+			}
+			else
+			{
+				list.push(isBytes?_sendByteArray:data);
+			}
+			return list;
+		}
+		
+		private static function formatReceiveData(data:Object, index:int):String
+		{
+			var dataString:String;
+			if(data is String)
+			{
+				dataString = data as String;
+			}
+			else
+			{
+				_receiveByteArray.position = _receiveByteArray.length;
+				_receiveByteArray.writeBytes(data as ByteArray);
+				if(index < 0)
+				{
+					_receiveByteArray.uncompress();
+					dataString = _receiveByteArray.readObject() as String;
+					_receiveByteArray.length = 0;
+				}
+			}
+			return dataString;
+		}
+		
+		private var _clientID:uint;
+		private var _urlLoader:URLLoader;
+		private var _localConnectionSender:LocalConnection;
+		private var _localConnectionReceiver:LocalConnection;
 		
 		public function JSFLProxy()
 		{
@@ -98,8 +158,6 @@
 		private function init():void
 		{
 			_clientID = Math.random() * 0xFFFFFFFF;
-			
-			_helpByteArray = new ByteArray();
 			
 			_localConnectionSender = new LocalConnection();
 			_localConnectionSender.allowDomain("*");
@@ -128,7 +186,7 @@
 				try 
 				{
 					_localConnectionReceiver.connect(LOCAL_CONNECTION_NAME);
-					JSFLProxy.jsflTrace("localConnectionReceiver connect success!");
+					jsflTrace("localConnectionReceiver connect success!");
 				} 
 				catch (e:Error)
 				{
@@ -162,23 +220,19 @@
 		
 		public function runJSFLCode(type:String, code:String):void
 		{
-			_helpByteArray.position = 0;
-			_helpByteArray.length = 0;
-			_helpByteArray.writeUTFBytes(code);
-			if(_helpByteArray.length > 40 * 1024)
+			var list:Array = formatSendData(code);
+			var length:uint = list.length;
+			for(var i:int = 0;i < length;i ++)
 			{
-				var isBytesResult:Boolean = true;
-				_helpByteArray.compress();
+				_localConnectionSender.send(
+					LOCAL_CONNECTION_NAME, 
+					CONNECTION_METHOD_NAME, 
+					_clientID, 
+					type, 
+					list[i],
+					(i < length - 1)?i:-1
+				);
 			}
-			//trace("clientID:" + clientID, "type:" + _type, "code:" + _code);
-			
-			_localConnectionSender.send(
-				LOCAL_CONNECTION_NAME, 
-				CONNECTION_METHOD_NAME, 
-				_clientID, 
-				type, 
-				isBytesResult?_helpByteArray:code
-			);
 		}
 		
 		public function runJSFLMethod(type:String, method:String, ...args):void
@@ -213,37 +267,30 @@
 			runJSFLCode(type, code);
 		}
 		
-		private function receiverConnectMethod(clientID:uint, type:String, code:*):void 
+		private function receiverConnectMethod(clientID:uint, type:String, code:Object, index:int):void 
 		{
-			if(code is ByteArray)
+			var dataString:String = formatReceiveData(code, index);
+			if(!dataString)
 			{
-				code.position = 0;
-				code.uncompress();
+				return;
 			}
-			if(clientID != _clientID)
-			{
-				//JSFLProxy.jsflTrace("clientID:" + clientID, "type:" + type, "code:" + code);
-			}
+			
 			try 
 			{
-				_exClientID = clientID;
-				var result:String = MMExecute(code);
-				_helpByteArray.position = 0;
-				_helpByteArray.length = 0;
-				_helpByteArray.writeUTFBytes(result);
-				if(_helpByteArray.length > 40 * 1024)
+				var result:String = MMExecute(dataString);
+				var list:Array = formatSendData(result);
+				var length:uint = list.length;
+				for(var i:int = 0;i < length;i ++)
 				{
-					var isBytesResult:Boolean = true;
-					_helpByteArray.compress();
+					_localConnectionReceiver.send(
+						LOCAL_CONNECTION_NAME + clientID, 
+						CONNECTION_METHOD_NAME, 
+						clientID, 
+						type,
+						list[i],
+						(i < length - 1)?i:-1
+					);
 				}
-				
-				_localConnectionReceiver.send(
-					LOCAL_CONNECTION_NAME + clientID, 
-					CONNECTION_METHOD_NAME, 
-					clientID, 
-					type,
-					isBytesResult?_helpByteArray:result
-				);
 			}
 			catch(_e:Error)
 			{
@@ -251,17 +298,17 @@
 			}
 		}
 		
-		private function senderConnectMethod(clientID:uint, type:String, result:*):void 
+		private function senderConnectMethod(clientID:uint, type:String, result:Object, index:int):void 
 		{
-			if(result is ByteArray)
+			var dataString:String = formatReceiveData(result, index);
+			if(!dataString)
 			{
-				result.position = 0;
-				result.uncompress();
+				return;
 			}
-			//trace("clientID:" + clientID, "type:" + type, "result:" + result);
+			
 			if(type)
 			{
-				MessageDispatcher.dispatchEvent(type, result);
+				MessageDispatcher.dispatchEvent(type, dataString);
 			}
 		}
 		

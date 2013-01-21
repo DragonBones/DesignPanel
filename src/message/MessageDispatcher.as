@@ -5,6 +5,7 @@ package message{
 	
 	public class MessageDispatcher extends EventDispatcher{
 		static public const LOAD_FLADATA:String = "loadFladata";
+		static public const LOAD_FLADATA_ERROR:String = "loadFladataError";
 		static public const LOAD_ARMATURE_DATA:String = "loadSkeletonData";
 		static public const LOAD_ARMATURE_DATA_COMPLETE:String = "loadSkeletonDataComplete";
 		static public const LOAD_TEXTURE_DATA_COMPLETE:String = "loadTextureDataComplete";
