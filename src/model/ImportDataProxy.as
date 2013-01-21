@@ -105,7 +105,7 @@
 		{
 			return _skeletonData;
 		}
-		private function set skeletonData(value:SkeletonData)
+		private function set skeletonData(value:SkeletonData):void
 		{
 			_skeletonData = value;
 		}
