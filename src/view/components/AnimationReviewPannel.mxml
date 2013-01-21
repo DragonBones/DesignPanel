@@ -3,8 +3,7 @@
 		 xmlns:s="library://ns.adobe.com/flex/spark"
 		 xmlns:mx="library://ns.adobe.com/flex/mx"
 		 creationComplete="addedToStageHandler(event)"
-		 width="100%"
-		 height="100%">
+		 width="100%" height="100%">
 	<fx:Declarations>
 		<!-- Place non-visual elements (e.g., services, value objects) here -->
 	</fx:Declarations>
@@ -103,17 +102,7 @@
 				viewContainer.addChild(_originLineX);
 				viewContainer.addChild(_originlineY);
 				viewContainer.addChild(_armatureContainer);
-				
-				scrollerViewer.horizontalScrollBar.addEventListener(MouseEvent.MOUSE_DOWN, scrollBarHandler);
-				scrollerViewer.verticalScrollBar.addEventListener(MouseEvent.MOUSE_DOWN, scrollBarHandler);
-				
 			}
-			
-			private function scrollBarHandler(e:Event):void
-			{
-				_isDragedArmature = true;
-			}
-			
 			private function containerMouseHandler(e:MouseEvent):void
 			{
 				var display:Object = _armature?_armature.display:null;
@@ -238,7 +227,12 @@
 
 		]]>
 	</fx:Script>
-	<s:Scroller id="scrollerViewer" width="100%" height="100%">
+	<s:Rect width="100%" height="100%">
+		<s:stroke>
+			<s:SolidColorStroke color="0x000000" weight="1"/>
+		</s:stroke>
+	</s:Rect>
+	<s:Scroller id="scrollerViewer" width="100%" height="100%" horizontalScrollPolicy="off" verticalScrollPolicy="off">
 		<s:Group>
 			<s:Group id="viewContainerGroup">
 				<mx:UIComponent id="viewContainer"/>

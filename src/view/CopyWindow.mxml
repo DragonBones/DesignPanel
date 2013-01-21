@@ -60,52 +60,46 @@
 								 paddingRight="2" paddingTop="2">
 					<s:NavigatorContent label="Bones" width="100%" height="100%">
 						<s:HGroup width="100%" height="100%" gap="0">
-							<s:Group width="50%" height="100%">
-								<mx:Tree width="100%" height="100%"
-										 labelField="{ConstValues.AT + ConstValues.A_NAME}" textRollOverColor="#CCCCCC"
-										 textSelectedColor="#CCCCCC"
-										 folderClosedIcon="@Embed(source='./assets/armature_icon.png')"
-										 folderOpenIcon="@Embed(source='./assets/armature_open_icon.png')"
-										 defaultLeafIcon="@Embed(source='./assets/bone_icon.png')">
-									<mx:dataProvider>
-										<s:XMLListCollection source="{CopyDataProxy.getInstance().selectedSourceBoneList}">
-										</s:XMLListCollection>
-									</mx:dataProvider>
-								</mx:Tree>
-							</s:Group>
+							<mx:Tree width="100%" height="100%"
+									 labelField="{ConstValues.AT + ConstValues.A_NAME}" textRollOverColor="#CCCCCC"
+									 textSelectedColor="#CCCCCC"
+									 folderClosedIcon="@Embed(source='./assets/armature_icon.png')"
+									 folderOpenIcon="@Embed(source='./assets/armature_open_icon.png')"
+									 defaultLeafIcon="@Embed(source='./assets/bone_icon.png')">
+								<mx:dataProvider>
+									<s:XMLListCollection source="{CopyDataProxy.getInstance().selectedSourceBoneList}">
+									</s:XMLListCollection>
+								</mx:dataProvider>
+							</mx:Tree>
 							<s:Group height="100%" width="{CENTER_SPACE}">
 								<s:Button label="copy" horizontalCenter="0" verticalCenter="0" width="50" enabled="{CopyDataProxy.getInstance().boneCopyable}" click="CopyDataProxy.getInstance().executeBoneCopy()"/>
 							</s:Group>
-							<s:Group width="50%" height="100%">
-								<mx:Tree width="100%" height="100%"
-										 labelField="{ConstValues.AT + ConstValues.A_NAME}" textRollOverColor="#CCCCCC"
-										 textSelectedColor="#CCCCCC"
-										 folderClosedIcon="@Embed(source='./assets/armature_icon.png')"
-										 folderOpenIcon="@Embed(source='./assets/armature_open_icon.png')"
-										 defaultLeafIcon="@Embed(source='./assets/bone_icon.png')">
-									<mx:dataProvider>
-										<s:XMLListCollection source="{CopyDataProxy.getInstance().selectedDestinaionBonelist}">
-										</s:XMLListCollection>
-									</mx:dataProvider>
-								</mx:Tree>
-							</s:Group>
+							<mx:Tree width="100%" height="100%"
+									 labelField="{ConstValues.AT + ConstValues.A_NAME}" textRollOverColor="#CCCCCC"
+									 textSelectedColor="#CCCCCC"
+									 folderClosedIcon="@Embed(source='./assets/armature_icon.png')"
+									 folderOpenIcon="@Embed(source='./assets/armature_open_icon.png')"
+									 defaultLeafIcon="@Embed(source='./assets/bone_icon.png')">
+								<mx:dataProvider>
+									<s:XMLListCollection source="{CopyDataProxy.getInstance().selectedDestinaionBonelist}">
+									</s:XMLListCollection>
+								</mx:dataProvider>
+							</mx:Tree>
 						</s:HGroup>
 					</s:NavigatorContent>
 					<s:NavigatorContent label="behavior" width="100%" height="100%">
 						<s:HGroup width="100%" height="100%" gap="0">
-							<s:Group width="50%" height="100%">
-								<s:DataGrid width="100%" height="100%" sortableColumns="false" gridClick="CopyDataProxy.getInstance().playSourceBehavior(event.item)"  selectionMode="multipleRows" selectedItems="@{CopyDataProxy.getInstance().selectedMultipleSourceBehaviors}">
-									<s:columns>
-										<s:ArrayList>
-											<s:GridColumn dataField="{ConstValues.AT + ConstValues.A_NAME}" headerText="{resourceManager.getString('resources','behaviorList')}"/>
-										</s:ArrayList>
-									</s:columns>
-									<s:dataProvider>
-										<s:XMLListCollection source="{CopyDataProxy.getInstance().selectedSourceBehaviorList}">
-										</s:XMLListCollection>
-									</s:dataProvider>
-								</s:DataGrid>
-							</s:Group>
+							<s:DataGrid width="100%" height="100%" sortableColumns="false" gridClick="CopyDataProxy.getInstance().playSourceBehavior(event.item)"  selectionMode="multipleRows" selectedItems="@{CopyDataProxy.getInstance().selectedMultipleSourceBehaviors}">
+								<s:columns>
+									<s:ArrayList>
+										<s:GridColumn dataField="{ConstValues.AT + ConstValues.A_NAME}" headerText="{resourceManager.getString('resources','behaviorList')}"/>
+									</s:ArrayList>
+								</s:columns>
+								<s:dataProvider>
+									<s:XMLListCollection source="{CopyDataProxy.getInstance().selectedSourceBehaviorList}">
+									</s:XMLListCollection>
+								</s:dataProvider>
+							</s:DataGrid>
 							<s:Group height="100%" width="{CENTER_SPACE}">
 								<s:Button label="copy" horizontalCenter="0" verticalCenter="0" width="50" enabled="{CopyDataProxy.getInstance().behaviorCopyable}" click="CopyDataProxy.getInstance().executeBehaviorCopy()"/>
 								<s:Button bottom="5" width="50" label="del"
@@ -113,35 +107,23 @@
 										  enabled="{CopyDataProxy.getInstance().behaviorDeletable}"
 										  horizontalCenter="0"/>
 							</s:Group>
-							<s:Group width="50%" height="100%">
-								<s:DataGrid width="100%" height="100%" sortableColumns="false" gridClick="CopyDataProxy.getInstance().playDestinationBehavior(event.item)" selectionMode="multipleRows" selectedItems="@{CopyDataProxy.getInstance().selectedMultipleDestinationBehaviors}">
-									<s:columns>
-										<s:ArrayList>
-											<s:GridColumn dataField="{ConstValues.AT + ConstValues.A_NAME}" headerText="{resourceManager.getString('resources','behaviorList')}"/>
-										</s:ArrayList>
-									</s:columns>
-									<s:dataProvider>
-										<s:XMLListCollection source="{CopyDataProxy.getInstance().selectedDestinaionBehaviorList}">
-										</s:XMLListCollection>
-									</s:dataProvider>
-								</s:DataGrid>
-							</s:Group>
+							<s:DataGrid width="100%" height="100%" sortableColumns="false" gridClick="CopyDataProxy.getInstance().playDestinationBehavior(event.item)" selectionMode="multipleRows" selectedItems="@{CopyDataProxy.getInstance().selectedMultipleDestinationBehaviors}">
+								<s:columns>
+									<s:ArrayList>
+										<s:GridColumn dataField="{ConstValues.AT + ConstValues.A_NAME}" headerText="{resourceManager.getString('resources','behaviorList')}"/>
+									</s:ArrayList>
+								</s:columns>
+								<s:dataProvider>
+									<s:XMLListCollection source="{CopyDataProxy.getInstance().selectedDestinaionBehaviorList}">
+									</s:XMLListCollection>
+								</s:dataProvider>
+							</s:DataGrid>
 						</s:HGroup>
 					</s:NavigatorContent>
 				</mx:TabNavigator>
 				<s:HGroup width="100%" height="100%" gap="10">
-					<s:Group width="50%" height="100%">
-						<s:layout>
-							<s:BasicLayout/>
-						</s:layout>
-						<components:AnimationReviewPannel width="100%" height="100%" armature="{CopyDataProxy.getInstance().sourceDisplayArmature}"/>
-					</s:Group>
-					<s:Group width="50%" height="100%">
-						<s:layout>
-							<s:BasicLayout/>
-						</s:layout>
-						<components:AnimationReviewPannel width="100%" height="100%" armature="{CopyDataProxy.getInstance().destinationDisplayArmature}"/>
-					</s:Group>
+					<components:AnimationReviewPannel width="100%" height="100%" armature="{CopyDataProxy.getInstance().sourceDisplayArmature}"/>
+					<components:AnimationReviewPannel width="100%" height="100%" armature="{CopyDataProxy.getInstance().destinationDisplayArmature}"/>
 				</s:HGroup>
 			</mx:VDividedBox>
 			
