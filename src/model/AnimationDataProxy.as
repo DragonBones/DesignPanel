@@ -201,9 +201,12 @@
 		
 		internal function updateBoneParent(boneName:String):void
 		{
-			var animationData:AnimationData = ImportDataProxy.getInstance().skeletonData.getAnimationData(animationName);
-			var armatureData:ArmatureData = ImportDataProxy.getInstance().skeletonData.getArmatureData(animationName);
-			XMLDataParser.parseAnimationData(_xml, animationData, armatureData);
+			if(_xml)
+			{
+				var animationData:AnimationData = ImportDataProxy.getInstance().skeletonData.getAnimationData(animationName);
+				var armatureData:ArmatureData = ImportDataProxy.getInstance().skeletonData.getArmatureData(animationName);
+				XMLDataParser.parseAnimationData(_xml, animationData, armatureData);
+			}
 		}
 		
 		private function updateMovement():void
