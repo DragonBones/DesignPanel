@@ -127,18 +127,18 @@
 					</s:NavigatorContent>
 				</mx:TabNavigator>
 				<s:HGroup width="100%" height="100%" gap="10">
-					<components:AnimationReviewPannel width="100%" height="100%" armature="{CopyDataProxy.getInstance().sourceDisplayArmature}"/>
-					<components:AnimationReviewPannel width="100%" height="100%" armature="{CopyDataProxy.getInstance().destinationDisplayArmature}"/>
+					<components:AnimationReviewPanel width="100%" height="100%" armature="{CopyDataProxy.getInstance().sourceDisplayArmature}"/>
+					<components:AnimationReviewPanel width="100%" height="100%" armature="{CopyDataProxy.getInstance().destinationDisplayArmature}"/>
 				</s:HGroup>
 			</mx:VDividedBox>
 			
-			<s:Group width="100%">
-				<s:layout>
-					<s:BasicLayout/>
-				</s:layout>
-				<s:Button right="100" label="Save" click="CopyDataProxy.getInstance().save()"/>
-				<s:Button right="10" label="Cancel" click="closeCopySession()"/>
-			</s:Group>
+			<s:HGroup width="100%" gap="0">
+				<s:Spacer width="800%"/>
+				<s:Button label="Save" click="CopyDataProxy.getInstance().save()"/>
+				<s:Spacer width="100%"/>
+				<s:Button label="Cancel" click="closeCopySession()"/>
+				<s:Spacer width="800%"/>
+			</s:HGroup>
 		</s:VGroup>
 	</s:Panel>
 </s:SkinnableContainer>

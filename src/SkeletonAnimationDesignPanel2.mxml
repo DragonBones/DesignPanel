@@ -4,8 +4,7 @@
 			   xmlns:mx="library://ns.adobe.com/flex/mx"
 			   xmlns:view="view.*"
 			   addedToStage="addedToStageHandler()"
-			   preloader="prevloadClasses.Prevloader" 
-			   width="100%" height="100%"
+			   preloader="prevloadClasses.Prevloader" width="100%" height="100%"
 			   >
 	<fx:Declarations>
 		<!-- Place non-visual elements (e.g., services, value objects) here -->
@@ -13,7 +12,6 @@
 	<fx:Script>
 		<![CDATA[
 			import control.LoadFileDataCommand;
-			
 			import dragonBones.utils.ConstValues;
 			
 			import message.Message;
@@ -61,14 +59,14 @@
 			
 			private function addedToStageHandler():void
 			{	
-				skeletonDropDownList.dataProvider = _importDataProxy.armaturesMC;
-				skeletonDropDownList.addEventListener(IndexChangeEvent.CHANGE, skeletonDropDownList_onChange);
 				//XML.prettyIndent = -1;
+				
+				numFrameRate.value = stage.frameRate = 60;
+				numFrameRate.addEventListener(Event.CHANGE, valueChangeHandler);
 				
 				MessageDispatcher.addEventListener(MessageDispatcher.SETTING_DATA_CHANGE, settingHandler);
 				
 				MessageDispatcher.addEventListener(MessageDispatcher.LOAD_FLADATA, commandHandler);
-				MessageDispatcher.addEventListener(MessageDispatcher.CHANGE_ARMATURE_DATA, commandHandler);
 				MessageDispatcher.addEventListener(MessageDispatcher.LOAD_ARMATURE_DATA, commandHandler);
 				MessageDispatcher.addEventListener(MessageDispatcher.LOAD_TEXTURE_DATA, commandHandler);
 				MessageDispatcher.addEventListener(MessageDispatcher.LOAD_SWF_COMPLETE, commandHandler);
@@ -102,13 +100,6 @@
 				}
 			}
 			
-			private function skeletonDropDownList_onChange(event:IndexChangeEvent):void
-			{
-				var armatureXML:XML = skeletonDropDownList.selectedItem as XML;
-				var armatureName:String = armatureXML?armatureXML.attribute(ConstValues.A_NAME):"";
-				_importDataProxy.armatureDataProxy.setData(_importDataProxy.getArmatureXMLByName(armatureName));
-			}
-			
 			private function settingHandler(e:Message):void
 			{
 				var settingID:String = e.parameters[0];
@@ -125,16 +116,6 @@
 			{
 				switch(e.type)
 				{
-					case MessageDispatcher.CHANGE_ARMATURE_DATA:
-						for each(var eachItem:XML in skeletonDropDownList.dataProvider)
-						{
-							if(eachItem.attribute(ConstValues.A_NAME) == e.parameters[0])
-							{
-								skeletonDropDownList.selectedItem = eachItem;
-								break;
-							}
-						}
-						break;
 					case MessageDispatcher.LOAD_FLADATA:
 						if(e.parameters[0] > 0)
 						{
@@ -244,21 +225,45 @@
 			private function popUpCopyWindow():void
 			{
 				copyWindow.visible = true;
+				/*
+				PopUpManager.addPopUp(copyWindow, this, true);
+				PopUpManager.centerPopUp(copyWindow);
+				*/
 			}
 			
-			private function popUpXMLWindow():void
+			private function navIndexChangeHandler(event:Event):void
 			{
-				xmlWindow.visible = true;
+				switch(event.target.selectedChild)
+				{
+					case navXML:
+						if(_importDataProxy.skeletonXML)
+						{
+							txtXML.text = _importDataProxy.skeletonXML;
+						}
+						break;
+					case navTexture:
+						/*if(_importDataProxy.textureData)
+						{
+							if(textureContainer.numChildren > 0)
+							{
+								textureContainer.removeChildAt(0);
+							}
+							//textureContainer.addChild(_importDataProxy.textureData.bitmap);
+							//textureContainerGroup.width = _importDataProxy.textureData.bitmap.width;
+							//textureContainerGroup.height = _importDataProxy.textureData.bitmap.height;
+						}*/
+						break;
+				}
 			}
 			
-			private function popUpTextureAtlasWindow():void
+			private function valueChangeHandler(e:Event):void
 			{
-				textureAtlasWindow.visible = true;
-			}
-			
-			private function popUpAboutWindow():void
-			{
-				aboutWindow.visible = true;
+				switch(e.target)
+				{
+					case numFrameRate:
+						stage.frameRate = numFrameRate.value;
+						break;
+				}
 			}
 			
 			private function uncaughtErrorHandler(e:UncaughtErrorEvent):void
@@ -279,58 +284,57 @@
 	<fx:Metadata>
 		[ResourceBundle("resources")]
 	</fx:Metadata>
-	<s:VGroup width="100%" height="100%" gap="10" 
-			  paddingBottom="10" paddingLeft="10" paddingRight="10" paddingTop="10">
-		<s:HGroup width="100%" clipAndEnableScrolling="true">
-			<s:Button width="68" height="24" cornerRadius="0"
-					  label="{resourceManager.getString('resources','import')}"
-					  click="importData()"
-					  />
-			<s:Button width="68" height="24" cornerRadius="0"
-					  label="{resourceManager.getString('resources','export')}"
-					  click="exportData()"
-					  />
-			<s:Button width="68" height="24" cornerRadius="0"
-					  label="{resourceManager.getString('resources','textureAtlas')}"
-					  click="popUpTextureAtlasWindow()"
-					  />
-			<s:Button width="68" height="24" cornerRadius="0"
-					  label="{resourceManager.getString('resources','xml')}"
-					  click="popUpXMLWindow()"
-					  />
-			<s:Button width="68" height="24" cornerRadius="0"
-					  label="Copy"
-					  click="popUpCopyWindow()"
-					  enabled="{ImportDataProxy.getInstance().skeletonData!=null}"
-					  />
-			<s:Button width="68" height="24" cornerRadius="0"
-					  label="{resourceManager.getString('resources','about')}"
-					  click="popUpAboutWindow()"
-					  />
-			<s:Spacer width="100%"/>
-			<s:DropDownList width="80" height="24" cornerRadius="0" textAlign="right"
-							dataProvider="{SettingDataProxy.getInstance().languageArrayCollection}"
-							selectedIndex="@{SettingDataProxy.getInstance().languageID}"
-							/>
-		</s:HGroup>
-		
-		<s:VGroup width="100%" height="100%">
-			<s:HGroup width="100%" verticalAlign="middle">
-				<s:Label text="{resourceManager.getString('resources','skeleton')}" fontWeight="bold" />
-				<s:DropDownList id="skeletonDropDownList" width="100%"
-								labelField="{ConstValues.AT + ConstValues.A_NAME}"/>
-				<s:Button label="Update"/>
-				<s:Button label="Remove"/>
-			</s:HGroup>
-			<mx:HDividedBox width="100%" height="100%">
-				<view:ArmatureDisplayUIsGroup width="60%" height="100%"/>
-				<view:ControlPanelGroup width="40%" height="100%"/>
-			</mx:HDividedBox>
-		</s:VGroup>
-	</s:VGroup>
-	
+	<mx:TabNavigator y="10" width="100%" height="100%" tabHeight="35" tabOffset="230" paddingTop="2" paddingBottom="2" paddingLeft="2" paddingRight="2"
+					 creationPolicy="all"
+					 change="navIndexChangeHandler(event)">
+		<s:NavigatorContent width="100%" height="100%" label="{resourceManager.getString('resources','editor')}">
+			<mx:VDividedBox width="100%" height="100%">
+				<view:DatasUIsGroup width="100%" height="100%"/>
+				<s:HGroup width="100%" height="265" gap="2">
+					<view:ArmatureDisplayUIsGroup width="100%" height="100%"/>
+					<view:ControlUIsGroup height="100%"/>
+				</s:HGroup>
+			</mx:VDividedBox>
+		</s:NavigatorContent>
+		<s:NavigatorContent id="navXML" width="100%" height="100%" label="{resourceManager.getString('resources','xml')}">
+			<s:TextArea id="txtXML" left="0" right="0" top="0" bottom="0" editable="false"/>
+		</s:NavigatorContent>
+		<s:NavigatorContent id="navTexture" width="100%" height="100%" label="{resourceManager.getString('resources','textureAtlas')}">
+			<s:Scroller width="100%" height="100%">
+				<s:Group>
+					<s:Group id="textureContainerGroup">
+						<mx:UIComponent id="textureContainer"/>
+					</s:Group>
+				</s:Group>
+			</s:Scroller>
+		</s:NavigatorContent>
+		<s:NavigatorContent width="100%" height="100%" label="{resourceManager.getString('resources','about')}">
+			<mx:TextArea id="txtAbout" left="0" right="0" top="0" bottom="0" editable="false"
+						 htmlText="{_aboutXML}" textAlign="left"/>
+		</s:NavigatorContent>
+	</mx:TabNavigator>
+	<s:Button x="5" y="10" width="68" height="24" cornerRadius="0"
+			  label="{resourceManager.getString('resources','import')}"
+			  click="{importData()}"
+			  />
+	<s:Button x="77" y="10" width="68" height="24" cornerRadius="0"
+			  label="{resourceManager.getString('resources','export')}"
+			  click="{exportData()}"
+			  />
+	<s:Button x="150" y="10" width="68" height="24" cornerRadius="0"
+			  label="Copy"
+			  click="{popUpCopyWindow()}"
+			  enabled="{ImportDataProxy.getInstance().skeletonData!=null}"
+			  />
+	<s:HGroup y="10" left="450" right="10" horizontalAlign="right" gap="10">
+		<s:Label height="24" text="{resourceManager.getString('resources','frameRate')}"
+				 textAlign="right" verticalAlign="middle"/>
+		<s:NumericStepper id="numFrameRate" width="60" height="24" cornerRadius="0" textAlign="right"
+						  maximum="120" minimum="1" snapInterval="1"/>
+		<s:DropDownList width="120" height="24" cornerRadius="0" textAlign="right"
+						dataProvider="{SettingDataProxy.getInstance().languageArrayCollection}"
+						selectedIndex="@{SettingDataProxy.getInstance().languageID}"
+						/>
+	</s:HGroup>
 	<view:CopyWindow id="copyWindow" visible="false"/>
-	<view:XMLWindow id="xmlWindow" visible="false"/>
-	<view:TextureAtlasWindow id="textureAtlasWindow" visible="false"/>
-	<view:AboutWindow id="aboutWindow" visible="false"/>
 </s:Application>

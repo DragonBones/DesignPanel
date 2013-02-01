@@ -30,6 +30,7 @@ package message{
 		public static const CHANGE_BONE_DATA:String = "chagneBoneData";
 		public static const CHANGE_MOVEMENT_BONE_DATA:String = "chagneMovementBoneData";
 		public static const CHANGE_DISPLAY_DATA:String = "chagneDisplayData";
+		public static const CHANGE_MOVEMENT_LOOP_DATA:String = "chagneMovementLoopData";
 		
 		public static const UPDATE_BONE_PARENT:String = "updateBoneParent";
 		public static const UPDATE_MOVEMENT_DATA:String = "updateMovementData";

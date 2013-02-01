@@ -1,0 +1,157 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		  xmlns:s="library://ns.adobe.com/flex/spark" 
+		  xmlns:mx="library://ns.adobe.com/flex/mx" 
+		  addedToStage="addedToStageHandler(event)"
+		  >
+	
+	<fx:Script>
+		<![CDATA[
+			import message.Message;
+			import message.MessageDispatcher;
+			
+			import model.ImportDataProxy;
+			import model.SettingDataProxy;
+			
+			private var _importDataProxy:ImportDataProxy = ImportDataProxy.getInstance();
+			
+			private function addedToStageHandler(event:Event):void
+			{
+				sliderDurationTo.addEventListener(Event.CHANGE, valueChangeHandler);
+				numDurationTo.addEventListener(Event.CHANGE, valueChangeHandler);
+				
+				sliderDurationTween.addEventListener(Event.CHANGE, valueChangeHandler);
+				numDurationTween.addEventListener(Event.CHANGE, valueChangeHandler);
+				
+				sliderTweenEasing.addEventListener(Event.CHANGE, valueChangeHandler);
+				
+				checkLoop.addEventListener(Event.CHANGE, valueChangeHandler);
+				
+				MessageDispatcher.addEventListener(MessageDispatcher.CHANGE_MOVEMENT_DATA, commandHandler);	
+			}
+			
+			private function commandHandler(e:Message):void
+			{
+				switch(e.type)
+				{
+					case MessageDispatcher.CHANGE_MOVEMENT_DATA:
+						var durationTo:Number = _importDataProxy.animationDataProxy.durationTo;
+						var durationTween:Number = _importDataProxy.animationDataProxy.durationTween;
+						if(durationTo < 0)
+						{
+							numDurationTo.enabled = false;
+							sliderDurationTo.enabled = false;
+						}
+						else
+						{
+							numDurationTo.value = durationTo;
+							numDurationTo.enabled = true;
+							sliderDurationTo.value = durationTo;
+							sliderDurationTo.enabled = true;
+						}
+						if(durationTween < 0)
+						{
+							numDurationTween.enabled = false;
+							sliderDurationTween.enabled = false;
+							checkLoop.selected = false;
+							checkLoop.enabled = false;
+							sliderTweenEasing.enabled = false;
+						}
+						else
+						{
+							numDurationTween.value = durationTween;
+							numDurationTween.enabled = true;
+							sliderDurationTween.value = durationTween;
+							sliderDurationTween.enabled = true;
+							checkLoop.selected = _importDataProxy.animationDataProxy.loop;
+							checkLoop.enabled = true;
+							sliderTweenEasing.value = _importDataProxy.animationDataProxy.tweenEasing;
+							sliderTweenEasing.enabled = true;
+							
+							_importDataProxy.animationDataProxy.loop;
+						}
+						break;
+				}
+			}
+			
+			private function valueChangeHandler(e:Event):void
+			{
+				switch(e.target)
+				{
+					case sliderDurationTo:
+						_importDataProxy.animationDataProxy.durationTo = sliderDurationTo.value;
+						numDurationTo.value = _importDataProxy.animationDataProxy.durationTo;
+						sliderDurationTo.value = _importDataProxy.animationDataProxy.durationTo;
+						break;
+					case numDurationTo:
+						_importDataProxy.animationDataProxy.durationTo = numDurationTo.value;
+						numDurationTo.value = _importDataProxy.animationDataProxy.durationTo;
+						sliderDurationTo.value = _importDataProxy.animationDataProxy.durationTo;
+						break;
+					case sliderDurationTween:
+						_importDataProxy.animationDataProxy.durationTween = sliderDurationTween.value;
+						numDurationTween.value = _importDataProxy.animationDataProxy.durationTween;
+						sliderDurationTween.value = _importDataProxy.animationDataProxy.durationTween;
+						break;
+					case numDurationTween:
+						_importDataProxy.animationDataProxy.durationTween = numDurationTween.value;
+						numDurationTween.value = _importDataProxy.animationDataProxy.durationTween;
+						sliderDurationTween.value = _importDataProxy.animationDataProxy.durationTween;
+						break;
+					case sliderTweenEasing:
+						_importDataProxy.animationDataProxy.tweenEasing = sliderTweenEasing.value;
+						break;
+					case checkLoop:
+						_importDataProxy.animationDataProxy.loop = checkLoop.selected;
+						MessageDispatcher.dispatchEvent(MessageDispatcher.CHANGE_MOVEMENT_LOOP_DATA);
+						break;
+				}
+			}
+		]]>
+	</fx:Script>
+	<s:Rect width="100%" height="100%">
+		<s:stroke>
+			<s:SolidColorStroke color="0x000000" weight="1"/>
+		</s:stroke>
+	</s:Rect>
+	<s:Scroller width="100%" height="100%" horizontalScrollPolicy="off">
+		<s:VGroup width="100%" gap="0" paddingLeft="6" paddingRight="6">
+			<s:Label width="100%" height="24" verticalAlign="bottom"
+					 text="{resourceManager.getString('resources','totalFrames')}"
+					 />
+			<s:HGroup width="100%" verticalAlign="middle">
+				<s:HSlider id="sliderDurationTween" width="100%"
+						   minimum="0" maximum="10" snapInterval="0.01"
+						   />
+				<s:NumericStepper id="numDurationTween" width="60" height="24" cornerRadius="0" textAlign="right"
+								  maximum="3000" minimum="0" snapInterval="0.01"
+								  />
+			</s:HGroup>
+			<s:Label width="100%" height="24" verticalAlign="bottom"
+					 text="{resourceManager.getString('resources','switchTweenFrames')}"
+					 />
+			<s:HGroup width="100%" verticalAlign="middle">
+				<s:HSlider id="sliderDurationTo" width="100%"
+						   minimum="0" maximum="10" snapInterval="0.01"
+						   />
+				<s:NumericStepper id="numDurationTo" width="60" height="24" cornerRadius="0" textAlign="right"
+								  maximum="3000" minimum="0" snapInterval="0.01"
+								  />
+			</s:HGroup>
+			
+			<s:Label width="100%" height="24" verticalAlign="bottom"
+					 text="{resourceManager.getString('resources','keyFrameEase')}"
+					 />
+			<s:HGroup width="100%" verticalAlign="middle">
+				<s:HSlider id="sliderTweenEasing" width="100%"
+						   minimum="-1.1" maximum="2" snapInterval="0.05"
+						   />
+				<s:Spacer width="60" height="24"/>
+			</s:HGroup>
+			
+			<s:CheckBox id="checkLoop" width="100%" height="24"
+						label="{resourceManager.getString('resources','loop')}"/>
+			
+		</s:VGroup>
+	</s:Scroller>
+</s:Group>
