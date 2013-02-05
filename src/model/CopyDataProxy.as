@@ -54,50 +54,56 @@ package model
 		private var _sourceDisplayArmature:Armature;
 		private var _destinationDisplayArmature:Armature;
 		
-		
-		
-		//when change these value,the playing animation will be auto changed
-		private var _selectedSourceBehavior:XML;
-		private var _selectedDestinationBehavior:XML;
+		private var _selectedMultipleSourceBehaviors:Vector.<Object>;
+		private var _selectedMultipleDestinationBehaviors:Vector.<Object>;
 		
 		
 		public var boneCopyable:Boolean;
 		public var behaviorCopyable:Boolean;
-		
+		public var behaviorDeletable:Boolean;
 		
 		private var _sharedBoneNames:Vector.<String>;
 		
 		
 		
-		public function get selectedDestinationBehavior():*
+		public function get selectedMultipleDestinationBehaviors():Vector.<Object>
 		{
-			return _selectedDestinationBehavior;
+			return _selectedMultipleDestinationBehaviors;
 		}
 		
-		
-		public function set selectedDestinationBehavior(value:*):void
+		public function set selectedMultipleDestinationBehaviors(value:Vector.<Object>):void
 		{
-			_selectedDestinationBehavior = value;
-			if (_selectedDestinationBehavior && _destinationDisplayArmature)
+			_selectedMultipleDestinationBehaviors = value;
+			checkBehaviorsDeletable();
+		}
+		
+		public function get selectedMultipleSourceBehaviors():Vector.<Object>
+		{
+			return _selectedMultipleSourceBehaviors;
+		}
+		
+		public function set selectedMultipleSourceBehaviors(value:Vector.<Object>):void
+		{
+			_selectedMultipleSourceBehaviors = value;
+			checkBehaviorsCopyable();
+		}
+		
+		public function playSourceBehavior(behavior:*):void
+		{
+			if (behavior && _sourceDisplayArmature)
 			{
-				_destinationDisplayArmature.animation.gotoAndPlay(_selectedDestinationBehavior.@[ConstValues.A_NAME]);
+				_sourceDisplayArmature.animation.gotoAndPlay(behavior.@[ConstValues.A_NAME]);
 			}
 		}
 		
-		
-		public function get selectedSourceBehavior():*
+		public function playDestinationBehavior(behavior:*):void
 		{
-			return _selectedSourceBehavior;
-		}
-		
-		public function set selectedSourceBehavior(value:*):void
-		{
-			_selectedSourceBehavior = value;
-			if (_selectedSourceBehavior && _sourceDisplayArmature)
+			if (behavior && _destinationDisplayArmature)
 			{
-				_sourceDisplayArmature.animation.gotoAndPlay(_selectedSourceBehavior.@[ConstValues.A_NAME]);
+				_destinationDisplayArmature.animation.gotoAndPlay(behavior.@[ConstValues.A_NAME]);
 			}
 		}
+		
 		
 		public function get destinationDisplayArmature():Armature
 		{
@@ -140,14 +146,11 @@ package model
 			_selectedDestinationArmature = value;
 			if (_selectedDestinationArmature)
 			{
-				var armatureName:String = _selectedDestinationArmature[ConstValues.A_NAME];
 				selectedDestinaionBonelist = _selectedDestinationArmature[ConstValues.BONE].copy();
 				selectedDestinaionBehaviorList = _selectedDestinationArmature[ConstValues.ANIMATION][ConstValues.MOVEMENT].copy();
 				destinationDisplayArmature = _copyFactory.buildArmature(_selectedDestinationArmature.@[ConstValues.A_NAME]);
 				if (selectedDestinaionBehaviorList.length() > 0)
-					selectedDestinationBehavior = selectedDestinaionBehaviorList[0];
-				else
-					selectedDestinationBehavior = null;
+					playDestinationBehavior(selectedDestinaionBehaviorList[0]);
 			}
 			else
 			{
@@ -156,6 +159,7 @@ package model
 				destinationDisplayArmature = null;
 			}
 			checkBonesCopyable();
+			checkBehaviorsCopyable();
 		}
 		
 		
@@ -174,9 +178,7 @@ package model
 				selectedSourceBehaviorList = _selectedSourceArmature[ConstValues.ANIMATION][ConstValues.MOVEMENT].copy();
 				sourceDisplayArmature = _copyFactory.buildArmature(_selectedSourceArmature.@[ConstValues.A_NAME]);
 				if (selectedSourceBehaviorList.length() > 0)
-					selectedSourceBehavior = selectedSourceBehaviorList[0];
-				else
-					selectedSourceBehavior = null;
+					playSourceBehavior(selectedSourceBehaviorList[0]);
 			}
 			else
 			{
@@ -185,6 +187,7 @@ package model
 				sourceDisplayArmature = null;
 			}
 			checkBonesCopyable();
+			checkBehaviorsCopyable();
 		}
 		
 		
@@ -308,9 +311,6 @@ package model
 			selectedSourceArmature = null;
 			selectedDestinationArmature = null;
 			
-			selectedSourceBehavior = null;
-			selectedDestinationBehavior = null;
-			
 			_copySkeletonXML = null;
 			_copyFactory = null;
 			
@@ -336,18 +336,15 @@ package model
 			
 			resetDestinationSkeletonData();
 			//occur to update
-			var temp1:XML = selectedDestinationBehavior;
-			var temp2:XML = selectedDestinationArmature;
+			var temp:XML = selectedDestinationArmature;
 			selectedDestinationArmature = null;
-			selectedDestinationBehavior = null;
-			selectedDestinationArmature = temp2;
-			selectedDestinationBehavior = temp1;
+			selectedDestinationArmature = temp;
 		}
 		
 		
 		public function executeBehaviorCopy():void
 		{
-			var copiedDestinationBehaviors:XMLList = copyBehaviors(_selectedSourceArmatureName, selectedSourceBehaviorList, _sourceAnimationData, selectedDestinaionBehaviorList, _sharedBoneNames, _plattenDestinationBoneList);
+			var copiedDestinationBehaviors:XMLList = copyBehaviors(_selectedSourceArmatureName, selectedMultipleSourceBehaviors, _sourceAnimationData, selectedDestinaionBehaviorList, _sharedBoneNames, _plattenDestinationBoneList);
 			var destinationName:String = selectedDestinationArmature.@[ConstValues.A_NAME];
 			
 			
@@ -369,16 +366,30 @@ package model
 			
 			resetDestinationSkeletonData();
 			//occur to update
-			
 			var temp:XML = selectedDestinationArmature;
-			var selectedBehaviorName:String = selectedDestinationBehavior ? selectedDestinationBehavior.@[ConstValues.A_NAME] : null;
 			selectedDestinationArmature = null;
-			selectedDestinationBehavior = null;
 			selectedDestinationArmature = temp;
-			if (selectedBehaviorName)
-				selectedDestinationBehavior = selectedDestinationArmature[ConstValues.ANIMATION][ConstValues.MOVEMENT].(@[ConstValues.A_NAME] == selectedBehaviorName)[0];
-			else
-				selectedDestinationBehavior = selectedDestinationArmature[ConstValues.ANIMATION][ConstValues.MOVEMENT][0];
+		}
+		
+		public function executeBehaviorDelete():void
+		{
+			for each(var behavior:XML in selectedMultipleDestinationBehaviors)
+			{
+				if(behavior.@original==false)
+				{
+					var behaviorName:String=behavior.@[ConstValues.A_NAME];
+					delete _selectedDestinationArmature[ConstValues.ANIMATION][ConstValues.MOVEMENT].(@[ConstValues.A_NAME]==behaviorName)[0];_selectedDestinationArmatureName
+					delete _copySkeletonXML[ConstValues.ANIMATIONS][ConstValues.ANIMATION].(@[ConstValues.A_NAME]==_selectedDestinationArmatureName)[ConstValues.MOVEMENT].(@[ConstValues.A_NAME]==behaviorName)[0];
+				}
+			}
+			resetDestinationSkeletonData();
+			//occur to update
+			selectedDestinaionBehaviorList = _selectedDestinationArmature[ConstValues.ANIMATION][ConstValues.MOVEMENT].copy();
+			destinationDisplayArmature = _copyFactory.buildArmature(_selectedDestinationArmature.@[ConstValues.A_NAME]);
+			if (selectedDestinaionBehaviorList.length() > 0)
+				playDestinationBehavior(selectedDestinaionBehaviorList[0]);
+			checkBehaviorsCopyable();
+			behaviorDeletable=false;
 		}
 		
 		
@@ -405,7 +416,7 @@ package model
 			return;
 		}
 		
-		public function checkBonesCopyable():void
+		private function checkBonesCopyable():void
 		{
 			if (selectedDestinationArmature == null || _selectedSourceArmature == null)
 			{
@@ -447,21 +458,61 @@ package model
 							boneCopyable = true;
 						}
 						
-						
-						//check behaviors
-						var copiedDestinationBehaviors:XMLList = copyBehaviors(_selectedSourceArmatureName, selectedSourceBehaviorList, _sourceAnimationData, selectedDestinaionBehaviorList, _sharedBoneNames, _plattenDestinationBoneList);
-						if (selectedDestinaionBehaviorList == copiedDestinationBehaviors)
-						{
-							trace("Behavior is the same after copied!");
-							behaviorCopyable = false;
-						}
-						else
-						{
-							behaviorCopyable = true;
-						}
 					}
 					
 				}
+			}
+		}
+		
+		private function checkBehaviorsCopyable():void
+		{
+			if (selectedDestinationArmature == null || _selectedSourceArmature == null)
+			{
+				boneCopyable = false;
+				behaviorCopyable = false;
+			}
+			else
+			{
+				if (_selectedSourceArmatureName == _selectedDestinationArmatureName)
+				{
+					//selected the same armature
+					boneCopyable = false;
+					behaviorCopyable = false;
+				}
+				else
+				{
+					var copiedDestinationBehaviors:XMLList = copyBehaviors(_selectedSourceArmatureName, selectedMultipleSourceBehaviors, _sourceAnimationData, selectedDestinaionBehaviorList, _sharedBoneNames, _plattenDestinationBoneList);
+					if (selectedDestinaionBehaviorList == copiedDestinationBehaviors)
+					{
+						trace("Behavior is the same after copied!");
+						behaviorCopyable = false;
+					}
+					else
+					{
+						behaviorCopyable = true;
+					}
+				}
+			}
+		}
+		
+		private function checkBehaviorsDeletable():void
+		{
+			if (selectedDestinationArmature == null)
+			{
+				behaviorDeletable = false;
+			}
+			else
+			{
+				var flag:Boolean = false;
+				for each (var behavior:XML in selectedMultipleDestinationBehaviors)
+				{
+					if (behavior.@original == false)
+					{
+						flag = true;
+						break;
+					}
+				}
+				behaviorDeletable = flag;
 			}
 		}
 		
@@ -469,8 +520,8 @@ package model
 		
 		//return a platten bone list
 		private static function copyBones(sourceBones:XMLList, destinationBones:XMLList, sharedBoneNames:Vector.<String>):XMLList
-		{			
-			var plattenBones:XMLList = plattenBones(destinationBones);			
+		{
+			var plattenBones:XMLList = plattenBones(destinationBones);
 			var container:XML = <container/>;
 			container.appendChild(sourceBones.copy());
 			for each (var boneName:String in sharedBoneNames)
@@ -560,7 +611,7 @@ package model
 		
 		
 		
-		private static function copyBehaviors(sourceArmatureName:String, sourceBehaviors:XMLList, sourceAnimationData:AnimationData, destinationBehaviors:XMLList, sharedBoneNames:Vector.<String>, plattenDestinationBoneList:XMLList):XMLList
+		private static function copyBehaviors(sourceArmatureName:String, sourceBehaviors:Vector.<Object>, sourceAnimationData:AnimationData, destinationBehaviors:XMLList, sharedBoneNames:Vector.<String>, plattenDestinationBoneList:XMLList):XMLList
 		{
 			var copyContainer:XML = <container/>
 			//save the existing behaviors
