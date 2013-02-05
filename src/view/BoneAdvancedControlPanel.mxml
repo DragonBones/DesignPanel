@@ -1,0 +1,123 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		  xmlns:s="library://ns.adobe.com/flex/spark" 
+		  xmlns:mx="library://ns.adobe.com/flex/mx" 
+		  addedToStage="addedToStageHandler(event)"
+		  >
+	
+	<fx:Script>
+		<![CDATA[
+			import message.Message;
+			import message.MessageDispatcher;
+			
+			import model.ImportDataProxy;
+			import model.SettingDataProxy;
+			
+			private var _importDataProxy:ImportDataProxy = ImportDataProxy.getInstance();
+			
+			private function addedToStageHandler(event:Event):void
+			{
+				sliderScale.addEventListener(Event.CHANGE, valueChangeHandler);
+				numScale.addEventListener(Event.CHANGE, valueChangeHandler);
+				
+				sliderDelay.addEventListener(Event.CHANGE, valueChangeHandler);
+				numDelay.addEventListener(Event.CHANGE, valueChangeHandler);
+				
+				MessageDispatcher.addEventListener(MessageDispatcher.CHANGE_MOVEMENT_BONE_DATA, commandHandler);
+				MessageDispatcher.addEventListener(MessageDispatcher.CHANGE_MOVEMENT_LOOP_DATA, commandHandler);
+			}
+			
+			private function commandHandler(e:Message):void
+			{
+				switch(e.type)
+				{
+					case MessageDispatcher.CHANGE_MOVEMENT_BONE_DATA:
+					case MessageDispatcher.CHANGE_MOVEMENT_LOOP_DATA:
+						updateScaleAndDelay();
+						break;
+				}
+			}
+			
+			private function valueChangeHandler(e:Event):void
+			{
+				switch(e.target)
+				{
+					case sliderScale:
+						numScale.value = sliderScale.value;
+					case numScale:
+						_importDataProxy.animationDataProxy.boneScale = sliderScale.value = isNaN(numScale.value)?0:numScale.value;
+						break;
+					case sliderDelay:
+						numDelay.value = sliderDelay.value;
+					case numDelay:
+						_importDataProxy.animationDataProxy.boneDelay = sliderDelay.value = isNaN(numDelay.value)?0:numDelay.value;
+						break;
+				}
+			}
+			
+			private function updateScaleAndDelay():void
+			{
+				var boneScale:Number = _importDataProxy.animationDataProxy.boneScale;
+				var boneDelay:Number = _importDataProxy.animationDataProxy.boneDelay;
+				var loop:Boolean = _importDataProxy.animationDataProxy.loop;
+				
+				if(isNaN(boneScale) || !loop)
+				{
+					numScale.enabled = false;
+					sliderScale.enabled = false;
+				}
+				else
+				{
+					numScale.enabled = true;
+					sliderScale.enabled = true;
+					numScale.value = boneScale;
+					sliderScale.value = boneScale;
+				}
+				
+				if(isNaN(boneDelay) || !loop)
+				{
+					numDelay.enabled = false;
+					sliderDelay.enabled = false;
+				}
+				else
+				{
+					numDelay.enabled = true;
+					sliderDelay.enabled = true;
+					numDelay.value = boneDelay;
+					sliderDelay.value = boneDelay;
+				}
+			}
+		]]>
+	</fx:Script>
+	<s:Rect width="100%" height="100%">
+		<s:stroke>
+			<s:SolidColorStroke color="0x000000" weight="1"/>
+		</s:stroke>
+	</s:Rect>
+	<s:Scroller width="100%" height="100%" horizontalScrollPolicy="off">
+		<s:VGroup width="100%" gap="0" paddingLeft="6" paddingRight="6">
+			<s:Label width="100%" height="24" verticalAlign="bottom"
+					 text="{resourceManager.getString('resources','totalFramesScale')}"
+					 />
+			<s:HGroup width="100%" verticalAlign="middle">
+				<s:HSlider id="sliderScale" width="100%"
+						   minimum="0" maximum="200" snapInterval="5"
+						   />
+				<s:NumericStepper id="numScale" width="60" height="24" cornerRadius="0" textAlign="right"
+								  maximum="1000" minimum="0" snapInterval="1"
+								  />
+			</s:HGroup>
+			<s:Label width="100%" height="24" verticalAlign="bottom"
+					 text="{resourceManager.getString('resources','playDelay')}"
+					 />
+			<s:HGroup width="100%" verticalAlign="middle">
+				<s:HSlider id="sliderDelay" width="100%"
+						   minimum="-100" maximum="100" snapInterval="5"
+						   />
+				<s:NumericStepper id="numDelay" width="60" height="24" cornerRadius="0" textAlign="right"
+								  maximum="100" minimum="-100" snapInterval="1"
+								  />
+			</s:HGroup>
+		</s:VGroup>
+	</s:Scroller>
+</s:Group>

@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:SkinnableContainer xmlns:fx="http://ns.adobe.com/mxml/2009"
+					  xmlns:s="library://ns.adobe.com/flex/spark"
+					  xmlns:mx="library://ns.adobe.com/flex/mx"
+					  xmlns:components="view.components.*"
+					  xmlns:view="view.*"
+					  width="100%" height="100%" backgroundAlpha="0.5" backgroundColor="#CCCCCC"
+					  creationComplete="this_creationCompleteHandler(event)">
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	<fx:Script>
+		<![CDATA[
+			import dragonBones.utils.ConstValues;
+			
+			import model.ImportDataProxy;
+			
+			import mx.events.CloseEvent;
+			import mx.events.FlexEvent;
+
+			[Bindable]
+			private var _aboutXML:XML;
+			
+			private function this_creationCompleteHandler(event:Event):void
+			{
+				_aboutXML = 
+					<root>
+						<b>DragonBones Version {ConstValues.VERSION}</b>
+						<br/>
+						<a href="http://dragonbones.github.com/">http://dragonbones.github.com/</a>
+						<br/>
+						<a href="mailto:dragonbonesteam@gmail.com">{resourceManager.getString('resources', 'contactUsBy', ['dragonbonesteam@gmail.com'])}</a>
+						<br/>
+						{resourceManager.getString('resources', 'copyright')}
+					</root>;
+			}
+			
+			protected function titlewindow_closeHandler(event:CloseEvent):void
+			{
+				this.visible = false;
+			}
+		]]>
+	</fx:Script>
+	<s:TitleWindow left="20" right="20" top="20" bottom="20" title="{resourceManager.getString('resources','about')}" close="titlewindow_closeHandler(event)">
+		<mx:TextArea id="aboutText" htmlText="{_aboutXML}" left="2" right="2" top="2" bottom="2" borderColor="#000000" editable="false"/>
+	</s:TitleWindow>
+</s:SkinnableContainer>
