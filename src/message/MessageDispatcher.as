@@ -1,9 +1,11 @@
-package message{
+package message
+{
 	import flash.events.Event;
 	import flash.events.EventDispatcher;
 	import flash.events.IEventDispatcher;
 	
-	public class MessageDispatcher extends EventDispatcher{
+	public class MessageDispatcher extends EventDispatcher
+	{
 		static public const LOAD_FLADATA:String = "loadFladata";
 		static public const LOAD_FLADATA_ERROR:String = "loadFladataError";
 		static public const LOAD_ARMATURE_DATA:String = "loadSkeletonData";
@@ -17,6 +19,11 @@ package message{
 		static public const LOAD_FILEDATA_ERROR:String = "loadFiledataError";
 		static public const LOAD_FILEDATA_PROGRESS:String = "loadFiledataProgress";
 		static public const LOAD_FILEDATA_COMPLETE:String = "loadFiledataComplete";
+		
+		static public const SAVE_ANIMATION_START:String = "saveAnimationStart";
+		static public const SAVE_ANIMATION_ERROR:String = "saveAnimationError";
+		static public const SAVE_ANIMATION_PROGRESS:String = "saveAnimationProgress";
+		static public const SAVE_ANIMATION_COMPLETE:String = "saveAnimationComplete";
 		
 		static public const EXPORT:String = "export";
 		static public const EXPORT_CANCEL:String = "exportCancel";
@@ -46,21 +53,25 @@ package message{
 		
 		private static var instance:MessageDispatcher = new MessageDispatcher();
 		
-		public static function dispatchEvent(_type:String, ...args):void{
+		public static function dispatchEvent(_type:String, ... args):void
+		{
 			var _event:Message = new Message(_type);
 			_event.parameters = args;
 			instance.dispatchEvent(_event);
 		}
 		
-		public static function addEventListener(_type:String, _listener:Function):void{
+		public static function addEventListener(_type:String, _listener:Function):void
+		{
 			instance.addEventListener(_type, _listener);
 		}
 		
-		public static function removeEventListener(_type:String, _listener:Function):void{
+		public static function removeEventListener(_type:String, _listener:Function):void
+		{
 			instance.removeEventListener(_type, _listener);
 		}
 		
-		public function MessageDispatcher(){
+		public function MessageDispatcher()
+		{
 			super(this);
 		}
 	}

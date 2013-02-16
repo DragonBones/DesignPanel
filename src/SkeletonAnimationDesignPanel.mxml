@@ -91,6 +91,11 @@
 				
 				MessageDispatcher.addEventListener(MessageDispatcher.MOVEMENT_CHANGE, commandHandler);
 				
+				MessageDispatcher.addEventListener(MessageDispatcher.SAVE_ANIMATION_START, commandHandler);
+				MessageDispatcher.addEventListener(MessageDispatcher.SAVE_ANIMATION_PROGRESS, commandHandler);
+				MessageDispatcher.addEventListener(MessageDispatcher.SAVE_ANIMATION_COMPLETE, commandHandler);
+				MessageDispatcher.addEventListener(MessageDispatcher.SAVE_ANIMATION_ERROR, commandHandler);
+				
 				if(loaderInfo)
 				{
 					loaderInfo.uncaughtErrorEvents.addEventListener(UncaughtErrorEvent.UNCAUGHT_ERROR, uncaughtErrorHandler);
@@ -145,6 +150,9 @@
 							_alert = Alert.show(resourceManager.getString('resources',"importNoElement", [e.parameters[1]]));
 						}
 						break;
+					case MessageDispatcher.SAVE_ANIMATION_START:
+						_alert = Alert.show(resourceManager.getString('resources',"saveAnimation"));
+						break;
 					case MessageDispatcher.LOAD_ARMATURE_DATA:
 						if(_alert)
 						{
@@ -169,6 +177,15 @@
 						{
 							_alert.title = resourceManager.getString('resources', 'importFileProgress', [Math.round(e.parameters[0] * 100)]);
 						}
+						break;
+					case MessageDispatcher.SAVE_ANIMATION_PROGRESS:
+						if(_alert)
+						{
+							_alert.title = resourceManager.getString('resources', 'saveAnimationProgress', [e.parameters[0], e.parameters[1]]);
+						}
+						break;
+					case MessageDispatcher.SAVE_ANIMATION_COMPLETE:
+						clearAlert();
 						break;
 					case MessageDispatcher.LOAD_SWF_COMPLETE:
 						clearAlert();
