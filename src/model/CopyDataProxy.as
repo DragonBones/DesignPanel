@@ -262,16 +262,21 @@ package model
 				var behaviorName:String = behavior.@[ConstValues.A_NAME];
 				var movementXML:XML = _copySkeletonXML[ConstValues.ANIMATIONS][ConstValues.ANIMATION].(@[ConstValues.A_NAME] == armatureName)[0][ConstValues.MOVEMENT].(@[ConstValues.A_NAME] == behaviorName)[0];
 				JSFLProxy.getInstance().copyMovement(armatureName, sourceArmatrueName, behaviorName, movementXML);
+				MessageDispatcher.dispatchEvent(MessageDispatcher.SAVE_ANIMATION_PROGRESS, savingIndex, waitingForSavingBehaviors.length());
 				savingIndex++;
 			}
 			else
+			{
+				MessageDispatcher.dispatchEvent(MessageDispatcher.SAVE_ANIMATION_COMPLETE);
 				completeSave();
+			}
 		}
 		
 		public function save():void
 		{
 			waitingForSavingBehaviors = calculateChangedArmatures().children();
 			savingIndex = 0;
+			MessageDispatcher.dispatchEvent(MessageDispatcher.SAVE_ANIMATION_START);
 			MessageDispatcher.addEventListener(JSFLProxy.COPY_MOVEMENT, saveOneBehavior);
 			saveOneBehavior(null);
 		}
@@ -373,13 +378,14 @@ package model
 		
 		public function executeBehaviorDelete():void
 		{
-			for each(var behavior:XML in selectedMultipleDestinationBehaviors)
+			for each (var behavior:XML in selectedMultipleDestinationBehaviors)
 			{
-				if(behavior.@original==false)
+				if (behavior.@original == false)
 				{
-					var behaviorName:String=behavior.@[ConstValues.A_NAME];
-					delete _selectedDestinationArmature[ConstValues.ANIMATION][ConstValues.MOVEMENT].(@[ConstValues.A_NAME]==behaviorName)[0];_selectedDestinationArmatureName
-					delete _copySkeletonXML[ConstValues.ANIMATIONS][ConstValues.ANIMATION].(@[ConstValues.A_NAME]==_selectedDestinationArmatureName)[ConstValues.MOVEMENT].(@[ConstValues.A_NAME]==behaviorName)[0];
+					var behaviorName:String = behavior.@[ConstValues.A_NAME];
+					delete _selectedDestinationArmature[ConstValues.ANIMATION][ConstValues.MOVEMENT].(@[ConstValues.A_NAME] == behaviorName)[0];
+					_selectedDestinationArmatureName
+					delete _copySkeletonXML[ConstValues.ANIMATIONS][ConstValues.ANIMATION].(@[ConstValues.A_NAME] == _selectedDestinationArmatureName)[ConstValues.MOVEMENT].(@[ConstValues.A_NAME] == behaviorName)[0];
 				}
 			}
 			resetDestinationSkeletonData();
@@ -389,7 +395,7 @@ package model
 			if (selectedDestinaionBehaviorList.length() > 0)
 				playDestinationBehavior(selectedDestinaionBehaviorList[0]);
 			checkBehaviorsCopyable();
-			behaviorDeletable=false;
+			behaviorDeletable = false;
 		}
 		
 		
