@@ -12,6 +12,7 @@ var ANIMATIONS = "animations";
 var ANIMATION = "animation";
 var MOVEMENT = "mov";
 var FRAME = "f";
+var COLOR_TRANSFORM = "colorTransform";
 
 var TEXTURE_ATLAS = "TextureAtlas";
 var SUB_TEXTURE = "SubTexture";
@@ -49,6 +50,16 @@ var A_HEIGHT = "height";
 var A_PIVOT_X = "pX";
 var A_PIVOT_Y = "pY";
 
+var A_ALPHA = "a";
+var A_RED = "r";
+var A_GREEN = "g";
+var A_BLUE = "b";
+
+var A_ALPHA_MULTIPLIER = "aM";
+var A_RED_MULTIPLIER = "rM";
+var A_GREEN_MULTIPLIER = "gM";
+var A_BLUE_MULTIPLIER = "bM";
+
 var V_SOUND_LEFT = "l";
 var V_SOUND_RIGHT = "r";
 var V_SOUND_LEFT_TO_RIGHT = "lr";
@@ -58,6 +69,7 @@ var V_SOUND_FADE_OUT = "out";
 
 var MOVIE_CLIP = "movie clip";
 var GRAPHIC = "graphic";
+var BITMAP = "bitmap";
 var STRING = "string";
 var LABEL_TYPE_NAME = "name";
 var EVENT_PREFIX = "@";
@@ -216,6 +228,10 @@ function isMainLayer(_layer){
 //To determine whether the item is valide armature.
 //If yes, return mainLayer and boneLayers
 function isArmatureItem(_item, _isChildArmature){
+	if(_item.symbolType != MOVIE_CLIP && _item.symbolType != GRAPHIC)
+	{
+		return null;
+	}
 	var _layersFiltered = [];
 	var _mainLayer;
 	for each(var _layer in _item.timeline.layers){
@@ -295,7 +311,7 @@ function getMainFrameList(_keyFrames){
 //filter bone symbol from all elements in a frame.
 function getBoneSymbol(_elements){
 	for each(var _element in _elements){
-		if(_element.symbolType == MOVIE_CLIP || _element.symbolType == GRAPHIC){
+		if(_element.symbolType == MOVIE_CLIP || _element.symbolType == GRAPHIC || _element.instanceType == BITMAP){
 			return _element;
 		}
 	}
@@ -321,7 +337,7 @@ function setArmatureConnection(_item, _data){
 }
 
 function getMovementXML(_movementName, _duration, _item){
-	var _xml = <{MOVEMENT} {A_NAME} = {_movementName}/>;
+	var _xml = <{MOVEMENT} {A_NAME}={_movementName}/>;
 	if(_item.hasData(ANIMATION_DATA)){
 		var _animationXML = XML(_item.getData(ANIMATION_DATA));
 		var _movementXML = _animationXML[MOVEMENT].(@name == _movementName)[0];
@@ -360,7 +376,7 @@ function getMovementXML(_movementName, _duration, _item){
 function getMovementBoneXML(_movementXML, _boneName, _item){
 	var _xml = _movementXML[BONE].(@name == _boneName)[0];
 	if(!_xml){
-		_xml = <{BONE} {A_NAME} = {_boneName}/>;
+		_xml = <{BONE} {A_NAME}={_boneName}/>;
 		_xml.@[A_MOVEMENT_SCALE] = 1;
 		_xml.@[A_MOVEMENT_DELAY] = 0;
 		if(_item.hasData(ANIMATION_DATA)){
@@ -383,7 +399,7 @@ function getMovementBoneXML(_movementXML, _boneName, _item){
 function getBoneXML(_name, _frameXML){
 	var _xml = armatureXML[BONE].(@name == _name)[0];
 	if(!_xml){
-		_xml = <{BONE} {A_NAME} = {_name}/>;
+		_xml = <{BONE} {A_NAME}={_name}/>;
 		var _connectionXML = armatureConnectionXML[BONE].(@name == _name)[0];
 		if(_connectionXML && _connectionXML.@[A_PARENT][0]){
 			_xml.@[A_PARENT] = _connectionXML.@[A_PARENT];
@@ -405,7 +421,7 @@ function getBoneXML(_name, _frameXML){
 function getDisplayXML(_boneXML, _imageName, _isArmature){
 	var _xml = _boneXML[DISPLAY].(@name == _imageName)[0];
 	if(!_xml){
-		_xml = <{DISPLAY} {A_NAME} = {_imageName}/>;
+		_xml = <{DISPLAY} {A_NAME}={_imageName}/>;
 		if(_isArmature){
 			_xml.@[A_IS_ARMATURE] = 1;
 		}
@@ -423,7 +439,6 @@ function generateMovement(_item, _mainFrame, _layers){
 		var _noAutoEasing = true;
 		_movementName = _movementName.substr(1);
 	}
-	
 	
 	var _movementXML = getMovementXML(_movementName, _duration, _item);
 	
@@ -456,7 +471,7 @@ function generateMovement(_item, _mainFrame, _layers){
 				_frameDuration= _frame.duration;
 			}
 			_symbol = getBoneSymbol(_frame.elements);
-			if(!_symbol||!_symbol.visible){
+			if(!_symbol){
 				continue;
 			}
 			if(!_movementBoneXML){
@@ -482,7 +497,7 @@ function generateMovement(_item, _mainFrame, _layers){
 			}
 			
 			if(_frame.tweenType == "motion object"){
-				
+				//
 				break;
 			}
 			_frameXML = generateFrame(_frame, _boneName, _symbol, _z, _noAutoEasing);
@@ -501,20 +516,20 @@ function generateMovement(_item, _mainFrame, _layers){
 			_frameStart = Number(_frameXML.@[A_START]);
 			if(_frameXML.childIndex() == 0){
 				if(_frameStart > 0){
-					_movementBoneXML.prependChild(<{FRAME} {A_DURATION} = {_frameStart} {A_DISPLAY_INDEX} = "-1"/>);
+					_movementBoneXML.prependChild(<{FRAME} {A_DURATION}={_frameStart} {A_DISPLAY_INDEX}="-1"/>);
 				}
 			}else {
 				_prevStart = Number(_prevFrameXML.@[A_START]);
 				_prevDuration = Number(_prevFrameXML.@[A_DURATION]);
 				if(_frameStart > _prevStart + _prevDuration){
-					_movementBoneXML.insertChildBefore(_frameXML, <{FRAME} {A_DURATION} = {_frameStart - _prevStart - _prevDuration} {A_DISPLAY_INDEX} = "-1"/>);
+					_movementBoneXML.insertChildBefore(_frameXML, <{FRAME} {A_DURATION}={_frameStart - _prevStart - _prevDuration} {A_DISPLAY_INDEX}="-1"/>);
 				}
 			}
 			if(_frameXML.childIndex() == _movementBoneXML[FRAME].length() - 1){
 				_frameStart = Number(_frameXML.@[A_START]);
 				_prevDuration = Number(_frameXML.@[A_DURATION]);
 				if(_frameStart + _prevDuration < _duration){
-					_movementBoneXML.appendChild(<{FRAME} {A_DURATION} = {_duration - _frameStart - _prevDuration} {A_DISPLAY_INDEX} = "-1"/>);
+					_movementBoneXML.appendChild(<{FRAME} {A_DURATION}={_duration - _frameStart - _prevDuration} {A_DISPLAY_INDEX}="-1"/>);
 				}
 			}
 			//tweenRotate property is for the end point of tween instead of start point
@@ -562,6 +577,49 @@ function generateFrame(_frame, _boneName, _symbol, _z, _noAutoEasing){
 	_frameXML.@[A_SCALE_X] = formatNumber(_symbol.scaleX);
 	_frameXML.@[A_SCALE_Y] = formatNumber(_symbol.scaleY);
 	helpPoint = _symbol.getTransformationPoint();
+	
+	if(_symbol.instanceType == BITMAP)
+	{
+		if(helpPoint.x == 0 && helpPoint.y == 0)
+		{
+			helpPoint.x = _symbol.hPixels * 0.5;
+			helpPoint.y = _symbol.vPixels * 0.5;
+		}
+	}
+	else
+	{
+		var _a = _symbol.colorAlphaAmount;
+		var _r = _symbol.colorRedAmount;
+		var _g = _symbol.colorGreenAmount;
+		var _b = _symbol.colorBlueAmount;
+		var _aM = _symbol.colorAlphaPercent;
+		var _rM = _symbol.colorRedPercent;
+		var _gM = _symbol.colorGreenPercent;
+		var _bM = _symbol.colorBluePercent;
+		if(
+			_a != 0 ||
+			_r != 0 || 
+			_g != 0 || 
+			_b != 0 || 
+			_aM != 100 || 
+			_rM != 100 || 
+			_gM != 100 || 
+			_bM != 100
+		)
+		{
+			var _colorTransformXML = <{COLOR_TRANSFORM}/>;
+			_colorTransformXML.@[A_ALPHA] = _a;
+			_colorTransformXML.@[A_RED] = _r;
+			_colorTransformXML.@[A_GREEN] = _g;
+			_colorTransformXML.@[A_BLUE] = _b;
+			_colorTransformXML.@[A_ALPHA_MULTIPLIER] = _aM;
+			_colorTransformXML.@[A_RED_MULTIPLIER] = _rM;
+			_colorTransformXML.@[A_GREEN_MULTIPLIER] = _gM;
+			_colorTransformXML.@[A_BLUE_MULTIPLIER] = _bM;
+			_frameXML.appendChild(_colorTransformXML);
+		}
+	}
+	
 	_frameXML.@[A_PIVOT_X] = formatNumber(helpPoint.x, 1);
 	_frameXML.@[A_PIVOT_Y] = formatNumber(helpPoint.y, 1);
 	_frameXML.@[A_Z] = _z;
@@ -575,7 +633,15 @@ function generateFrame(_frame, _boneName, _symbol, _z, _noAutoEasing){
 	
 	var _displayXML = getDisplayXML(_boneXML, _imageName, _isArmature);
 	
-	_frameXML.@[A_DISPLAY_INDEX] = _displayXML.childIndex();
+	if(_symbol.visible === false)
+	{
+		_frameXML.@[A_DISPLAY_INDEX] = -1;
+	}
+	else
+	{
+		_frameXML.@[A_DISPLAY_INDEX] = _displayXML.childIndex();
+	}
+	
 	if(_isArmature){
 		var _backupArmatureXML = armatureXML;
 		var _backupAnimationXML = animationXML;
@@ -686,7 +752,7 @@ function generateMovementEventFrames(_movementXML, _mainFrame){
 	if(_mainFrame.frames.length > 1){
 		var _start = _mainFrame.frame.startFrame;
 		for each(var _frame in _mainFrame.frames){
-			var _eventXML = <{FRAME} {A_START} = {_frame.startFrame - _start} {A_DURATION} = {_frame.duration}/>;
+			var _eventXML = <{FRAME} {A_START}={_frame.startFrame - _start} {A_DURATION}={_frame.duration}/>;
 			var _event = isSpecialFrame(_frame, EVENT_PREFIX, true);
 			var _movement = isSpecialFrame(_frame, MOVEMENT_PREFIX, true);
 			var _sound = _frame.soundName && (_frame.soundLibraryItem.linkageClassName || _frame.soundName);
@@ -733,11 +799,11 @@ dragonBones.getArmatureList = function(_isSelected){
 	currentDomName = currentDom.name.split(".")[0];
 	
 	var _items = _isSelected?currentDom.library.getSelectedItems():currentDom.library.items;
-	var _xml = <{ARMATURES} {A_NAME} = {currentDomName}/>;
+	var _xml = <{ARMATURES} {A_NAME}={currentDomName}/>;
 	for each(var _item in _items){
-		if((_item.symbolType == MOVIE_CLIP || _item.symbolType == GRAPHIC) && isArmatureItem(_item)){
+		if(isArmatureItem(_item)){
 			formatName(_item);
-			var _itemXML = <{ARMATURE} {A_NAME} = {_item.name} scale = {1}/>
+			var _itemXML = <{ARMATURE} {A_NAME}={_item.name} scale ={1}/>
 			_xml.appendChild(_itemXML);
 		}
 	}
@@ -750,7 +816,7 @@ dragonBones.generateArmature = function(_armatureName, _scale, _isNewXML, _isChi
 		return false;
 	}
 	if(_isNewXML){
-		xml = <{SKELETON} {A_NAME} = {currentDomName} {A_FRAME_RATE} = {currentDom.frameRate}/>;
+		xml = <{SKELETON} {A_NAME}={currentDomName} {A_FRAME_RATE}={currentDom.frameRate}/>;
 		armaturesXML = <{ARMATURES}/>;
 		animationsXML = <{ANIMATIONS}/>;
 		xml.appendChild(armaturesXML);
@@ -760,9 +826,9 @@ dragonBones.generateArmature = function(_armatureName, _scale, _isNewXML, _isChi
 		return false;
 	}
 	
-	armatureXML = <{ARMATURE} {A_NAME} = {_armatureName}/>;
+	armatureXML = <{ARMATURE} {A_NAME}={_armatureName}/>;
 	armaturesXML.appendChild(armatureXML);
-	animationXML = <{ANIMATION} {A_NAME} = {_armatureName}/>;
+	animationXML = <{ANIMATION} {A_NAME}={_armatureName}/>;
 	armatureConnectionXML = _item.hasData(ARMATURE_DATA)?XML(_item.getData(ARMATURE_DATA)):armatureXML;
 	
 	var _layersFiltered = isArmatureItem(_item, _isChildArmature);
@@ -828,7 +894,7 @@ dragonBones.addTextureToSWFItem = function(_textureName, _isLast){
 	if(_symbol.symbolType != MOVIE_CLIP){
 		_symbol.symbolType = MOVIE_CLIP;
 	}
-	var _subTextureXML = <{SUB_TEXTURE} {A_NAME} = {_textureName}/>;
+	var _subTextureXML = <{SUB_TEXTURE} {A_NAME}={_textureName}/>;
 	_subTextureXML.@[A_PIVOT_X] = formatNumber(_symbol.x - _symbol.left);
 	_subTextureXML.@[A_PIVOT_Y] = formatNumber(_symbol.y - _symbol.top);
 	_subTextureXML.@[A_WIDTH] = Math.ceil(_symbol.width);

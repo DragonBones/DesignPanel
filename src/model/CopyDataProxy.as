@@ -2,6 +2,7 @@ package model
 {
 	import dragonBones.Armature;
 	import dragonBones.animation.WorldClock;
+	import dragonBones.animation.Tween;
 	import dragonBones.factorys.BaseFactory;
 	import dragonBones.objects.AnimationData;
 	import dragonBones.objects.BoneData;
@@ -673,8 +674,8 @@ package model
 			var boneXML:XML = XMLDataParser.getElementsByAttribute(plattenDestinationBoneList, ConstValues.A_NAME, boneName)[0];
 			var parentName:String = boneXML.@[ConstValues.A_PARENT];
 			var parentXML:XML = XMLDataParser.getElementsByAttribute(plattenDestinationBoneList, ConstValues.A_NAME, parentName)[0];
-			var _boneData:BoneData = new BoneData;
-			XMLDataParser.parseBoneData(boneXML, parentXML, _boneData);
+			var boneData:BoneData = new BoneData();
+			XMLDataParser.parseBoneData(boneXML, parentXML, boneData);
 			
 			//找到当前源骨架同名骨骼以及其父骨骼的动画数据
 			var movementBoneXML:XML = XMLDataParser.getElementsByAttribute(movementBoneXMLList, ConstValues.A_NAME, boneName)[0];
@@ -695,25 +696,25 @@ package model
 			//遍历每个骨骼关键帧
 			var frameXMLList:XMLList = movementBoneXML.elements(ConstValues.FRAME);
 			var frameCount:uint = frameXMLList.length();
-			var _frameNode:Node = new Node;
-			var _parentFrameData:FrameData = new FrameData;
-			var _tweenFrameData:FrameData = new FrameData;
-			var _helpMatrix:Matrix = new Matrix;
-			var _helpPoint:Point = new Point;
+			var frameNode:Node = new Node;
+			var parentFrameData:FrameData = new FrameData;
+			var tweenFrameData:FrameData = new FrameData;
+			var helpMatrix:Matrix = new Matrix;
+			var helpPoint:Point = new Point;
 			
 			for (var j:int = 0; j < frameCount; j++)
 			{
 				var frameData:FrameData = movementBoneData.getFrameDataAt(j);
 				
 				//目标的动画坐标为目标骨架坐标 +关键帧相对坐标
-				_frameNode.x = _boneData.x + frameData.x;
-				_frameNode.y = _boneData.y + frameData.y;
-				_frameNode.skewX = _boneData.skewX + frameData.skewX;
-				_frameNode.skewY = _boneData.skewY + frameData.skewY;
-				_frameNode.scaleX = _boneData.scaleX + frameData.scaleX;
-				_frameNode.scaleY = _boneData.scaleY + frameData.scaleY;
-				_frameNode.pivotX = _boneData.pivotX + frameData.pivotX;
-				_frameNode.pivotY = _boneData.pivotY + frameData.pivotY;
+				frameNode.x = boneData.node.x + frameData.node.x;
+				frameNode.y = boneData.node.y + frameData.node.y;
+				frameNode.skewX = boneData.node.skewX + frameData.node.skewX;
+				frameNode.skewY = boneData.node.skewY + frameData.node.skewY;
+				frameNode.scaleX = boneData.node.scaleX + frameData.node.scaleX;
+				frameNode.scaleY = boneData.node.scaleY + frameData.node.scaleY;
+				frameNode.pivotX = boneData.node.pivotX + frameData.node.pivotX;
+				frameNode.pivotY = boneData.node.pivotY + frameData.node.pivotY;
 				
 				//如果有从属关系
 				if (parentMovementBoneXML)
@@ -726,7 +727,7 @@ package model
 						currentDuration = int(parentFrameXML.attribute(ConstValues.A_DURATION));
 						i++;
 					}
-					XMLDataParser.parseFrameData(parentFrameXML, _parentFrameData);
+					XMLDataParser.parseFrameData(parentFrameXML, parentFrameData);
 					
 					//找到父级动画的下一个关键帧，并计算补间进度，因为动画的关键帧可能不是一一对应的
 					var tweenFrameXML:XML = parentFrameXMLList[i];
@@ -740,38 +741,43 @@ package model
 						tweenFrameXML = parentFrameXML;
 						progress = 0;
 					}
-					XMLDataParser.parseFrameData(tweenFrameXML, _tweenFrameData);
+					XMLDataParser.parseFrameData(tweenFrameXML, tweenFrameData);
+					
+					progress = Tween.getEaseValue(progress, parentFrameData.tweenEasing);
 					
 					//将两个XML转成的node计算出补间关键点，再转换为矩阵
-					var parentNode:Node = TransformUtils.getTweenNode(_parentFrameData, _tweenFrameData, progress, _parentFrameData.tweenEasing);
-					TransformUtils.nodeToMatrix(parentNode, _helpMatrix);
+					
+					var parentNode:Node = new Node();
+					TransformUtils.setOffSetNode(parentFrameData.node, tweenFrameData.node, parentNode, tweenFrameData.tweenRotate);
+					TransformUtils.setTweenNode(parentFrameData.node, parentNode, parentNode, progress);
+					
+					TransformUtils.nodeToMatrix(parentNode, helpMatrix);
 					
 					//坐标变换
-					_helpPoint.x = _frameNode.x;
-					_helpPoint.y = _frameNode.y;
-					_helpPoint = _helpMatrix.transformPoint(_helpPoint);
-					_frameNode.x = _helpPoint.x;
-					_frameNode.y = _helpPoint.y;
-					_frameNode.skewX += _parentFrameData.skewX;
-					_frameNode.skewY += _parentFrameData.skewY;
+					helpPoint.x = frameNode.x;
+					helpPoint.y = frameNode.y;
+					helpPoint = helpMatrix.transformPoint(helpPoint);
+					frameNode.x = helpPoint.x;
+					frameNode.y = helpPoint.y;
+					frameNode.skewX += parentFrameData.node.skewX;
+					frameNode.skewY += parentFrameData.node.skewY;
 				}
 				
 				//写入关键帧坐标
 				var frameXML:XML = frameXMLList[j];
 				totalDuration += int(frameXML.attribute(ConstValues.A_DURATION));
-				frameXML.@[ConstValues.A_X] = _frameNode.x;
-				frameXML.@[ConstValues.A_Y] = _frameNode.y;
-				frameXML.@[ConstValues.A_SKEW_X] = _frameNode.skewX * 180 / Math.PI;
-				frameXML.@[ConstValues.A_SKEW_Y] = _frameNode.skewY * 180 / Math.PI;
-				frameXML.@[ConstValues.A_SCALE_X] = _frameNode.scaleX;
-				frameXML.@[ConstValues.A_SCALE_Y] = _frameNode.scaleY;
-				frameXML.@[ConstValues.A_PIVOT_X] = _frameNode.pivotX;
-				frameXML.@[ConstValues.A_PIVOT_Y] = _frameNode.pivotY;
+				frameXML.@[ConstValues.A_X] = frameNode.x;
+				frameXML.@[ConstValues.A_Y] = frameNode.y;
+				frameXML.@[ConstValues.A_SKEW_X] = frameNode.skewX * 180 / Math.PI;
+				frameXML.@[ConstValues.A_SKEW_Y] = frameNode.skewY * 180 / Math.PI;
+				frameXML.@[ConstValues.A_SCALE_X] = frameNode.scaleX;
+				frameXML.@[ConstValues.A_SCALE_Y] = frameNode.scaleY;
+				frameXML.@[ConstValues.A_PIVOT_X] = frameNode.pivotX;
+				frameXML.@[ConstValues.A_PIVOT_Y] = frameNode.pivotY;
 				boneFramesContainer.appendChild(frameXML);
 			}
-		
+			
 		}
-		
 		
 		
 		//for internal use

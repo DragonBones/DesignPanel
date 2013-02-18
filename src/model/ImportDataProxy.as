@@ -245,7 +245,7 @@
 				{
 					var boneData:BoneData = _skeletonData.getArmatureData(armatureName).getBoneData(boneName);
 					var bone:Bone = armature.getBone(boneName);
-					bone._origin.copy(boneData);
+					bone.origin.copy(boneData.node);
 					armature.addBone(bone, boneData.parent);
 				}
 				for each(bone in armature._boneDepthList)
