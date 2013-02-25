@@ -12,6 +12,7 @@
 	</fx:Declarations>
 	<fx:Script>
 		<![CDATA[
+			import control.ImportCommand;
 			import control.LoadFileDataCommand;
 			
 			import dragonBones.utils.ConstValues;
@@ -37,46 +38,21 @@
 			
 			private var _alert:Alert;
 			
-			[Bindable]
-			private var _aboutXML:XML;
-			
-			private function updateAbout():XML
-			{
-				var xml:XML = 
-				<root>
-					<br/>
-					<b>DragonBones Version {ConstValues.VERSION}</b>
-					<br/>
-					<br/>
-					<a href="http://dragonbones.github.com/">http://dragonbones.github.com/</a>
-					<br/>
-					<br/>
-					<a href="mailto:dragonbonesteam@gmail.com">{resourceManager.getString('resources', 'contactUsBy', ['dragonbonesteam@gmail.com'])}</a>
-					<br/>
-					<br/>
-					{resourceManager.getString('resources', 'copyright')}
-				</root>
-				return xml;
-			}
-			
 			private function addedToStageHandler():void
 			{	
 				skeletonDropDownList.dataProvider = _importDataProxy.armaturesMC;
 				skeletonDropDownList.addEventListener(IndexChangeEvent.CHANGE, skeletonDropDownList_onChange);
 				//XML.prettyIndent = -1;
 				
-				MessageDispatcher.addEventListener(MessageDispatcher.SETTING_DATA_CHANGE, settingHandler);
-				
 				MessageDispatcher.addEventListener(MessageDispatcher.LOAD_FLADATA, commandHandler);
-				MessageDispatcher.addEventListener(MessageDispatcher.CHANGE_ARMATURE_DATA, commandHandler);
 				MessageDispatcher.addEventListener(MessageDispatcher.LOAD_ARMATURE_DATA, commandHandler);
 				MessageDispatcher.addEventListener(MessageDispatcher.LOAD_TEXTURE_DATA, commandHandler);
-				MessageDispatcher.addEventListener(MessageDispatcher.LOAD_SWF_COMPLETE, commandHandler);
 				
 				MessageDispatcher.addEventListener(MessageDispatcher.LOAD_FILEDATA, commandHandler);
 				MessageDispatcher.addEventListener(MessageDispatcher.LOAD_FILEDATA_ERROR, commandHandler);
 				MessageDispatcher.addEventListener(MessageDispatcher.LOAD_FILEDATA_PROGRESS, commandHandler);
-				MessageDispatcher.addEventListener(MessageDispatcher.LOAD_FILEDATA_COMPLETE, commandHandler);
+				
+				MessageDispatcher.addEventListener(MessageDispatcher.IMPORT_COMPLETE, commandHandler);
 				
 				MessageDispatcher.addEventListener(MessageDispatcher.EXPORT, commandHandler);
 				MessageDispatcher.addEventListener(MessageDispatcher.EXPORT_CANCEL, commandHandler);
@@ -87,6 +63,7 @@
 				MessageDispatcher.addEventListener(MessageDispatcher.UPDATE_MOVEMENT_BONE_DATA, commandHandler);
 				MessageDispatcher.addEventListener(MessageDispatcher.UPDATE_BONE_PARENT, commandHandler);
 				
+				MessageDispatcher.addEventListener(MessageDispatcher.CHANGE_ARMATURE_DATA, commandHandler);
 				MessageDispatcher.addEventListener(MessageDispatcher.CHANGE_MOVEMENT_DATA, commandHandler);
 				
 				MessageDispatcher.addEventListener(MessageDispatcher.MOVEMENT_CHANGE, commandHandler);
@@ -112,18 +89,6 @@
 				var armatureXML:XML = skeletonDropDownList.selectedItem as XML;
 				var armatureName:String = armatureXML?armatureXML.attribute(ConstValues.A_NAME):"";
 				_importDataProxy.armatureDataProxy.setData(_importDataProxy.getArmatureXMLByName(armatureName));
-			}
-			
-			private function settingHandler(e:Message):void
-			{
-				var settingID:String = e.parameters[0];
-				var value:Object = e.parameters[1];
-				switch(settingID)
-				{
-					case SettingDataProxy.LANGUAGE_ID:
-						_aboutXML = updateAbout();
-						break;
-				}
 			}
 			
 			private function commandHandler(e:Message):void
@@ -187,13 +152,9 @@
 					case MessageDispatcher.SAVE_ANIMATION_COMPLETE:
 						clearAlert();
 						break;
-					case MessageDispatcher.LOAD_SWF_COMPLETE:
+					case MessageDispatcher.IMPORT_COMPLETE:
 						clearAlert();
-						_importDataProxy.setData(e.parameters[0], e.parameters[1], e.parameters[2], e.parameters[3], false);
-						break;
-					case MessageDispatcher.LOAD_FILEDATA_COMPLETE:
-						clearAlert();
-						_importDataProxy.setData(e.parameters[0], e.parameters[1], e.parameters[2], e.parameters[3], true);
+						_importDataProxy.setData(e.parameters[0], e.parameters[1], e.parameters[2], e.parameters[3]);
 						break;
 					case MessageDispatcher.EXPORT:
 						_alert = Alert.show(resourceManager.getString('resources', 'exportWaitting'));
@@ -291,6 +252,16 @@
 					_alert = null;
 				}
 			}
+			
+			private function updateCurrentArmature():void
+			{
+				if(_importDataProxy.skeletonData)
+				{
+					var armatureNames:Vector.<String> = new Vector.<String>;
+					armatureNames.push(_importDataProxy.armatureDataProxy.armatureName);
+					ImportCommand.instance.importFLAData(true, false, armatureNames);
+				}
+			}
 		]]>
 	</fx:Script>
 	<fx:Metadata>
@@ -333,10 +304,12 @@
 		
 		<s:VGroup width="100%" height="100%">
 			<s:HGroup width="100%" verticalAlign="middle">
-				<s:Label text="{resourceManager.getString('resources','skeleton')}" fontWeight="bold" />
+				<s:Label text="{resourceManager.getString('resources','skeleton')}" fontWeight="bold"/>
 				<s:DropDownList id="skeletonDropDownList" width="100%"
 								labelField="{ConstValues.AT + ConstValues.A_NAME}"/>
-				<s:Button label="Update"/>
+				<s:Button label="Update" 
+						  enabled="{ImportDataProxy.getInstance().skeletonData != null}"
+						  click="updateCurrentArmature()"/>
 				<s:Button label="Remove"/>
 			</s:HGroup>
 			<mx:HDividedBox width="100%" height="100%">

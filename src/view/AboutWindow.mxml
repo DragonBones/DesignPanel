@@ -5,7 +5,7 @@
 					  xmlns:components="view.components.*"
 					  xmlns:view="view.*"
 					  width="100%" height="100%" backgroundAlpha="0.5" backgroundColor="#CCCCCC"
-					  creationComplete="this_creationCompleteHandler(event)">
+					  show="showHandler(event)">
 	<fx:Declarations>
 		<!-- Place non-visual elements (e.g., services, value objects) here -->
 	</fx:Declarations>
@@ -13,35 +13,40 @@
 		<![CDATA[
 			import dragonBones.utils.ConstValues;
 			
-			import model.ImportDataProxy;
-			
-			import mx.events.CloseEvent;
-			import mx.events.FlexEvent;
-
 			[Bindable]
 			private var _aboutXML:XML;
 			
-			private function this_creationCompleteHandler(event:Event):void
+			private function showHandler(event:Event):void
 			{
-				_aboutXML = 
-					<root>
-						<b>DragonBones Version {ConstValues.VERSION}</b>
-						<br/>
-						<a href="http://dragonbones.github.com/">http://dragonbones.github.com/</a>
-						<br/>
-						<a href="mailto:dragonbonesteam@gmail.com">{resourceManager.getString('resources', 'contactUsBy', ['dragonbonesteam@gmail.com'])}</a>
-						<br/>
-						{resourceManager.getString('resources', 'copyright')}
-					</root>;
+				_aboutXML = updateAbout();
 			}
 			
-			protected function titlewindow_closeHandler(event:CloseEvent):void
+			protected function closeHandler(event:Event):void
 			{
 				this.visible = false;
 			}
+			
+			private function updateAbout():XML
+			{
+				var xml:XML = 
+					<root>
+						<br/>
+						<b>DragonBones Version {ConstValues.VERSION}</b>
+						<br/>
+						<br/>
+						<a href="http://dragonbones.github.com/">http://dragonbones.github.com/</a>
+						<br/>
+						<br/>
+						<a href="mailto:dragonbonesteam@gmail.com">{resourceManager.getString('resources', 'contactUsBy', ['dragonbonesteam@gmail.com'])}</a>
+						<br/>
+						<br/>
+						{resourceManager.getString('resources', 'copyright')}
+					</root>
+				return xml;
+			}
 		]]>
 	</fx:Script>
-	<s:TitleWindow left="20" right="20" top="20" bottom="20" title="{resourceManager.getString('resources','about')}" close="titlewindow_closeHandler(event)">
+	<s:TitleWindow left="20" right="20" top="20" bottom="20" title="{resourceManager.getString('resources','about')}" close="closeHandler(event)">
 		<mx:TextArea id="aboutText" htmlText="{_aboutXML}" left="2" right="2" top="2" bottom="2" borderColor="#000000" editable="false"/>
 	</s:TitleWindow>
 </s:SkinnableContainer>

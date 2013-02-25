@@ -19,9 +19,9 @@
 			
 			private function this_showHandler(event:Event):void
 			{
-				if(_importDataProxy.skeletonXML)
+				if(_importDataProxy.skeletonXMLProxy)
 				{
-					txtXML.text = _importDataProxy.skeletonXML;
+					txtXML.text = _importDataProxy.skeletonXMLProxy.skeletonXML;
 				}
 			}
 			

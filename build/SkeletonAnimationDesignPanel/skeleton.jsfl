@@ -782,7 +782,7 @@ function addFrameToMovementBone(_frameXML, _start, _duration, _movementBoneXML){
 	_movementBoneXML.appendChild(_frameXML);
 }
 
-dragonBones.getArmatureList = function(_isSelected){
+dragonBones.getArmatureList = function(_isSelected, armatureNames){
 	fl.outputPanel.clear();
 	currentDom = fl.getDocumentDOM();
 	if(errorDOM()){
@@ -798,7 +798,29 @@ dragonBones.getArmatureList = function(_isSelected){
 	
 	currentDomName = currentDom.name.split(".")[0];
 	
-	var _items = _isSelected?currentDom.library.getSelectedItems():currentDom.library.items;
+	if(armatureNames)
+	{
+		armatureNames = armatureNames.split(",");
+		var armatureLength = armatureNames.length;
+	}
+	
+	if(armatureLength > 0)
+	{
+		var _items = [];
+		for each(var armatureName in armatureNames)
+		{
+			var _item = currentDom.library.items[currentDom.library.findItemIndex(armatureName)];
+			if(_item)
+			{
+				_items.push(_item);
+			}
+		}
+	}
+	else
+	{
+		var _items = _isSelected?currentDom.library.getSelectedItems():currentDom.library.items;
+	}
+	
 	var _xml = <{ARMATURES} {A_NAME}={currentDomName}/>;
 	for each(var _item in _items){
 		if(isArmatureItem(_item)){
@@ -866,6 +888,7 @@ dragonBones.clearTextureSWFItem = function(){
 	_timeline.removeFrames(0, _timeline.frameCount);
 	_timeline.insertBlankKeyframe(0);
 	_timeline.insertBlankKeyframe(1);
+	return <{TEXTURE_ATLAS} {A_NAME}={currentDomName}/>.toXMLString();
 }
 
 dragonBones.addTextureToSWFItem = function(_textureName, _isLast){

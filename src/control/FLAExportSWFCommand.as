@@ -1,14 +1,10 @@
 package control
 {
-	import flash.display.Loader;
-	import flash.display.LoaderInfo;
-	import flash.display.MovieClip;
 	import flash.events.Event;
 	import flash.events.IOErrorEvent;
 	import flash.net.URLLoader;
 	import flash.net.URLLoaderDataFormat;
 	import flash.net.URLRequest;
-	import flash.system.LoaderContext;
 	import flash.utils.ByteArray;
 	
 	import makeswfs.make;
@@ -23,7 +19,6 @@ package control
 		public static const instance:FLAExportSWFCommand = new FLAExportSWFCommand();
 		
 		private var _urlLoader:URLLoader;
-		private var _loaderContext:LoaderContext;
 		
 		private var _textureAtlasXML:XML;
 		private var _textureBytes:ByteArray;
@@ -32,9 +27,6 @@ package control
 		{
 			_urlLoader = new URLLoader();
 			_urlLoader.dataFormat = URLLoaderDataFormat.BINARY;
-			
-			_loaderContext = new LoaderContext(false)
-			_loaderContext.allowCodeImport = true;
 		}
 		
 		public function exportSWF(textureAtlasXML:XML):void
@@ -69,22 +61,9 @@ package control
 				case Event.COMPLETE:
 					_textureBytes = make(_urlLoader.data, _textureAtlasXML);
 					
-					var loader:Loader = new Loader();
-					loader.contentLoaderInfo.addEventListener(Event.COMPLETE, loaderCompleteHandler);
-					loader.loadBytes(_textureBytes, _loaderContext);
+					MessageDispatcher.dispatchEvent(MessageDispatcher.FLA_TEXTURE_ATLAS_SWF_LOADED, _textureBytes);
 					break;
 			}
-		}
-		
-		private function loaderCompleteHandler(e:Event):void
-		{
-			var loaderInfo:LoaderInfo = e.target as LoaderInfo;
-			loaderInfo.removeEventListener(Event.COMPLETE, loaderCompleteHandler);
-			
-			var content:MovieClip = (loaderInfo.content as MovieClip).getChildAt(0) as MovieClip;
-			content.stop();
-			
-			MessageDispatcher.dispatchEvent(MessageDispatcher.FLA_TEXTURE_ATLAS_SWF_LOADED, content, _textureBytes);
 		}
 	}
 }

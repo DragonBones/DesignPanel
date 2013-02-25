@@ -19,10 +19,6 @@
 	
 	import mx.collections.XMLListCollection;
 	
-	import utils.GlobalConstValues;
-	import utils.TextureUtil;
-	import utils.movePivotToSkeleton;
-	
 	use namespace dragonBones_internal;
 	
 	[Bindable]
@@ -59,7 +55,6 @@
 		
 		public var armaturesMC:XMLListCollection;
 		
-		public var isTextureChanged:Boolean;
 		public var isExportedSource:Boolean;
 		
 		private var _armaturesXMLList:XMLList;
@@ -68,24 +63,13 @@
 		
 		public function get skeletonName():String
 		{
-			return _skeletonXML?_skeletonXML.attribute(ConstValues.A_NAME):"";
+			return _skeletonData?_skeletonData.name:"";
 		}
 		
-		public function get frameRate():int
+		private var _skeletonXMLProxy:SkeletonXMLProxy;
+		public function get skeletonXMLProxy():SkeletonXMLProxy
 		{
-			return int(_skeletonXML.attribute(ConstValues.A_FRAME_RATE));
-		}
-		
-		private var _skeletonXML:XML;
-		public function get skeletonXML():XML
-		{
-			return _skeletonXML;
-		}
-		
-		private var _textureAtlasXML:XML;
-		public function get textureAtlasXML():XML
-		{
-			return _textureAtlasXML;
+			return _skeletonXMLProxy;
 		}
 		
 		private var _armatureDataProxy:ArmatureDataProxy;
@@ -116,7 +100,11 @@
 			return _textureAtlas;
 		}
 		
-		public var textureBytes:ByteArray;
+		private var _textureBytes:ByteArray;
+		public function get textureBytes():ByteArray
+		{
+			return _textureBytes;
+		}
 		
 		private var _armature:Armature;
 		public function get armature():Armature
@@ -137,7 +125,7 @@
 			_baseFactory = new BaseFactory();
 		}
 		
-		public function setData(skeletonXML:XML, textureAtlasXML:XML, textureData:Object, textureBytes:ByteArray, isExportedSource:Boolean):void
+		public function setData(skeletonXMLProxy:SkeletonXMLProxy, textureBytes:ByteArray, textureData:Object, isExportedSource:Boolean):void
 		{
 			disposeArmature();
 			
@@ -153,29 +141,27 @@
 				_textureAtlas.dispose();
 			}
 			
-			isTextureChanged = false;
-			
-			_skeletonXML = skeletonXML;
-			_textureAtlasXML = textureAtlasXML;
-			this.textureBytes = textureBytes;
+			_skeletonXMLProxy = skeletonXMLProxy;
+			_textureBytes = textureBytes;
 			this.isExportedSource = isExportedSource;
 			
-			movePivotToSkeleton(_skeletonXML, _textureAtlasXML);
+			_skeletonXMLProxy.movePivotToSkeleton();
 			
-			_armaturesXMLList = _skeletonXML.elements(ConstValues.ARMATURES).elements(ConstValues.ARMATURE);
-			_animationsXMLList = _skeletonXML.elements(ConstValues.ANIMATIONS).elements(ConstValues.ANIMATION);
+			_armaturesXMLList = SkeletonXMLProxy.getArmatureXMLList(_skeletonXMLProxy.skeletonXML);
+			_animationsXMLList = SkeletonXMLProxy.getAnimationXMLList(_skeletonXMLProxy.skeletonXML);
 			
 			armaturesMC.source = _armaturesXMLList;
 			
-			skeletonData = XMLDataParser.parseSkeletonData(skeletonXML);
-			_textureAtlas = new NativeTextureAtlas(textureData, textureAtlasXML)
+			skeletonData = XMLDataParser.parseSkeletonData(_skeletonXMLProxy.skeletonXML);
+			_textureAtlas = new NativeTextureAtlas(textureData, _skeletonXMLProxy.textureAtlasXML)
 			_textureAtlas.movieClipToBitmapData();
 			_baseFactory.addSkeletonData(_skeletonData);
 			_baseFactory.addTextureAtlas(_textureAtlas);
 			
 			MessageDispatcher.dispatchEvent(MessageDispatcher.CHANGE_IMPORT_DATA, skeletonName);
 			
-			armatureDataProxy.setData(getArmatureXMLByName());
+			
+			armatureDataProxy.setData(getArmatureXMLByName(armatureDataProxy.armatureName));
 		}
 		
 		public function changeRenderArmature(armatureName:String):void
@@ -192,17 +178,6 @@
 		public function render():void
 		{
 			WorldClock.update();
-		}
-		
-		public function updateTextures():void
-		{
-			if(isExportedSource || !skeletonName)
-			{
-				return;
-			}
-			TextureUtil.packTextures(SettingDataProxy.getInstance().textureMaxWidth, SettingDataProxy.getInstance().texturePadding, textureAtlasXML);
-			JSFLProxy.getInstance().packTextures(textureAtlasXML);
-			isTextureChanged = true;
 		}
 		
 		public function getArmatureXMLByName(name:String = null):XML

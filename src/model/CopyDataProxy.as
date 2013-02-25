@@ -1,8 +1,8 @@
 package model
 {
 	import dragonBones.Armature;
-	import dragonBones.animation.WorldClock;
 	import dragonBones.animation.Tween;
+	import dragonBones.animation.WorldClock;
 	import dragonBones.factorys.BaseFactory;
 	import dragonBones.objects.AnimationData;
 	import dragonBones.objects.BoneData;
@@ -213,7 +213,7 @@ package model
 		{
 			copyArmaturesData = ImportDataProxy.getInstance().armaturesMC.source.copy();
 			
-			var behaviors:XMLList = ImportDataProxy.getInstance().skeletonXML[ConstValues.ANIMATIONS][ConstValues.ANIMATION].copy();
+			var behaviors:XMLList = SkeletonXMLProxy.getAnimationXMLList(ImportDataProxy.getInstance().skeletonXMLProxy.skeletonXML);
 			//add original flag
 			for each (var mov:XML in behaviors[ConstValues.MOVEMENT])
 				mov.@original = true;
@@ -230,7 +230,7 @@ package model
 				armature.appendChild(boneTree);
 			}
 			
-			_copySkeletonXML = ImportDataProxy.getInstance().skeletonXML.copy();
+			_copySkeletonXML = ImportDataProxy.getInstance().skeletonXMLProxy.skeletonXML.copy();
 			_copyFactory = new BaseFactory();
 			_copyFactory.addTextureAtlas(ImportDataProxy.getInstance().textureAtlas);
 			
@@ -288,13 +288,13 @@ package model
 			for each (var armatureXML:XML in copyArmaturesData)
 			{
 				var armatureName:String = armatureXML.@[ConstValues.A_NAME];
-				var sourceBones:XML = ImportDataProxy.getInstance().skeletonXML[ConstValues.ARMATURES][ConstValues.ARMATURE].(@[ConstValues.A_NAME] == armatureName)[0];
+				var sourceBones:XML = ImportDataProxy.getInstance().skeletonXMLProxy.getArmatureXML(armatureName);
 				var destinationBones:XML = _copySkeletonXML[ConstValues.ARMATURES][ConstValues.ARMATURE].(@[ConstValues.A_NAME] == armatureName)[0];
 				if (sourceBones != destinationBones)
 				{
 					trace(armatureName, " bone changed");
 				}
-				var sourceBehaviors:XML = ImportDataProxy.getInstance().skeletonXML[ConstValues.ANIMATIONS][ConstValues.ANIMATION].(@[ConstValues.A_NAME] == armatureName)[0];
+				var sourceBehaviors:XML = ImportDataProxy.getInstance().skeletonXMLProxy.getAnimationXML(armatureName);
 				var destinationBehaviors:XML = _copySkeletonXML[ConstValues.ANIMATIONS][ConstValues.ANIMATION].(@[ConstValues.A_NAME] == armatureName)[0];
 				if (sourceBehaviors != destinationBehaviors)
 				{
@@ -704,7 +704,7 @@ package model
 			
 			for (var j:int = 0; j < frameCount; j++)
 			{
-				var frameData:FrameData = movementBoneData.getFrameDataAt(j);
+				var frameData:FrameData = movementBoneData._frameList[j];
 				
 				//目标的动画坐标为目标骨架坐标 +关键帧相对坐标
 				frameNode.x = boneData.node.x + frameData.node.x;

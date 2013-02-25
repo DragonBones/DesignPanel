@@ -7,8 +7,7 @@
 			   >
 	<fx:Script>
 		<![CDATA[
-			import control.LoadFLADataCommand;
-			import control.LoadFileDataCommand;
+			import control.ImportCommand;
 			
 			import message.Message;
 			import message.MessageDispatcher;
@@ -26,13 +25,13 @@
 				switch(SettingDataProxy.getInstance().dataImportID)
 				{
 					case 0:
-						LoadFLADataCommand.instance.load(false);
+						ImportCommand.instance.importFLAData(false, false);
 						break;
 					case 1:
-						LoadFLADataCommand.instance.load(true);
+						ImportCommand.instance.importFLAData(false, true);
 						break;
 					case 2:
-						LoadFileDataCommand.instance.load();
+						ImportCommand.instance.importFileData(false);
 						break;
 				}
 			}
@@ -84,15 +83,13 @@
 							enabled="{!ImportDataProxy.getInstance().isExportedSource}"
 							selectedIndex="@{SettingDataProxy.getInstance().textureSortID}"
 							/>
-			<s:DropDownList width="100%" height="24"
-							change="{ImportDataProxy.getInstance().updateTextures()}" cornerRadius="0" textAlign="right"
+			<s:DropDownList width="100%" height="24" cornerRadius="0" textAlign="right"
 							dataProvider="{SettingDataProxy.getInstance().textureMaxWidthArrayCollection}"
 							enabled="{SettingDataProxy.getInstance().textureSortID == 0 &amp;&amp; !ImportDataProxy.getInstance().isExportedSource}"
 							selectedIndex="@{SettingDataProxy.getInstance().textureMaxWidthID}"
 							/>
 			<s:NumericStepper width="100%" height="24" textAlign="right" cornerRadius="0"
 							  maximum="100" minimum="0"
-							  change="{ImportDataProxy.getInstance().updateTextures()}"
 							  enabled="{SettingDataProxy.getInstance().textureSortID == 0 &amp;&amp; !ImportDataProxy.getInstance().isExportedSource}"
 							  value="@{SettingDataProxy.getInstance().texturePadding}"
 							  />

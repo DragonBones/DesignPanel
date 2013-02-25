@@ -506,11 +506,6 @@
 			}
 		]]>
 	</fx:Script>
-	<s:Rect width="100%" height="100%">
-		<s:stroke>
-			<s:SolidColorStroke color="0x000000" weight="1"/>
-		</s:stroke>
-	</s:Rect>
 	<s:Scroller id="scrollerViewer" width="100%" height="100%" horizontalScrollPolicy="off" verticalScrollPolicy="off">
 		<s:Group>
 			<s:Group id="viewContainerGroup">
@@ -528,4 +523,9 @@
 				   />
 		<s:Button id="btnZoomIn" width="32" label="＋"/>
 	</s:HGroup>
+	<s:Rect width="100%" height="100%">
+		<s:stroke>
+			<s:SolidColorStroke color="0x000000" weight="1"/>
+		</s:stroke>
+	</s:Rect>
 </s:Group>

@@ -329,9 +329,13 @@
 		/**
 		 * Get armatures from current fla file's library
 		 */
-		public function getArmatureList(isSelected:Boolean):void
+		public function getArmatureList(isSelected:Boolean, armatureNames:Vector.<String> = null):void
 		{
-			runJSFLMethod(GET_ARMATURE_LIST, "dragonBones.getArmatureList", isSelected);
+			if(!armatureNames)
+			{
+				armatureNames = new Vector.<String>;
+			}
+			runJSFLMethod(GET_ARMATURE_LIST, "dragonBones.getArmatureList", isSelected, armatureNames);
 		}
 		
 		/**

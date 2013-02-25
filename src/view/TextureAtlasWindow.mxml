@@ -17,20 +17,19 @@
 
 			private var _importDataProxy:ImportDataProxy = ImportDataProxy.getInstance();
 			
+			private var bitmap:Bitmap = new Bitmap();
+			
 			private function this_showHandler(event:Event):void
 			{
-				/*
-				if(_importDataProxy.te)
+				
+				if(_importDataProxy.textureAtlas)
 				{
-					if(textureContainer.numChildren > 0)
-					{
-						textureContainer.removeChildAt(0);
-					}
-					textureContainer.addChild(_importDataProxy.textureData.bitmap);
-					//textureContainerGroup.width = _importDataProxy.textureData.bitmap.width;
-					//textureContainerGroup.height = _importDataProxy.textureData.bitmap.height;
+					bitmap.bitmapData = _importDataProxy.textureAtlas.bitmapData;
+					textureContainer.addChild(bitmap);
+					textureContainerGroup.width = bitmap.width;
+					textureContainerGroup.height = bitmap.height;
 				}
-				*/
+				
 			}
 			
 			protected function titlewindow_closeHandler(event:CloseEvent):void
@@ -43,7 +42,9 @@
 	<s:TitleWindow left="20" right="20" top="20" bottom="20" title="{resourceManager.getString('resources','textureAtlas')}" close="titlewindow_closeHandler(event)">
 		<s:Scroller width="100%" height="100%">
 			<s:Group>
-				<mx:UIComponent id="textureContainer"/>
+				<s:Group id="textureContainerGroup">
+					<mx:UIComponent id="textureContainer"/>
+				</s:Group>
 			</s:Group>
 		</s:Scroller>
 	</s:TitleWindow>

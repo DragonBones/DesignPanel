@@ -52,13 +52,13 @@
 			{
 				return -1;
 			}
-			return int(_movementXML.attribute(ConstValues.A_DURATION_TO)) / ImportDataProxy.getInstance().frameRate;
+			return int(_movementXML.attribute(ConstValues.A_DURATION_TO)) / ImportDataProxy.getInstance().skeletonData.frameRate;
 		}
 		public function set durationTo(value:Number):void
 		{
 			if(_movementXML)
 			{
-				_movementXML.@[ConstValues.A_DURATION_TO] = Math.round(value * ImportDataProxy.getInstance().frameRate);
+				_movementXML.@[ConstValues.A_DURATION_TO] = Math.round(value * ImportDataProxy.getInstance().skeletonData.frameRate);
 				updateMovement();
 			}
 		}
@@ -69,13 +69,13 @@
 			{
 				return -1;
 			}
-			return int(_movementXML.attribute(ConstValues.A_DURATION_TWEEN)) / ImportDataProxy.getInstance().frameRate;
+			return int(_movementXML.attribute(ConstValues.A_DURATION_TWEEN)) / ImportDataProxy.getInstance().skeletonData.frameRate;
 		}
 		public function set durationTween(value:Number):void
 		{
 			if(_movementXML)
 			{
-				_movementXML.@[ConstValues.A_DURATION_TWEEN] = Math.round(value * ImportDataProxy.getInstance().frameRate);
+				_movementXML.@[ConstValues.A_DURATION_TWEEN] = Math.round(value * ImportDataProxy.getInstance().skeletonData.frameRate);
 				updateMovement();
 			}
 		}

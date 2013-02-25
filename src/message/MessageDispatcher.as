@@ -12,13 +12,15 @@ package message
 		static public const LOAD_ARMATURE_DATA_COMPLETE:String = "loadSkeletonDataComplete";
 		static public const LOAD_TEXTURE_DATA_COMPLETE:String = "loadTextureDataComplete";
 		static public const LOAD_TEXTURE_DATA:String = "loadTextureData";
-		static public const LOAD_SWF:String = "loadSwf";
-		static public const LOAD_SWF_COMPLETE:String = "loadSwfComplete";
+		static public const LOAD_FLA_COMPLETE:String = "loadFLAComplete";
 		
 		static public const LOAD_FILEDATA:String = "loadFiledata";
 		static public const LOAD_FILEDATA_ERROR:String = "loadFiledataError";
 		static public const LOAD_FILEDATA_PROGRESS:String = "loadFiledataProgress";
 		static public const LOAD_FILEDATA_COMPLETE:String = "loadFiledataComplete";
+		
+		static public const MERGE_BITMAPDATA_COMPLETE:String = "mergeBitmapDataComplete";
+		static public const IMPORT_COMPLETE:String = "importComplete";
 		
 		static public const SAVE_ANIMATION_START:String = "saveAnimationStart";
 		static public const SAVE_ANIMATION_ERROR:String = "saveAnimationError";
