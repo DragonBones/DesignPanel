@@ -44,6 +44,7 @@ var A_TWEEN_ROTATE_ ="twR_";
 var A_TWEEN_ROTATE ="twR";
 var A_IS_ARMATURE = "isArmature";
 var A_MOVEMENT = "mov";
+var A_VISIBLE = "visible";
 
 var A_WIDTH = "width";
 var A_HEIGHT = "height";
@@ -67,6 +68,7 @@ var V_SOUND_RIGHT_TO_LEFT = "rl";
 var V_SOUND_FADE_IN = "in";
 var V_SOUND_FADE_OUT = "out";
 
+var SYMBOL = "symbol";
 var MOVIE_CLIP = "movie clip";
 var GRAPHIC = "graphic";
 var BITMAP = "bitmap";
@@ -635,12 +637,10 @@ function generateFrame(_frame, _boneName, _symbol, _z, _noAutoEasing){
 	
 	if(_symbol.visible === false)
 	{
-		_frameXML.@[A_DISPLAY_INDEX] = -1;
+		_frameXML.@[A_VISIBLE] = 0;
 	}
-	else
-	{
-		_frameXML.@[A_DISPLAY_INDEX] = _displayXML.childIndex();
-	}
+	
+	_frameXML.@[A_DISPLAY_INDEX] = _displayXML.childIndex();
 	
 	if(_isArmature){
 		var _backupArmatureXML = armatureXML;
@@ -913,10 +913,21 @@ dragonBones.addTextureToSWFItem = function(_textureName, _isLast){
 		trace("内存不足导致放置贴图失败！请尝试重新导入。");
 		return false;
 	}
-	
-	if(_symbol.symbolType != MOVIE_CLIP){
-		_symbol.symbolType = MOVIE_CLIP;
+	switch(_symbol.instanceType)
+	{
+		case SYMBOL:
+			if(_symbol.symbolType != MOVIE_CLIP)
+			{
+				_symbol.symbolType = MOVIE_CLIP
+			}
+			break;
+		case BITMAP:
+			var bitmapItem = _symbol.libraryItem;
+			bitmapItem.linkageExportForAS = true;
+			bitmapItem.linkageClassName = bitmapItem.name;
+			break;
 	}
+	
 	var _subTextureXML = <{SUB_TEXTURE} {A_NAME}={_textureName}/>;
 	_subTextureXML.@[A_PIVOT_X] = formatNumber(_symbol.x - _symbol.left);
 	_subTextureXML.@[A_PIVOT_Y] = formatNumber(_symbol.y - _symbol.top);

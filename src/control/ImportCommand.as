@@ -2,6 +2,7 @@ package control
 {
 	import dragonBones.utils.BytesType;
 	
+	import flash.display.Bitmap;
 	import flash.display.BitmapData;
 	import flash.display.Loader;
 	import flash.display.LoaderInfo;
@@ -15,6 +16,8 @@ package control
 	
 	import model.ImportDataProxy;
 	import model.SkeletonXMLProxy;
+	
+	import modifySWF.combine;
 	
 	import utils.PNGEncoder;
 	import utils.mergeBitmapData;
@@ -76,6 +79,11 @@ package control
 						{
 							case BytesType.SWF:
 								//mergeSWF
+								ImportDataProxy.getInstance().skeletonXMLProxy.merge(_skeletonXMLProxy);
+								
+								_skeletonXMLProxy = ImportDataProxy.getInstance().skeletonXMLProxy;
+								textureBytes = combine(ImportDataProxy.getInstance().textureBytes, textureBytes, _skeletonXMLProxy.textureAtlasXML);
+								loadTextureBytes(textureBytes);
 								break;
 							default:
 								loadMergeBitmapData(textureBytes);
@@ -137,7 +145,7 @@ package control
 		private function loaderCompleteHandler(e:Event):void
 		{
 			e.target.removeEventListener(Event.COMPLETE, loaderCompleteHandler);
-			var content:Object = e.target.content.bitmapData;
+			var content:Object = e.target.content as Bitmap;
 			if (!content)
 			{
 				content = (e.target.content as Sprite).getChildAt(0);

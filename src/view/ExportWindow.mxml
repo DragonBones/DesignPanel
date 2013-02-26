@@ -7,16 +7,20 @@
 			   title="{resourceManager.getString('resources','export')}">
 	<fx:Script>
 		<![CDATA[
-			import mx.events.CloseEvent;
-			import mx.managers.PopUpManager;
+			import control.ExportDataCommand;
 			
 			import message.Message;
 			import message.MessageDispatcher;
 			
-			import control.ExportDataCommand;
-			
-			import model.SettingDataProxy;
 			import model.ImportDataProxy;
+			import model.SettingDataProxy;
+			
+			import mx.collections.ArrayCollection;
+			import mx.events.CloseEvent;
+			import mx.managers.PopUpManager;
+			
+			[Bindable]
+			private var exportScaleArrayCollection:ArrayCollection = new ArrayCollection([0.1, 0.25, 0.5, 0.75, 0.8, 1, 1.5, 2, 4]);
 			
 			private function exportData():void
 			{
@@ -25,7 +29,20 @@
 					return;
 				}
 				MessageDispatcher.addEventListener(MessageDispatcher.EXPORT, commandHandler);
-				ExportDataCommand.instance.export(SettingDataProxy.getInstance().dataExportID);
+				ExportDataCommand.instance.export(SettingDataProxy.getInstance().dataExportID, getExportScale());
+			}
+			
+			private function getExportScale():Number
+			{
+				switch(SettingDataProxy.getInstance().dataExportID)
+				{
+					case 0:
+					case 2:
+						return 1;
+				}
+				var scale:Number = Number(exportScaleComboBox.textInput.text);
+				
+				return scale || 1;
 			}
 			
 			private function commandHandler(e:Message):void
@@ -45,12 +62,20 @@
 			<s:Label height="24" textAlign="right" verticalAlign="middle"
 					 text="{resourceManager.getString('resources','export') + ':'}"
 					 />
+			<s:Label height="24" textAlign="right" verticalAlign="middle"
+					 text="Armature Scale:"
+					 />
 		</s:VGroup>
 		<s:VGroup width="100%" gap="6">
 			<s:DropDownList width="100%" height="24" cornerRadius="0" textAlign="right"
 							dataProvider="{SettingDataProxy.getInstance().dataExportArrayCollectio}"
 							selectedIndex="@{SettingDataProxy.getInstance().dataExportID}"
 							/>
+			<s:ComboBox id="exportScaleComboBox" width="100%" height="24" cornerRadius="0" textAlign="right"
+						dataProvider="{exportScaleArrayCollection}"
+						enabled="{SettingDataProxy.getInstance().dataExportID != 0 &amp;&amp; SettingDataProxy.getInstance().dataExportID != 2}"
+						selectedIndex="5"
+						/>
 		</s:VGroup>
 	</s:HGroup>
 	

@@ -29,6 +29,7 @@ package control
 		private var _fileREF:FileReference;
 		private var _exportType:uint;
 		private var _isExporting:Boolean;
+		private var _exportScale:Number;
 		
 		private var _importDataProxy:ImportDataProxy;
 		
@@ -39,7 +40,7 @@ package control
 			_importDataProxy = ImportDataProxy.getInstance();
 		}
 		
-		public function export(exportType:uint):void
+		public function export(exportType:uint, armatureScale:Number):void
 		{
 			if(_isExporting)
 			{
@@ -47,6 +48,7 @@ package control
 			}
 			_isExporting = true;
 			_exportType = exportType;
+			_exportScale = armatureScale;
 			exportStart();
 		}
 		
@@ -64,7 +66,14 @@ package control
 						dataBytes = getSWFBytes();
 						if(dataBytes)
 						{
-							exportSave(XMLDataParser.compressData(_importDataProxy.skeletonXMLProxy.skeletonXML, _importDataProxy.skeletonXMLProxy.textureAtlasXML, dataBytes), _importDataProxy.skeletonName + GlobalConstValues.OUTPUT_SUFFIX + GlobalConstValues.SWF_SUFFIX);
+							exportSave(
+								XMLDataParser.compressData(
+									_importDataProxy.skeletonXMLProxy.skeletonXML, 
+									_importDataProxy.skeletonXMLProxy.textureAtlasXML, 
+									dataBytes
+								), 
+								_importDataProxy.skeletonName + GlobalConstValues.OUTPUT_SUFFIX + GlobalConstValues.SWF_SUFFIX
+							);
 							return;
 						}
 						break;
@@ -79,7 +88,14 @@ package control
 						dataBytes = getPNGBytes();
 						if(dataBytes)
 						{
-							exportSave(XMLDataParser.compressData(_importDataProxy.skeletonXMLProxy.skeletonXML, _importDataProxy.skeletonXMLProxy.textureAtlasXML, dataBytes), _importDataProxy.skeletonName + GlobalConstValues.OUTPUT_SUFFIX + GlobalConstValues.PNG_SUFFIX);
+							exportSave(
+								XMLDataParser.compressData(
+									_importDataProxy.skeletonXMLProxy.skeletonXML, 
+									_importDataProxy.skeletonXMLProxy.textureAtlasXML, 
+									dataBytes
+								), 
+								_importDataProxy.skeletonName + GlobalConstValues.OUTPUT_SUFFIX + GlobalConstValues.PNG_SUFFIX
+							);
 							return;
 						}
 						break;
@@ -105,10 +121,25 @@ package control
 						{
 							date = new Date();
 							zip = new Zip();
-							zip.add(dataBytes, GlobalConstValues.TEXTURE_NAME + (_exportType == 2?GlobalConstValues.SWF_SUFFIX:GlobalConstValues.PNG_SUFFIX), date);
-							zip.add(_importDataProxy.skeletonXMLProxy.skeletonXML.toXMLString(), GlobalConstValues.SKELETON_XML_NAME, date);
-							zip.add(_importDataProxy.skeletonXMLProxy.textureAtlasXML.toXMLString(), GlobalConstValues.TEXTURE_ATLAS_XML_NAME, date);
-							exportSave(zip.encode(), _importDataProxy.skeletonName + GlobalConstValues.OUTPUT_SUFFIX + GlobalConstValues.ZIP_SUFFIX);
+							zip.add(
+								dataBytes, 
+								GlobalConstValues.TEXTURE_NAME + (_exportType == 2?GlobalConstValues.SWF_SUFFIX:GlobalConstValues.PNG_SUFFIX),
+								date
+							);
+							zip.add(
+								_importDataProxy.skeletonXMLProxy.skeletonXML.toXMLString(), 
+								GlobalConstValues.SKELETON_XML_NAME, 
+								date
+							);
+							zip.add(
+								_importDataProxy.skeletonXMLProxy.textureAtlasXML.toXMLString(), 
+								GlobalConstValues.TEXTURE_ATLAS_XML_NAME, 
+								date
+							);
+							exportSave(
+								zip.encode(), 
+								_importDataProxy.skeletonName + GlobalConstValues.OUTPUT_SUFFIX + GlobalConstValues.ZIP_SUFFIX
+							);
 							zip.clear();
 							return;
 						}
@@ -132,14 +163,29 @@ package control
 							for(var subTextureName:String in subBitmapDataDic)
 							{
 								var subBitmapData:BitmapData = subBitmapDataDic[subTextureName];
-								zip.add(PNGEncoder.encode(subBitmapData), GlobalConstValues.TEXTURE_NAME + "/" + subTextureName + GlobalConstValues.PNG_SUFFIX, date);
+								zip.add(
+									PNGEncoder.encode(subBitmapData), 
+									GlobalConstValues.TEXTURE_NAME + "/" + subTextureName + GlobalConstValues.PNG_SUFFIX, 
+									date
+								);
 								subBitmapData.dispose();
 							}
 							
-							zip.add(skeletonXMLProxy.skeletonXML.toXMLString(), GlobalConstValues.SKELETON_XML_NAME, date);
-							zip.add(skeletonXMLProxy.textureAtlasXML.toXMLString(), GlobalConstValues.TEXTURE_ATLAS_XML_NAME, date);
+							zip.add(
+								skeletonXMLProxy.skeletonXML.toXMLString(), 
+								GlobalConstValues.SKELETON_XML_NAME, 
+								date
+							);
+							zip.add(
+								skeletonXMLProxy.textureAtlasXML.toXMLString(), 
+								GlobalConstValues.TEXTURE_ATLAS_XML_NAME, 
+								date
+							);
 							
-							exportSave(zip.encode(), _importDataProxy.skeletonName + GlobalConstValues.OUTPUT_SUFFIX + GlobalConstValues.ZIP_SUFFIX);
+							exportSave(
+								zip.encode(), 
+								_importDataProxy.skeletonName + GlobalConstValues.OUTPUT_SUFFIX + GlobalConstValues.ZIP_SUFFIX
+							);
 							zip.clear();
 							return;
 						}

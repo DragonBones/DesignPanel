@@ -7,6 +7,8 @@ package model
 	import flash.geom.Rectangle;
 	import flash.geom.Matrix;
 	
+	import utils.TextureUtil;
+	
 	public class SkeletonXMLProxy
 	{
 		private static var _helpMatirx:Matrix = new Matrix();
@@ -180,6 +182,11 @@ package model
 			{
 				addSubTextureXML(subTextureXML);
 			}
+			TextureUtil.packTextures(
+				0, 
+				0, 
+				_textureAtlasXML
+			);
 		}
 		
 		public function addSkeletonXML(skeletonXML:XML):void

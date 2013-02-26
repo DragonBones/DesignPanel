@@ -41,16 +41,13 @@
 		{
 			if(xmlList)
 			{
-				if(name)
+				var xml:XML = XMLDataParser.getElementsByAttribute(xmlList, ConstValues.A_NAME, name)[0];
+				if(returnFirst && !xml)
 				{
-					return XMLDataParser.getElementsByAttribute(xmlList, ConstValues.A_NAME, name)[0];
-				}
-				if(returnFirst)
-				{
-					return xmlList[0];
+					xml = xmlList[0];
 				}
 			}
-			return null;
+			return xml;
 		}
 		
 		public var armaturesMC:XMLListCollection;

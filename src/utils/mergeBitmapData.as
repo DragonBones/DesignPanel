@@ -25,13 +25,6 @@ package utils
 		
 		rawSkeletonXMLProxy.merge(addSkeletonXMLProxy);
 		
-		TextureUtil.packTextures(
-			0, 
-			0, 
-			rawSkeletonXMLProxy.textureAtlasXML
-		);
-		
-		
 		var bitmapData:BitmapData = new BitmapData(
 			rawSkeletonXMLProxy.textureAtlasWidth,
 			rawSkeletonXMLProxy.textureAtlasHeight,
