@@ -9,9 +9,6 @@
 	import model.SettingDataProxy;
 	import model.SkeletonXMLProxy;
 	
-	import utils.GlobalConstValues;
-	import utils.TextureUtil;
-	
 	public class LoadFLADataCommand
 	{
 		public static const instance:LoadFLADataCommand = new LoadFLADataCommand();
@@ -174,7 +171,7 @@
 			{
 				//load texture complete, start to place texture
 				MessageDispatcher.dispatchEvent(MessageDispatcher.LOAD_TEXTURE_DATA_COMPLETE);
-				TextureUtil.packTextures(SettingDataProxy.getInstance().textureMaxWidth, SettingDataProxy.getInstance().texturePadding, _skeletonXMLProxy.textureAtlasXML);
+				_skeletonXMLProxy.packTextures(SettingDataProxy.getInstance().textureMaxWidth, SettingDataProxy.getInstance().texturePadding);
 				MessageDispatcher.addEventListener(JSFLProxy.PACK_TEXTURES, packTextureAtlasHandler);
 				_jsflProxy.packTextures(_skeletonXMLProxy.textureAtlasXML);
 			}

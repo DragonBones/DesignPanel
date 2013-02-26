@@ -3,8 +3,10 @@
 			   xmlns:s="library://ns.adobe.com/flex/spark"
 			   xmlns:mx="library://ns.adobe.com/flex/mx"
 			   xmlns:components="view.components.*"
-			   width="360" height="320" close="closeWindow()"
-			   title="{resourceManager.getString('resources','export')}">
+			   width="360" height="320" 
+			   title="{resourceManager.getString('resources','export')}"
+			   close="closeWindow()"
+			   >
 	<fx:Script>
 		<![CDATA[
 			import control.ExportDataCommand;
@@ -71,10 +73,10 @@
 							dataProvider="{SettingDataProxy.getInstance().dataExportArrayCollectio}"
 							selectedIndex="@{SettingDataProxy.getInstance().dataExportID}"
 							/>
-			<s:ComboBox id="exportScaleComboBox" width="100%" height="24" cornerRadius="0" textAlign="right"
+			<s:ComboBox id="exportScaleComboBox" width="100%" height="24" cornerRadius="0" textAlign="right" restrict="0-9."
 						dataProvider="{exportScaleArrayCollection}"
 						enabled="{SettingDataProxy.getInstance().dataExportID != 0 &amp;&amp; SettingDataProxy.getInstance().dataExportID != 2}"
-						selectedIndex="5"
+						selectedIndex="@{SettingDataProxy.getInstance().exportScaleID}"
 						/>
 		</s:VGroup>
 	</s:HGroup>

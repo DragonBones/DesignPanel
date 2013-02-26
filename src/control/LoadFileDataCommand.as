@@ -4,14 +4,11 @@ package control
 	import dragonBones.objects.XMLDataParser;
 	import dragonBones.utils.BytesType;
 	
-	import flash.display.Bitmap;
 	import flash.display.BitmapData;
 	import flash.display.Loader;
 	import flash.events.Event;
 	import flash.events.IOErrorEvent;
 	import flash.events.ProgressEvent;
-	import flash.geom.Matrix;
-	import flash.geom.Rectangle;
 	import flash.net.FileFilter;
 	import flash.net.FileReference;
 	import flash.net.URLLoader;
@@ -24,6 +21,7 @@ package control
 	
 	import model.SkeletonXMLProxy;
 	
+	import utils.BitmapDataUtil;
 	import utils.GlobalConstValues;
 	import utils.PNGEncoder;
 	
@@ -35,8 +33,7 @@ package control
 		public static const instance:LoadFileDataCommand = new LoadFileDataCommand();
 		
 		private static const FILE_FILTER_ARRAY:Array = [new FileFilter("Exported data", "*." + String(["swf", "png", "zip"]).replace(/\,/g, ";*."))];
-		private static var _helpMatirx:Matrix = new Matrix();
-		
+	
 		private var _fileREF:FileReference;
 		private var _urlLoader:URLLoader;
 		private var _loaderContext:LoaderContext;
@@ -195,7 +192,8 @@ package control
 						}
 						else if(images)
 						{
-							spliceBitmapData(images);
+							_images = images;
+							spliceBitmapDataStep(null);
 							return;
 						}
 						break;
@@ -213,48 +211,44 @@ package control
 		private var _images:Object;
 		private var _imageName:String;
 		
-		private function spliceBitmapData(images:Object):void
-		{
-			_images = images;
-			_bitmapData = new BitmapData(
-				_skeletonXMLProxy.textureAtlasWidth,
-				_skeletonXMLProxy.textureAtlasHeight,
-				true,
-				0xFF00FF
-			);
-			
-			spliceBitmapDataStep(null);
-		}
-		
 		private function spliceBitmapDataStep(e:Event):void
 		{
 			if(e)
 			{
 				e.target.removeEventListener(Event.COMPLETE, spliceBitmapDataStep);
-				var bitmap:Bitmap = e.target.content as Bitmap;
-				var rect:Rectangle = _skeletonXMLProxy.getSubTextureRect(_imageName);
-				if(rect)
-				{
-					_helpMatirx.tx = rect.x;
-					_helpMatirx.ty = rect.y;
-					_bitmapData.draw(bitmap.bitmapData, _helpMatirx, null, null, rect);
-				}
+				_images[_imageName] = e.target.content.bitmapData;
 			}
 			for (var name:String in _images)
 			{
-				var imageBytes:ByteArray = _images[name];
-				_imageName = name;
-				delete _images[_imageName];
-				break;
+				var imageBytes:ByteArray = _images[name] as ByteArray;
+				if(imageBytes)
+				{
+					_imageName = name;
+					break;
+				}
 			}
-			if(!imageBytes)
+			if(imageBytes)
 			{
-				MessageDispatcher.dispatchEvent(MessageDispatcher.LOAD_FILEDATA_COMPLETE, _skeletonXMLProxy, PNGEncoder.encode(_bitmapData));
-				return;
+				var loader:Loader = new Loader();
+				loader.contentLoaderInfo.addEventListener(Event.COMPLETE, spliceBitmapDataStep);
+				loader.loadBytes(imageBytes, _loaderContext);
 			}
-			var loader:Loader = new Loader();
-			loader.contentLoaderInfo.addEventListener(Event.COMPLETE, spliceBitmapDataStep);
-			loader.loadBytes(imageBytes, _loaderContext);
+			else
+			{
+				
+				MessageDispatcher.dispatchEvent(
+					MessageDispatcher.LOAD_FILEDATA_COMPLETE, 
+					_skeletonXMLProxy, 
+					PNGEncoder.encode(
+						BitmapDataUtil.getMergeBitmapData(
+							_images,
+							_skeletonXMLProxy.getSubTextureRectDic(),
+							_skeletonXMLProxy.textureAtlasWidth,
+							_skeletonXMLProxy.textureAtlasHeight
+						)
+					)
+				);
+			}
 		}
 	}
 }

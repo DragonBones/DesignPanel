@@ -3,16 +3,12 @@ package model
 	import dragonBones.objects.XMLDataParser;
 	import dragonBones.utils.ConstValues;
 	
-	import flash.display.BitmapData;
 	import flash.geom.Rectangle;
-	import flash.geom.Matrix;
 	
 	import utils.TextureUtil;
 	
 	public class SkeletonXMLProxy
 	{
-		private static var _helpMatirx:Matrix = new Matrix();
-		
 		private var _skeletonXML:XML
 		public function get skeletonXML():XML
 		{
@@ -98,33 +94,70 @@ package model
 			return displayList;
 		}
 		
-		public function getSubBitmapDataDic(bitmapData:BitmapData):Object
+		public function getSubTextureRectDic():Object
 		{
-			var subBitmapDataDic:Object = {};
-			var subTextureNames:Vector.<String> = getDisplayList();
-			for each(var subTextureName:String in subTextureNames)
+			var subTextureRectDic:Object = {};
+			var subTextureXMLList:XMLList = getSubTextureXMLList(_textureAtlasXML);
+			for each(var subTextureXML:XML in  subTextureXMLList)
 			{
-				var rect:Rectangle = getSubTextureRect(subTextureName);
-				_helpMatirx.tx = -rect.x;
-				_helpMatirx.ty = -rect.y;
-				
-				var subBitmapData:BitmapData = new BitmapData(rect.width, rect.height, true, 0xFF00FF);
-				subBitmapData.draw(bitmapData, _helpMatirx);
-				subBitmapDataDic[subTextureName] = subBitmapData;
+				var rect:Rectangle = new Rectangle(
+					int(subTextureXML.attribute(ConstValues.A_X)),
+					int(subTextureXML.attribute(ConstValues.A_Y)),
+					int(subTextureXML.attribute(ConstValues.A_WIDTH)),
+					int(subTextureXML.attribute(ConstValues.A_HEIGHT))
+				);
+				trace(rect);
+				subTextureRectDic[String(subTextureXML.attribute(ConstValues.A_NAME))] = rect;
 			}
-			return subBitmapDataDic;
+			return subTextureRectDic;
 		}
 		
-		public function getSubTextureRect(subTextureName:String):Rectangle
+		public function scaleData(scale:Number):void
 		{
-			var subTextureXML:XML = XMLDataParser.getElementsByAttribute(getSubTextureXMLList(_textureAtlasXML), ConstValues.A_NAME, subTextureName)[0];
-			var rect:Rectangle = new Rectangle(
-				int(subTextureXML.attribute(ConstValues.A_X)),
-				int(subTextureXML.attribute(ConstValues.A_Y)),
-				int(subTextureXML.attribute(ConstValues.A_WIDTH)),
-				int(subTextureXML.attribute(ConstValues.A_HEIGHT))
-			);
-			return rect;
+			var boneXMLList:XMLList = _skeletonXML.elements(ConstValues.ARMATURES).elements(ConstValues.ARMATURE).elements(ConstValues.BONE);
+			scaleXMLList(boneXMLList, scale);
+			
+			var displayXMLList:XMLList = getDisplayXMLList(_skeletonXML);
+			scaleXMLList(displayXMLList, scale);
+			
+			var frameXMLList:XMLList = _skeletonXML.elements(ConstValues.ANIMATIONS).elements(ConstValues.ANIMATION).elements(ConstValues.MOVEMENT).elements(ConstValues.BONE).elements(ConstValues.FRAME);
+			scaleXMLList(frameXMLList, scale);
+			
+			var subTextureXMLList:XMLList = getSubTextureXMLList(_textureAtlasXML);
+			scaleXMLList(subTextureXMLList, scale);
+			
+			packTextures(0, 2);
+		}
+		
+		private function scaleXMLList(xmlList:XMLList, scale:Number):void
+		{
+			for each(var xml:XML in xmlList)
+			{
+				if(xml.@[ConstValues.A_X].length() > 0)
+				{
+					xml.@[ConstValues.A_X] = formatNumber(Number(xml.@[ConstValues.A_X]) * scale);
+				}
+				if(xml.@[ConstValues.A_Y].length() > 0)
+				{
+					xml.@[ConstValues.A_Y] = formatNumber(Number(xml.@[ConstValues.A_Y]) * scale);
+				}
+				if(xml.@[ConstValues.A_PIVOT_X].length() > 0)
+				{
+					xml.@[ConstValues.A_PIVOT_X] = formatNumber(Number(xml.@[ConstValues.A_PIVOT_X]) * scale);
+				}
+				if(xml.@[ConstValues.A_PIVOT_Y].length() > 0)
+				{
+					xml.@[ConstValues.A_PIVOT_Y] = formatNumber(Number(xml.@[ConstValues.A_PIVOT_Y]) * scale);
+				}
+				if(xml.@[ConstValues.A_WIDTH].length() > 0)
+				{
+					xml.@[ConstValues.A_WIDTH] = Math.ceil(Number(xml.@[ConstValues.A_WIDTH]) * scale);
+				}
+				if(xml.@[ConstValues.A_HEIGHT].length() > 0)
+				{
+					xml.@[ConstValues.A_HEIGHT] = Math.ceil(Number(xml.@[ConstValues.A_HEIGHT]) * scale);
+				}
+			}
 		}
 		
 		public function getArmatureXML(armatureName:String):XML
@@ -182,9 +215,15 @@ package model
 			{
 				addSubTextureXML(subTextureXML);
 			}
+			
+			packTextures(0, 2);
+		}
+		
+		public function packTextures(width:uint, padding:uint):void
+		{
 			TextureUtil.packTextures(
-				0, 
-				0, 
+				width, 
+				padding, 
 				_textureAtlasXML
 			);
 		}
@@ -255,6 +294,13 @@ package model
 			skeletonXMLProxy.skeletonXML = _skeletonXML.copy();
 			skeletonXMLProxy.textureAtlasXML = _textureAtlasXML.copy();
 			return skeletonXMLProxy;
+		}
+		
+		
+		private function formatNumber(num:Number, retain:uint = 100):Number
+		{
+			retain = retain || 100;
+			return Math.round(num * retain) / retain;
 		}
 		
 		public static function getArmatureXMLList(skeletonXML:XML):XMLList

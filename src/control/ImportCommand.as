@@ -2,7 +2,6 @@ package control
 {
 	import dragonBones.utils.BytesType;
 	
-	import flash.display.Bitmap;
 	import flash.display.BitmapData;
 	import flash.display.Loader;
 	import flash.display.LoaderInfo;
@@ -19,8 +18,8 @@ package control
 	
 	import modifySWF.combine;
 	
+	import utils.BitmapDataUtil;
 	import utils.PNGEncoder;
-	import utils.mergeBitmapData;
 	
 	public class ImportCommand
 	{
@@ -82,11 +81,16 @@ package control
 								ImportDataProxy.getInstance().skeletonXMLProxy.merge(_skeletonXMLProxy);
 								
 								_skeletonXMLProxy = ImportDataProxy.getInstance().skeletonXMLProxy;
-								textureBytes = combine(ImportDataProxy.getInstance().textureBytes, textureBytes, _skeletonXMLProxy.textureAtlasXML);
+								textureBytes = combine(
+									ImportDataProxy.getInstance().textureBytes, 
+									textureBytes, 
+									_skeletonXMLProxy.textureAtlasXML
+								);
 								loadTextureBytes(textureBytes);
 								break;
 							default:
 								loadMergeBitmapData(textureBytes);
+								break;
 						}
 					}
 					else
@@ -134,6 +138,37 @@ package control
 			);
 		}
 		
+		private function mergeBitmapData(rawBitmapData:BitmapData, addBitmapData:BitmapData, rawSkeletonXMLProxy:SkeletonXMLProxy, addSkeletonXMLProxy:SkeletonXMLProxy):BitmapData
+		{
+			var rawSubBitmapDataDic:Object = BitmapDataUtil.getSubBitmapDataDic(
+				rawBitmapData, 
+				rawSkeletonXMLProxy.getSubTextureRectDic()
+			);
+			var addSubBitmapDataDic:Object = BitmapDataUtil.getSubBitmapDataDic(
+				addBitmapData, 
+				addSkeletonXMLProxy.getSubTextureRectDic()
+			);
+			
+			for(var subTextureName:String in addSubBitmapDataDic)
+			{
+				var subBitmapData:BitmapData = rawSubBitmapDataDic[subTextureName];
+				if(subBitmapData)
+				{
+					subBitmapData.dispose();
+				}
+				rawSubBitmapDataDic[subTextureName] = addSubBitmapDataDic[subTextureName];
+			}
+			
+			rawSkeletonXMLProxy.merge(addSkeletonXMLProxy);
+			
+			return BitmapDataUtil.getMergeBitmapData(
+				rawSubBitmapDataDic,
+				rawSkeletonXMLProxy.getSubTextureRectDic(),
+				rawSkeletonXMLProxy.textureAtlasWidth,
+				rawSkeletonXMLProxy.textureAtlasHeight
+			);
+		}
+		
 		private function loadTextureBytes(textureBytes:ByteArray):void
 		{
 			_textureBytes = textureBytes;
@@ -145,7 +180,7 @@ package control
 		private function loaderCompleteHandler(e:Event):void
 		{
 			e.target.removeEventListener(Event.COMPLETE, loaderCompleteHandler);
-			var content:Object = e.target.content as Bitmap;
+			var content:Object = e.target.content.bitmapData;
 			if (!content)
 			{
 				content = (e.target.content as Sprite).getChildAt(0);

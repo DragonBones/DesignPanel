@@ -6,6 +6,7 @@ package control
 	import flash.display.BitmapData;
 	import flash.events.Event;
 	import flash.events.IOErrorEvent;
+	import flash.geom.Matrix;
 	import flash.net.FileReference;
 	import flash.utils.ByteArray;
 	
@@ -16,6 +17,7 @@ package control
 	import model.JSFLProxy;
 	import model.SkeletonXMLProxy;
 	
+	import utils.BitmapDataUtil;
 	import utils.GlobalConstValues;
 	import utils.PNGEncoder;
 	
@@ -33,6 +35,9 @@ package control
 		
 		private var _importDataProxy:ImportDataProxy;
 		
+		private var _skeletonXMLProxy:SkeletonXMLProxy;
+		private var _bitmapData:BitmapData;
+		
 		public function ExportDataCommand()
 		{
 			_fileREF = new FileReference();
@@ -40,7 +45,7 @@ package control
 			_importDataProxy = ImportDataProxy.getInstance();
 		}
 		
-		public function export(exportType:uint, armatureScale:Number):void
+		public function export(exportType:uint, exportScale:Number):void
 		{
 			if(_isExporting)
 			{
@@ -48,7 +53,7 @@ package control
 			}
 			_isExporting = true;
 			_exportType = exportType;
-			_exportScale = armatureScale;
+			_exportScale = exportScale;
 			exportStart();
 		}
 		
@@ -57,6 +62,30 @@ package control
 			var dataBytes:ByteArray;
 			var zip:Zip;
 			var date:Date;
+			
+			_skeletonXMLProxy = _importDataProxy.skeletonXMLProxy;
+			_bitmapData = _importDataProxy.textureAtlas.bitmapData;
+			
+			if(_exportScale != 1 && _exportType != 4)
+			{
+				_skeletonXMLProxy = _skeletonXMLProxy.copy();
+				var subBitmapDataDic:Object = BitmapDataUtil.getSubBitmapDataDic(
+					_bitmapData,
+					_skeletonXMLProxy.getSubTextureRectDic(),
+					_exportScale
+				);
+				trace(_skeletonXMLProxy.textureAtlasXML);
+				_skeletonXMLProxy.scaleData(_exportScale);
+				trace(_exportScale, "=========================================================");
+				trace(_skeletonXMLProxy.textureAtlasXML);
+				
+				_bitmapData = BitmapDataUtil.getMergeBitmapData(
+					subBitmapDataDic,
+					_skeletonXMLProxy.getSubTextureRectDic(),
+					_skeletonXMLProxy.textureAtlasWidth,
+					_skeletonXMLProxy.textureAtlasHeight
+				);
+			}
 			
 			switch(_exportType)
 			{
@@ -68,8 +97,8 @@ package control
 						{
 							exportSave(
 								XMLDataParser.compressData(
-									_importDataProxy.skeletonXMLProxy.skeletonXML, 
-									_importDataProxy.skeletonXMLProxy.textureAtlasXML, 
+									_skeletonXMLProxy.skeletonXML, 
+									_skeletonXMLProxy.textureAtlasXML, 
 									dataBytes
 								), 
 								_importDataProxy.skeletonName + GlobalConstValues.OUTPUT_SUFFIX + GlobalConstValues.SWF_SUFFIX
@@ -90,8 +119,8 @@ package control
 						{
 							exportSave(
 								XMLDataParser.compressData(
-									_importDataProxy.skeletonXMLProxy.skeletonXML, 
-									_importDataProxy.skeletonXMLProxy.textureAtlasXML, 
+									_skeletonXMLProxy.skeletonXML, 
+									_skeletonXMLProxy.textureAtlasXML, 
 									dataBytes
 								), 
 								_importDataProxy.skeletonName + GlobalConstValues.OUTPUT_SUFFIX + GlobalConstValues.PNG_SUFFIX
@@ -127,12 +156,12 @@ package control
 								date
 							);
 							zip.add(
-								_importDataProxy.skeletonXMLProxy.skeletonXML.toXMLString(), 
+								_skeletonXMLProxy.skeletonXML.toXMLString(), 
 								GlobalConstValues.SKELETON_XML_NAME, 
 								date
 							);
 							zip.add(
-								_importDataProxy.skeletonXMLProxy.textureAtlasXML.toXMLString(), 
+								_skeletonXMLProxy.textureAtlasXML.toXMLString(), 
 								GlobalConstValues.TEXTURE_ATLAS_XML_NAME, 
 								date
 							);
@@ -152,44 +181,49 @@ package control
 				case 4:
 					try
 					{
-						if(_importDataProxy.textureAtlas.bitmapData)
+						date = new Date();
+						zip = new Zip();
+						
+						if(_skeletonXMLProxy == _importDataProxy.skeletonXMLProxy)
 						{
-							date = new Date();
-							zip = new Zip();
-							var skeletonXMLProxy:SkeletonXMLProxy = _importDataProxy.skeletonXMLProxy.copy();
-							skeletonXMLProxy.changePath();
-							
-							var subBitmapDataDic:Object = skeletonXMLProxy.getSubBitmapDataDic(_importDataProxy.textureAtlas.bitmapData);
-							for(var subTextureName:String in subBitmapDataDic)
-							{
-								var subBitmapData:BitmapData = subBitmapDataDic[subTextureName];
-								zip.add(
-									PNGEncoder.encode(subBitmapData), 
-									GlobalConstValues.TEXTURE_NAME + "/" + subTextureName + GlobalConstValues.PNG_SUFFIX, 
-									date
-								);
-								subBitmapData.dispose();
-							}
-							
-							zip.add(
-								skeletonXMLProxy.skeletonXML.toXMLString(), 
-								GlobalConstValues.SKELETON_XML_NAME, 
-								date
-							);
-							zip.add(
-								skeletonXMLProxy.textureAtlasXML.toXMLString(), 
-								GlobalConstValues.TEXTURE_ATLAS_XML_NAME, 
-								date
-							);
-							
-							exportSave(
-								zip.encode(), 
-								_importDataProxy.skeletonName + GlobalConstValues.OUTPUT_SUFFIX + GlobalConstValues.ZIP_SUFFIX
-							);
-							zip.clear();
-							return;
+							_skeletonXMLProxy = _skeletonXMLProxy.copy();
 						}
-						break;
+						_skeletonXMLProxy.changePath();
+						
+						
+						subBitmapDataDic = BitmapDataUtil.getSubBitmapDataDic(
+							_bitmapData, 
+							_skeletonXMLProxy.getSubTextureRectDic(),
+							_exportScale
+						);
+						for(var subTextureName:String in subBitmapDataDic)
+						{
+							var subBitmapData:BitmapData = subBitmapDataDic[subTextureName];
+							zip.add(
+								PNGEncoder.encode(subBitmapData), 
+								GlobalConstValues.TEXTURE_NAME + "/" + subTextureName + GlobalConstValues.PNG_SUFFIX, 
+								date
+							);
+							subBitmapData.dispose();
+						}
+						
+						zip.add(
+							_skeletonXMLProxy.skeletonXML.toXMLString(), 
+							GlobalConstValues.SKELETON_XML_NAME, 
+							date
+						);
+						zip.add(
+							_skeletonXMLProxy.textureAtlasXML.toXMLString(), 
+							GlobalConstValues.TEXTURE_ATLAS_XML_NAME, 
+							date
+						);
+						
+						exportSave(
+							zip.encode(), 
+							_importDataProxy.skeletonName + GlobalConstValues.OUTPUT_SUFFIX + GlobalConstValues.ZIP_SUFFIX
+						);
+						zip.clear();
+						return;
 					}
 					catch(_e:Error)
 					{
@@ -215,10 +249,14 @@ package control
 		{
 			if(_importDataProxy.textureAtlas.movieClip)
 			{
-				return PNGEncoder.encode(_importDataProxy.textureAtlas.bitmapData);
+				return PNGEncoder.encode(_bitmapData);
 			}
 			else
 			{
+				if(_bitmapData && _bitmapData != _importDataProxy.textureAtlas.bitmapData)
+				{
+					return PNGEncoder.encode(_bitmapData);
+				}
 				return _importDataProxy.textureBytes;
 			}
 			return null;
@@ -248,6 +286,11 @@ package control
 					MessageDispatcher.dispatchEvent(MessageDispatcher.EXPORT_ERROR);
 					break;
 				case Event.COMPLETE:
+					if(_bitmapData && _bitmapData != _importDataProxy.textureAtlas.bitmapData)
+					{
+						_bitmapData.dispose();
+						_bitmapData = null;
+					}
 					MessageDispatcher.dispatchEvent(MessageDispatcher.EXPORT_COMPLETE);
 					break;
 			}

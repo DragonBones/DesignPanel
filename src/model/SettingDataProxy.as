@@ -14,6 +14,7 @@ package model
 	{
 		public static const DATA_IMPORT_ID:String = "dataImportID";
 		public static const DATA_EXPORT_ID:String = "dataExportID";
+		public static const EXPORT_SCALE_ID:String = "exportScaleID";
 		
 		public static const LANGUAGE_ID:String = "languageID";
 		public static const BONE_HIGHLIGHT_COLOR:String = "boneHighlightColor";
@@ -34,7 +35,7 @@ package model
 		
 		private var _shareObject:SharedObject;
 		
-		private var _dataImportID:int = 0;
+		private var _dataImportID:int;
 		public function get dataImportID():int
 		{
 			return _dataImportID;
@@ -46,7 +47,7 @@ package model
 		}
 		public var dataImportArrayCollection:ArrayCollection = new ArrayCollection([]);
 		
-		public var textureMaxWidthID:int = 0;
+		public var textureMaxWidthID:int;
 		public function get textureMaxWidth():int
 		{
 			if(textureMaxWidthID == 0)
@@ -62,7 +63,7 @@ package model
 		public var textureSortID:int = 0;
 		public var textureSortArrayCollection:ArrayCollection = new ArrayCollection(["MaxRects"]);
 		
-		private var _dataExportID:int = 0;
+		private var _dataExportID:int;
 		public function get dataExportID():int
 		{
 			return _dataExportID;
@@ -72,6 +73,18 @@ package model
 			_dataExportID = value;
 			setData(DATA_EXPORT_ID, _dataExportID);
 		}
+		
+		private var _exportScaleID:int;
+		public function get exportScaleID():int
+		{
+			return _exportScaleID;
+		}
+		public function set exportScaleID(value:int):void
+		{
+			_exportScaleID = value;
+			setData(EXPORT_SCALE_ID, _exportScaleID);
+		}
+		
 		public var dataExportArrayCollectio:ArrayCollection = new ArrayCollection([]);
 		
 		private var _languageID:int = -1;
@@ -138,6 +151,7 @@ package model
 			
 			_dataImportID = hasData(DATA_IMPORT_ID)?getData(DATA_IMPORT_ID):0;
 			_dataExportID = hasData(DATA_EXPORT_ID)?getData(DATA_EXPORT_ID):0;
+			_exportScaleID = hasData(EXPORT_SCALE_ID)?getData(EXPORT_SCALE_ID):5;
 			
 			_boneHighlightColor = hasData(BONE_HIGHLIGHT_COLOR)?getData(BONE_HIGHLIGHT_COLOR):0xFF0000;
 			
