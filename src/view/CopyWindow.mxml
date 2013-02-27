@@ -19,9 +19,9 @@
 			import mx.events.FlexEvent;
 			import mx.managers.PopUpManager;
 			
-			private static const CENTER_SPACE:int=60;
+			private static const CENTER_SPACE:int=28;
 			
-			private function closeCopySession():void
+			public function closeCopySession():void
 			{
 				this.visible = false;
 				CopyDataProxy.getInstance().closeCopySession();
@@ -34,13 +34,13 @@
 			
 		]]>
 	</fx:Script>
-	<s:Panel left="20" right="20" top="20" bottom="20" title="Behavior Copy">
+	<s:Panel left="20" right="20" top="20" bottom="20" title="{resourceManager.getString('resources','copyBehaviors')}">
 		<s:VGroup width="100%" height="100%" gap="10" paddingBottom="10" paddingLeft="10"
 				  paddingRight="10" paddingTop="10">
 			<s:HGroup width="100%" gap="0">
-				<s:Label width="100%" text="Source:"/>
+				<s:Label width="100%" text="{resourceManager.getString('resources','source')}" verticalAlign="bottom" textAlign="center" fontWeight="bold"/>
 				<s:Spacer width="{CENTER_SPACE}"/>
-				<s:Label width="100%" text="Target:"/>
+				<s:Label width="100%" text="{resourceManager.getString('resources','target')}" verticalAlign="bottom" textAlign="center" fontWeight="bold"/>
 			</s:HGroup>
 			<s:HGroup width="100%" gap="0">
 				<s:DropDownList id="sourceArmatures" width="100%"
@@ -62,7 +62,7 @@
 			<mx:VDividedBox id="dividedBox" width="100%" height="100%">
 				<mx:TabNavigator id="boneAndBehavior" width="100%" height="100%" paddingBottom="2" paddingLeft="2"
 								 paddingRight="2" paddingTop="2">
-					<s:NavigatorContent label="Bones" width="100%" height="100%">
+					<s:NavigatorContent label="{resourceManager.getString('resources','bone')}" width="100%" height="100%">
 						<s:HGroup width="100%" height="100%" gap="0">
 							<mx:Tree width="100%" height="100%"
 									 labelField="{ConstValues.AT + ConstValues.A_NAME}" textRollOverColor="#CCCCCC"
@@ -76,7 +76,10 @@
 								</mx:dataProvider>
 							</mx:Tree>
 							<s:Group height="100%" width="{CENTER_SPACE}">
-								<s:Button label="copy" horizontalCenter="0" verticalCenter="0" width="50" enabled="{CopyDataProxy.getInstance().boneCopyable}" click="CopyDataProxy.getInstance().executeBoneCopy()"/>
+								<s:Button icon="@Embed(source='./assets/copy_icon.png')" 
+										  width="24" height="24" horizontalCenter="0" verticalCenter="0"  
+										  enabled="{CopyDataProxy.getInstance().boneCopyable}" 
+										  click="CopyDataProxy.getInstance().executeBoneCopy()"/>
 							</s:Group>
 							<mx:Tree width="100%" height="100%"
 									 labelField="{ConstValues.AT + ConstValues.A_NAME}" textRollOverColor="#CCCCCC"
@@ -91,7 +94,7 @@
 							</mx:Tree>
 						</s:HGroup>
 					</s:NavigatorContent>
-					<s:NavigatorContent label="behavior" width="100%" height="100%">
+					<s:NavigatorContent label="{resourceManager.getString('resources','behavior')}" width="100%" height="100%">
 						<s:HGroup width="100%" height="100%" gap="0">
 							<s:DataGrid width="100%" height="100%" sortableColumns="false" gridClick="CopyDataProxy.getInstance().playSourceBehavior(event.item)"  selectionMode="multipleRows" selectedItems="@{CopyDataProxy.getInstance().selectedMultipleSourceBehaviors}">
 								<s:columns>
@@ -105,7 +108,10 @@
 								</s:dataProvider>
 							</s:DataGrid>
 							<s:Group height="100%" width="{CENTER_SPACE}">
-								<s:Button label="copy" horizontalCenter="0" verticalCenter="0" width="50" enabled="{CopyDataProxy.getInstance().behaviorCopyable}" click="CopyDataProxy.getInstance().executeBehaviorCopy()"/>
+								<s:Button icon="@Embed(source='./assets/copy_icon.png')" 
+										  width="24" height="24" horizontalCenter="0" verticalCenter="0"  
+										  enabled="{CopyDataProxy.getInstance().boneCopyable}" 
+										  click="CopyDataProxy.getInstance().executeBehaviorCopy()"/>
 							</s:Group>
 							<s:Group width="100%" height="100%">
 								<s:DataGrid width="100%" height="100%" sortableColumns="false" gridClick="CopyDataProxy.getInstance().playDestinationBehavior(event.item)" selectionMode="multipleRows" selectedItems="@{CopyDataProxy.getInstance().selectedMultipleDestinationBehaviors}">
@@ -126,7 +132,7 @@
 						</s:HGroup>
 					</s:NavigatorContent>
 				</mx:TabNavigator>
-				<s:HGroup width="100%" height="100%" gap="10">
+				<s:HGroup width="100%" height="100%" gap="{CENTER_SPACE}">
 					<components:AnimationReviewPanel width="100%" height="100%" armature="{CopyDataProxy.getInstance().sourceDisplayArmature}"/>
 					<components:AnimationReviewPanel width="100%" height="100%" armature="{CopyDataProxy.getInstance().destinationDisplayArmature}"/>
 				</s:HGroup>
@@ -134,9 +140,9 @@
 			
 			<s:HGroup width="100%" gap="0">
 				<s:Spacer width="800%"/>
-				<s:Button label="Save" click="CopyDataProxy.getInstance().save()"/>
+				<s:Button label="{resourceManager.getString('resources','save')}" click="CopyDataProxy.getInstance().save()"/>
 				<s:Spacer width="100%"/>
-				<s:Button label="Cancel" click="closeCopySession()"/>
+				<s:Button label="{resourceManager.getString('resources','cancel')}" click="closeCopySession()"/>
 				<s:Spacer width="800%"/>
 			</s:HGroup>
 		</s:VGroup>

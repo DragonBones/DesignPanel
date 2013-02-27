@@ -22,12 +22,22 @@
 			import model.ImportDataProxy;
 			import model.SettingDataProxy;
 			
+			import mx.effects.Pause;
+
 			import utils.getPointTarget;
 			
 			use namespace dragonBones_internal;
 			
+			[Embed(source="./assets/play_icon.png", mimeType = "application/octet-stream")]
+			private static const PlayBitmap:Class;
+			[Embed(source="./assets/pause_icon.png", mimeType = "application/octet-stream")]
+			private static const PauseBitmap:Class;
+			
 			private static const MIN_SCALE:Number = 0.2;
 			private static const MAX_SCALE:Number = 10;
+			
+			private var _playBitmap:Object = new PlayBitmap();
+			private var _pauseBitmap:Object = new PauseBitmap();
 			
 			private static var _pointHelp:Point = new Point();
 			
@@ -553,19 +563,23 @@
 					playBtn.enabled = true;
 					if(_importDataProxy.armature.animation.isPause || _importDataProxy.armature.animation.isComplete)
 					{
-						playBtn.label = resourceManager.getString('resources','play');
+						//playBtn.label = resourceManager.getString('resources','play');
+						playBtn.setStyle("icon", _playBitmap);
 					}
 					else
 					{
-						playBtn.label = resourceManager.getString('resources','stop');
+						//playBtn.label = resourceManager.getString('resources','stop');
+						playBtn.setStyle("icon", _pauseBitmap);
 					}
 				}
 				else
 				{
 					playBtn.enabled = false;
-					playBtn.label = resourceManager.getString('resources','play');
+					//playBtn.label = resourceManager.getString('resources','play');
+					playBtn.setStyle("icon", _playBitmap);
 				}
 			}
+			
 		]]>
 	</fx:Script>
 	<s:Scroller id="scrollerViewer" width="100%" height="100%" horizontalScrollPolicy="off" verticalScrollPolicy="off">
@@ -576,16 +590,15 @@
 		</s:Group>
 	</s:Scroller>
 	<s:HGroup bottom="2" left="2" right="2" width="100%" verticalAlign="middle" gap="2">
-		<components:ColorPickerNoColor label="{resourceManager.getString('resources','boneHighlight')}"
-									   selectedColor="@{SettingDataProxy.getInstance().boneHighlightColor}"/>
-		<s:Spacer width="100%"/>
 		<s:Button id="btnZoomOut" width="32" label="－"/>
 		<s:HSlider id="sliderScale" width="400%" maxWidth="100"
-				   minimum="0.1" maximum="10" snapInterval="0.1"
-				   />
+				   minimum="0.1" maximum="10" snapInterval="0.1"/>
 		<s:Button id="btnZoomIn" width="32" label="＋"/>
+		<s:Spacer width="100%"/>
+		<components:ColorPickerNoColor label="{resourceManager.getString('resources','boneHighlight')}"
+									   selectedColor="@{SettingDataProxy.getInstance().boneHighlightColor}"/>
 	</s:HGroup>
-	<s:Button id="playBtn" right="2" top="2" width="75" height="24"/>
+	<s:Button id="playBtn" right="2" top="2" width="22" height="22"/>
 	<s:Rect width="100%" height="100%">
 		<s:stroke>
 			<s:SolidColorStroke color="0x000000" weight="1"/>

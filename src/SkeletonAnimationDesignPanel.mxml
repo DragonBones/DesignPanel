@@ -21,6 +21,7 @@
 			import message.Message;
 			import message.MessageDispatcher;
 			
+			import model.CopyDataProxy;
 			import model.ImportDataProxy;
 			import model.JSFLProxy;
 			import model.SettingDataProxy;
@@ -152,6 +153,7 @@
 						}
 						break;
 					case MessageDispatcher.SAVE_ANIMATION_COMPLETE:
+						copyWindow.closeCopySession();
 						clearAlert();
 						break;
 					case MessageDispatcher.IMPORT_COMPLETE:
@@ -297,7 +299,7 @@
 					  click="popUpXMLWindow()"
 					  />
 			<s:Button width="68" height="24" cornerRadius="0"
-					  label="Copy"
+					  label="{resourceManager.getString('resources','copyBehaviors')}"
 					  click="popUpCopyWindow()"
 					  enabled="{ImportDataProxy.getInstance().skeletonData!=null}"
 					  />
@@ -317,13 +319,12 @@
 				<s:Label text="{resourceManager.getString('resources','skeleton')}" fontWeight="bold"/>
 				<s:DropDownList id="skeletonDropDownList" width="100%"
 								labelField="{ConstValues.AT + ConstValues.A_NAME}"/>
-				<s:Button label="Update" 
+				<s:Button icon="@Embed(source='./assets/update_icon.png')" width="21" height="21"
 						  enabled="{ImportDataProxy.getInstance().skeletonData != null}"
 						  click="updateCurrentArmature()"/>
-				<s:Button label="Remove"
+				<s:Button icon="@Embed(source='./assets/remove_icon.png')" width="21" height="21"
 						  enabled="{ImportDataProxy.getInstance().skeletonData != null}"
-						  click="removeCurrentArmature()"
-						  />
+						  click="removeCurrentArmature()"/>
 			</s:HGroup>
 			<mx:HDividedBox width="100%" height="100%">
 				<view:ArmatureDisplayUIsGroup width="60%" height="100%"/>
