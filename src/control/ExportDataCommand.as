@@ -74,10 +74,7 @@ package control
 					_skeletonXMLProxy.getSubTextureRectDic(),
 					_exportScale
 				);
-				trace(_skeletonXMLProxy.textureAtlasXML);
 				_skeletonXMLProxy.scaleData(_exportScale);
-				trace(_exportScale, "=========================================================");
-				trace(_skeletonXMLProxy.textureAtlasXML);
 				
 				_bitmapData = BitmapDataUtil.getMergeBitmapData(
 					subBitmapDataDic,

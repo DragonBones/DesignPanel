@@ -106,7 +106,6 @@ package model
 					int(subTextureXML.attribute(ConstValues.A_WIDTH)),
 					int(subTextureXML.attribute(ConstValues.A_HEIGHT))
 				);
-				trace(rect);
 				subTextureRectDic[String(subTextureXML.attribute(ConstValues.A_NAME))] = rect;
 			}
 			return subTextureRectDic;
@@ -238,13 +237,20 @@ package model
 			
 			xmlList1 = getDisplayXMLList(_skeletonXML);
 			xmlList2 = getDisplayXMLList(skeletonXML);
+			var displayNames:Object = {};
 			for each(node2 in xmlList2)
 			{
 				nodeName = node2.attribute(ConstValues.A_NAME);
-				node1 = XMLDataParser.getElementsByAttribute(xmlList1, ConstValues.A_NAME, nodeName)[0];
-				if(node1)
+				if(displayNames[nodeName])
 				{
-					xmlList1[node1.childIndex()] = node2.copy();
+					continue;
+				}
+				displayNames[nodeName] = true;
+				var sameDisplayXMLList:XMLList = XMLDataParser.getElementsByAttribute(xmlList1, ConstValues.A_NAME, nodeName);
+				for each(node1 in sameDisplayXMLList)
+				{
+					//
+					node1.parent().children()[node1.childIndex()] = node2.copy();
 				}
 			}
 			
@@ -288,6 +294,67 @@ package model
 			_textureAtlasXML.appendChild(subTextureXML);
 		}
 		
+		public function removeArmature(armatureName:String):Boolean
+		{
+			var displayXMLList:XMLList = getDisplayXMLList(_skeletonXML);
+			if(XMLDataParser.getElementsByAttribute(displayXMLList, ConstValues.A_NAME, armatureName)[0])
+			{
+				return false;
+			}
+			var armatureXMLList:XMLList = getArmatureXMLList(_skeletonXML);
+			if(armatureXMLList.length() <= 1)
+			{
+				return false;
+			}
+			
+			var armatureXML:XML = getArmatureXML(armatureName);
+			if(armatureXML)
+			{
+				delete armatureXMLList[armatureXML.childIndex()];
+				
+				var animationXML:XML = getAnimationXML(armatureName);
+				if(animationXML)
+				{
+					var animationXMLList:XMLList = getAnimationXMLList(_skeletonXML);
+					delete animationXMLList[animationXML.childIndex()];
+				}
+				
+				var deleteDisplayList:XMLList = armatureXML.elements(ConstValues.BONE).elements(ConstValues.DISPLAY);
+				
+				for each(var displayXML:XML in deleteDisplayList)
+				{
+					var isArmature:Boolean = displayXML.attribute(ConstValues.A_IS_ARMATURE) == "1";
+					if(isArmature)
+					{
+						var childArmatureName:String = displayXML.attribute(ConstValues.A_NAME);
+						var remainDisplayList:XMLList = getDisplayXMLList(_skeletonXML);
+						
+						if(!XMLDataParser.getElementsByAttribute(displayXMLList, ConstValues.A_NAME, childArmatureName)[0])
+						{
+							removeArmature(childArmatureName);
+						}
+					}
+				}
+				
+				displayXMLList = getDisplayXMLList(_skeletonXML);
+				
+				var subTextureXMLLisst:XMLList = getSubTextureXMLList(_textureAtlasXML);
+				for(var i:int = subTextureXMLLisst.length() - 1;i >= 0;i --)
+				{
+					var subTextureXML:XML = subTextureXMLLisst[i];
+					var subTextureName:String = subTextureXML.attribute(ConstValues.A_NAME);
+					if(!XMLDataParser.getElementsByAttribute(displayXMLList, ConstValues.A_NAME, subTextureName)[0])
+					{
+						delete subTextureXMLLisst[i];
+					}
+				}
+				
+				packTextures(0, 2);
+				return true;
+			}
+			return false;
+		}
+		
 		public function copy():SkeletonXMLProxy
 		{
 			var skeletonXMLProxy:SkeletonXMLProxy = new SkeletonXMLProxy();
@@ -315,7 +382,7 @@ package model
 		
 		public static function getDisplayXMLList(skeletonXML:XML):XMLList
 		{
-			return skeletonXML.elements(ConstValues.ARMATURES).elements(ConstValues.ARMATURE).elements(ConstValues.BONE).elements(ConstValues.DISPLAY)
+			return skeletonXML.elements(ConstValues.ARMATURES).elements(ConstValues.ARMATURE).elements(ConstValues.BONE).elements(ConstValues.DISPLAY);
 		}
 		
 		public static function getSubTextureXMLList(textureAtlasXML:XML):XMLList

@@ -149,7 +149,7 @@
 			
 			armaturesMC.source = _armaturesXMLList;
 			
-			skeletonData = XMLDataParser.parseSkeletonData(_skeletonXMLProxy.skeletonXML);
+			_skeletonData = XMLDataParser.parseSkeletonData(_skeletonXMLProxy.skeletonXML);
 			_textureAtlas = new NativeTextureAtlas(textureData, _skeletonXMLProxy.textureAtlasXML)
 			_textureAtlas.movieClipToBitmapData();
 			_baseFactory.addSkeletonData(_skeletonData);

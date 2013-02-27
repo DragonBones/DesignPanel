@@ -9,6 +9,7 @@
 		<![CDATA[
 			import control.ImportCommand;
 			
+			
 			import message.Message;
 			import message.MessageDispatcher;
 			

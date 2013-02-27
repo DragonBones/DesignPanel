@@ -14,6 +14,7 @@
 		<![CDATA[
 			import control.ImportCommand;
 			import control.LoadFileDataCommand;
+			import control.RemoveArmatureCommon;
 			
 			import dragonBones.utils.ConstValues;
 			
@@ -31,6 +32,7 @@
 			
 			import view.ExportWindow;
 			import view.ImportWindow;
+			
 			//
 			JSFLProxy.getInstance();
 
@@ -262,6 +264,14 @@
 					ImportCommand.instance.importFLAData(true, false, armatureNames);
 				}
 			}
+			
+			private function removeCurrentArmature():void
+			{
+				if(_importDataProxy.skeletonData)
+				{
+					RemoveArmatureCommon.instance.removeArmature(_importDataProxy.armatureDataProxy.armatureName);
+				}
+			}
 		]]>
 	</fx:Script>
 	<fx:Metadata>
@@ -310,7 +320,10 @@
 				<s:Button label="Update" 
 						  enabled="{ImportDataProxy.getInstance().skeletonData != null}"
 						  click="updateCurrentArmature()"/>
-				<s:Button label="Remove"/>
+				<s:Button label="Remove"
+						  enabled="{ImportDataProxy.getInstance().skeletonData != null}"
+						  click="removeCurrentArmature()"
+						  />
 			</s:HGroup>
 			<mx:HDividedBox width="100%" height="100%">
 				<view:ArmatureDisplayUIsGroup width="60%" height="100%"/>

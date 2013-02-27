@@ -10,7 +10,7 @@
 	<fx:Script>
 		<![CDATA[
 			import control.ExportDataCommand;
-			
+
 			import message.Message;
 			import message.MessageDispatcher;
 			
