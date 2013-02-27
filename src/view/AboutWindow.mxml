@@ -30,15 +30,11 @@
 			{
 				var xml:XML = 
 					<root>
-						<br/>
-						<b>DragonBones Version {ConstValues.VERSION}</b>
-						<br/>
+						<b>DragonBones V{ConstValues.VERSION}</b>
 						<br/>
 						<a href="http://dragonbones.github.com/">http://dragonbones.github.com/</a>
 						<br/>
-						<br/>
 						<a href="mailto:dragonbonesteam@gmail.com">{resourceManager.getString('resources', 'contactUsBy', ['dragonbonesteam@gmail.com'])}</a>
-						<br/>
 						<br/>
 						{resourceManager.getString('resources', 'copyright')}
 					</root>
