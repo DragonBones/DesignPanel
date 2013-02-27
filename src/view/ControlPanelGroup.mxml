@@ -27,39 +27,17 @@
 			
 			protected function this_creationCompleteHandler(event:FlexEvent):void
 			{
-				updatePlayAndPauseBtn();
-				
 				movementList.dataProvider = _importDataProxy.animationDataProxy.movementsMC;
 				movementList.addEventListener(IndexChangeEvent.CHANGE, movementList_onChange);
 				
 				boneTree.addEventListener(ListEvent.CHANGE, boneHandler);
 				boneTree.addEventListener(DragEvent.DRAG_COMPLETE, boneHandler);
 				
-				playBtn.addEventListener(MouseEvent.CLICK, playBtnHandler);
-				
-				MessageDispatcher.addEventListener(MessageDispatcher.SETTING_DATA_CHANGE, settingHandler);
-				
 				MessageDispatcher.addEventListener(MessageDispatcher.CHANGE_ARMATURE_DATA, commandHandler);
 				MessageDispatcher.addEventListener(MessageDispatcher.CHANGE_MOVEMENT_DATA, commandHandler);
 				MessageDispatcher.addEventListener(MessageDispatcher.CHANGE_BONE_DATA, commandHandler);
 				
 				MessageDispatcher.addEventListener(MessageDispatcher.UPDATE_BONE_PARENT, commandHandler);		
-				
-				MessageDispatcher.addEventListener(MessageDispatcher.MOVEMENT_CHANGE, commandHandler);
-				MessageDispatcher.addEventListener(MessageDispatcher.MOVEMENT_START, commandHandler);
-				MessageDispatcher.addEventListener(MessageDispatcher.MOVEMENT_COMPLETE, commandHandler);
-			}
-			
-			private function settingHandler(e:Message):void
-			{
-				var dataID:String = e.parameters[0];
-				var value:Object = e.parameters[1];
-				switch(dataID)
-				{
-					case SettingDataProxy.LANGUAGE_ID:
-						updatePlayAndPauseBtn();
-						break;
-				}
 			}
 			
 			private function movementList_onChange(e:Event):void
@@ -119,11 +97,6 @@
 					case MessageDispatcher.CHANGE_BONE_DATA:
 						boneTree.selectItemByName(e.parameters[0]);
 						break;
-					case MessageDispatcher.MOVEMENT_CHANGE:
-					case MessageDispatcher.MOVEMENT_START:
-					case MessageDispatcher.MOVEMENT_COMPLETE:
-						updatePlayAndPauseBtn();
-						break;
 				}
 			}
 			
@@ -166,56 +139,6 @@
 					boneAdvancedSwitch.label = "<<";
 				}
 			}
-			
-			private var _movementUpdated:Boolean;
-			
-			private function playBtnHandler(e:Event):void
-			{
-				if(_importDataProxy.armature)
-				{
-					if(_importDataProxy.armature.animation.isPlaying)
-					{
-						_importDataProxy.armature.animation.stop();
-					}
-					else
-					{
-						if(_movementUpdated)
-						{
-							_importDataProxy.armature.animation.gotoAndPlay(_importDataProxy.animationDataProxy.movementName);
-						}
-						else
-						{
-							_importDataProxy.armature.animation.play();
-						}
-					}
-					updatePlayAndPauseBtn();
-					_movementUpdated = false;
-				}
-			}
-			
-			private function updatePlayAndPauseBtn():void
-			{
-				if(_importDataProxy.armature)
-				{
-					playBtn.enabled = true;
-					if(_importDataProxy.armature.animation.isPause || _importDataProxy.armature.animation.isComplete)
-					{
-						playBtn.label = resourceManager.getString('resources','play');
-						playBtn.selected = false;
-					}
-					else
-					{
-						playBtn.label = resourceManager.getString('resources','stop');
-						playBtn.selected = true;
-					}
-				}
-				else
-				{
-					playBtn.selected = false;
-					playBtn.enabled = false;
-					playBtn.label = resourceManager.getString('resources','play');
-				}
-			}
 		]]>
 	</fx:Script>
 	<fx:Declarations>
@@ -225,7 +148,6 @@
 			<s:HGroup width="100%" gap="-1">
 				<s:Button width="100%" height="24" label="{resourceManager.getString('resources','behaviorList')}"
 						  cornerRadius="0" fontWeight="bold"/>
-				<s:ToggleButton id="playBtn" width="75" height="24"/>
 				<s:Button id="behaviorAdvancedSwitch" width="35" height="24" label="&lt;&lt;"
 						  cornerRadius="0" click="behaviorAdvancedSwitch_clickHandler(event)"/>
 			</s:HGroup>

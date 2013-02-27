@@ -83,6 +83,8 @@
 			
 			private function addedToStageHandler(event:Event):void
 			{
+				updatePlayAndPauseBtn();
+				
 				var color:uint = SettingDataProxy.getInstance().getData(SettingDataProxy.BONE_HIGHLIGHT_COLOR);
 				_boneHighlightFilter = new GlowFilter(color,0.5,8,8,4);
 				_boneRolloverFilter = new GlowFilter(color,0.5,2,2,32);
@@ -124,6 +126,8 @@
 				viewContainer.addChild(_originlineY);
 				viewContainer.addChild(_armatureContainer);
 				
+				playBtn.addEventListener(MouseEvent.CLICK, playBtnHandler);
+				
 				btnZoomIn.addEventListener(MouseEvent.CLICK, scaleHandler);
 				btnZoomOut.addEventListener(MouseEvent.CLICK, scaleHandler);
 				sliderScale.addEventListener(Event.CHANGE, scaleHandler);
@@ -131,11 +135,14 @@
 				scrollerViewer.horizontalScrollBar.addEventListener(MouseEvent.MOUSE_DOWN, scrollBarHandler);
 				scrollerViewer.verticalScrollBar.addEventListener(MouseEvent.MOUSE_DOWN, scrollBarHandler);
 				
-				
 				MessageDispatcher.addEventListener(MessageDispatcher.SETTING_DATA_CHANGE, settingHandler);
 				
 				MessageDispatcher.addEventListener(MessageDispatcher.CHANGE_ARMATURE_DATA, commandHandler);
 				MessageDispatcher.addEventListener(MessageDispatcher.CHANGE_BONE_DATA, commandHandler);
+				
+				MessageDispatcher.addEventListener(MessageDispatcher.MOVEMENT_CHANGE, commandHandler);
+				MessageDispatcher.addEventListener(MessageDispatcher.MOVEMENT_START, commandHandler);
+				MessageDispatcher.addEventListener(MessageDispatcher.MOVEMENT_COMPLETE, commandHandler);
 				
 			}
 			
@@ -148,6 +155,9 @@
 					case SettingDataProxy.BONE_HIGHLIGHT_COLOR:
 						_boneRolloverFilter.color = _boneHighlightFilter.color = value as uint;
 						highlightBoneDisplay();
+						break;
+					case SettingDataProxy.LANGUAGE_ID:
+						updatePlayAndPauseBtn();
 						break;
 				}
 			}
@@ -185,6 +195,11 @@
 						break;
 					case MessageDispatcher.CHANGE_BONE_DATA:
 						highlightBoneDisplay();
+						break;
+					case MessageDispatcher.MOVEMENT_CHANGE:
+					case MessageDispatcher.MOVEMENT_START:
+					case MessageDispatcher.MOVEMENT_COMPLETE:
+						updatePlayAndPauseBtn();
 						break;
 				}
 			}
@@ -504,6 +519,53 @@
 					}
 				}
 			}
+			
+			private var _movementUpdated:Boolean;
+			
+			private function playBtnHandler(e:Event):void
+			{
+				if(_importDataProxy.armature)
+				{
+					if(_importDataProxy.armature.animation.isPlaying)
+					{
+						_importDataProxy.armature.animation.stop();
+					}
+					else
+					{
+						if(_movementUpdated)
+						{
+							_importDataProxy.armature.animation.gotoAndPlay(_importDataProxy.animationDataProxy.movementName);
+						}
+						else
+						{
+							_importDataProxy.armature.animation.play();
+						}
+					}
+					updatePlayAndPauseBtn();
+					_movementUpdated = false;
+				}
+			}
+			
+			private function updatePlayAndPauseBtn():void
+			{
+				if(_importDataProxy.armature)
+				{
+					playBtn.enabled = true;
+					if(_importDataProxy.armature.animation.isPause || _importDataProxy.armature.animation.isComplete)
+					{
+						playBtn.label = resourceManager.getString('resources','play');
+					}
+					else
+					{
+						playBtn.label = resourceManager.getString('resources','stop');
+					}
+				}
+				else
+				{
+					playBtn.enabled = false;
+					playBtn.label = resourceManager.getString('resources','play');
+				}
+			}
 		]]>
 	</fx:Script>
 	<s:Scroller id="scrollerViewer" width="100%" height="100%" horizontalScrollPolicy="off" verticalScrollPolicy="off">
@@ -523,6 +585,7 @@
 				   />
 		<s:Button id="btnZoomIn" width="32" label="＋"/>
 	</s:HGroup>
+	<s:Button id="playBtn" right="2" top="2" width="75" height="24"/>
 	<s:Rect width="100%" height="100%">
 		<s:stroke>
 			<s:SolidColorStroke color="0x000000" weight="1"/>
