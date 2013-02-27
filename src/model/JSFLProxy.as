@@ -30,7 +30,7 @@
 		private static const CONNECTION_METHOD_NAME:String = "connectionMethodName";
 		private static const STATUS:String = "status";
 		
-		private static const JSFL_URL:String = "SkeletonAnimationDesignPanel/skeleton.jsfl";
+		private static const JSFL_URL:String = "DragonBonesDesignPanel/skeleton.jsfl";
 		
 		private static const MAX_SIZE:uint = 1024 * 35;
 		

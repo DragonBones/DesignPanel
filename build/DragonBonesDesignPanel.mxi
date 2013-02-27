@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<macromedia-extension name="SkeletonAnimationDesignPanel" version="1.5.0" type="command">
+<macromedia-extension name="DragonBonesDesignPanel" version="2.0.0" type="command">
 
 	<author name="DragonBones Team"/>
 	<products>
@@ -28,7 +28,7 @@
 	<files>
 		<file source="SkeletonAnimationDesignPanel/skeleton.jsfl" destination="$flash/WindowSWF/SkeletonAnimationDesignPanel"/>
 
-		<file source="SkeletonAnimationDesignPanel.swf" destination="$flash/WindowSWF"/>
+		<file source="DragonBonesDesignPanel.swf" destination="$flash/WindowSWF"/>
 	</files>
 
 </macromedia-extension>
