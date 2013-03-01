@@ -177,14 +177,14 @@
 			WorldClock.update();
 		}
 		
-		public function getArmatureXMLByName(name:String = null):XML
+		public function getArmatureXMLByName(name:String):XML
 		{
 			return getElementByName(_armaturesXMLList, name, true);
 		}
 		
-		public function getAnimationXMLByName(name:String = null):XML
+		public function getAnimationXMLByName(name:String):XML
 		{
-			return getElementByName(_animationsXMLList, name, true);
+			return getElementByName(_animationsXMLList, name);
 		}
 		
 		public function updateArmatureBoneOrigin(boneName:String):void

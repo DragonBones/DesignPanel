@@ -69,7 +69,6 @@ package model
 			MessageDispatcher.dispatchEvent(MessageDispatcher.CHANGE_ARMATURE_DATA, armatureName);
 			
 			changeBone();
-			
 			ImportDataProxy.getInstance().animationDataProxy.setData(ImportDataProxy.getInstance().getAnimationXMLByName(armatureName));
 		}
 		

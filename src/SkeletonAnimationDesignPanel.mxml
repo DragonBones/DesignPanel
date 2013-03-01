@@ -13,7 +13,6 @@
 	<fx:Script>
 		<![CDATA[
 			import control.ImportCommand;
-			import control.LoadFileDataCommand;
 			import control.RemoveArmatureCommon;
 			
 			import dragonBones.utils.ConstValues;
@@ -45,7 +44,6 @@
 			{	
 				skeletonDropDownList.dataProvider = _importDataProxy.armaturesMC;
 				skeletonDropDownList.addEventListener(IndexChangeEvent.CHANGE, skeletonDropDownList_onChange);
-				//XML.prettyIndent = -1;
 				
 				MessageDispatcher.addEventListener(MessageDispatcher.LOAD_FLADATA, commandHandler);
 				MessageDispatcher.addEventListener(MessageDispatcher.LOAD_ARMATURE_DATA, commandHandler);
@@ -82,9 +80,11 @@
 					var data:String = loaderInfo.parameters["data"];
 					if(data)
 					{
-						LoadFileDataCommand.instance.load(data);
+						ImportCommand.instance.importFileData(false, data);
 					}
 				}
+				
+				stage.frameRate = 60;
 			}
 			
 			private function skeletonDropDownList_onChange(event:IndexChangeEvent):void
@@ -107,6 +107,7 @@
 								break;
 							}
 						}
+						
 						break;
 					case MessageDispatcher.LOAD_FLADATA:
 						if(e.parameters[0] > 0)
