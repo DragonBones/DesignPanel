@@ -174,7 +174,7 @@
 		
 		public function render():void
 		{
-			WorldClock.update();
+			WorldClock.clock.advanceTime(-1);
 		}
 		
 		public function getArmatureXMLByName(name:String):XML

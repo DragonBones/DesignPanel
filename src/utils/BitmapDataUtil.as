@@ -8,6 +8,7 @@ package utils
 	{
 		public static function getSubBitmapDataDic(bitmapData:BitmapData, rectDic:Object, scale:Number = 1):Object
 		{
+			var smoothing:Boolean = scale != 1;
 			var subBitmapDataDic:Object = {};
 			for(var subTextureName:String in rectDic)
 			{
@@ -15,9 +16,12 @@ package utils
 				var matrix:Matrix = new Matrix();
 				matrix.tx = -rect.x;
 				matrix.ty = -rect.y;
-				matrix.scale(scale, scale);
+				if(scale != 1)
+				{
+					matrix.scale(scale, scale);
+				}
 				var subBitmapData:BitmapData = new BitmapData(Math.ceil(rect.width * scale), Math.ceil(rect.height * scale), true, 0xFF00FF);
-				subBitmapData.draw(bitmapData, matrix);
+				subBitmapData.draw(bitmapData, matrix, null, null, null, smoothing);
 				subBitmapDataDic[subTextureName] = subBitmapData;
 			}
 			return subBitmapDataDic;

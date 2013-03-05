@@ -327,9 +327,11 @@ package model
 		
 		public function executeBoneCopy():void
 		{
+			trace(_sharedBoneNames);
 			var sourceBones:XMLList = selectedSourceBoneList;
 			var destinationBones:XMLList = selectedDestinaionBonelist.copy();
 			var plattenDestinationBones:XMLList = copyBones(sourceBones, destinationBones, _sharedBoneNames);
+			trace(plattenDestinationBones);
 			var destinationName:String = selectedDestinationArmature.@[ConstValues.A_NAME];
 			//update _copySkeletonXML;
 			applyCopiedBoneToSkeletonXML(plattenDestinationBones, destinationName);
@@ -361,7 +363,6 @@ package model
 			//update selectedDestinationArmature
 			delete _selectedDestinationArmature[ConstValues.ANIMATION];
 			_selectedDestinationArmature.appendChild(container);
-			
 			
 			//update _copySkeletonXML;
 			delete _copySkeletonXML[ConstValues.ANIMATIONS][ConstValues.ANIMATION].(@[ConstValues.A_NAME] == destinationName)[0];
@@ -523,23 +524,44 @@ package model
 			}
 		}
 		
-		
-		
 		//return a platten bone list
 		private static function copyBones(sourceBones:XMLList, destinationBones:XMLList, sharedBoneNames:Vector.<String>):XMLList
 		{
-			var plattenBones:XMLList = plattenBones(destinationBones);
-			var container:XML = <container/>;
-			container.appendChild(sourceBones.copy());
+			var plattenBoneList:XMLList = plattenBones(destinationBones);
+			sourceBones = plattenBones(sourceBones);
+			
 			for each (var boneName:String in sharedBoneNames)
 			{
-				var parentName:String = container.descendants().(@[ConstValues.A_NAME] == boneName).@[ConstValues.A_PARENT];
+				var parentName:String = getBoneParentName(boneName, plattenBoneList, sourceBones);
+					//container.descendants().(@[ConstValues.A_NAME] == boneName).@[ConstValues.A_PARENT];
 				if (parentName)
-					plattenBones.(@[ConstValues.A_NAME] == boneName).@[ConstValues.A_PARENT] = parentName;
+					plattenBoneList.(@[ConstValues.A_NAME] == boneName).@[ConstValues.A_PARENT] = parentName;
 				else
-					delete plattenBones.(@[ConstValues.A_NAME] == boneName).@[ConstValues.A_PARENT];
+					delete plattenBoneList.(@[ConstValues.A_NAME] == boneName).@[ConstValues.A_PARENT];
 			}
-			return plattenBones;
+			return plattenBoneList;
+		}
+		
+		private static function getBoneParentName(boneName:String, targetBoneXMLList:XMLList, sourceBoneXMLList:XMLList):String
+		{
+			while(true)
+			{
+				var boneXML:XML = XMLDataParser.getElementsByAttribute(sourceBoneXMLList, ConstValues.A_NAME, boneName)[0];
+				boneName = boneXML.attribute(ConstValues.A_PARENT);
+				if(boneName)
+				{
+					boneXML = XMLDataParser.getElementsByAttribute(targetBoneXMLList, ConstValues.A_NAME, boneName)[0];
+					if(boneXML)
+					{
+						break;
+					}
+				}
+				else
+				{
+					break;
+				}
+			}
+			return boneName;
 		}
 		
 		
@@ -611,12 +633,11 @@ package model
 				if (container.descendants().(@[ConstValues.A_NAME] == boneName).length())
 				{
 					receiver.push(boneName);
-					generateSharedBonesInTree2(bone.children(), container, receiver);
 				}
+				//即使该骨骼不存在于目标骨架中，仍继续遍历其子骨骼
+				generateSharedBonesInTree2(bone.children(), container, receiver);
 			}
 		}
-		
-		
 		
 		private static function copyBehaviors(sourceArmatureName:String, sourceBehaviors:Vector.<Object>, sourceAnimationData:AnimationData, destinationBehaviors:XMLList, sharedBoneNames:Vector.<String>, plattenDestinationBoneList:XMLList):XMLList
 		{

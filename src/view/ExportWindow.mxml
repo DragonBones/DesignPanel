@@ -42,6 +42,7 @@
 					case 2:
 						return 1;
 				}
+				
 				var scale:Number = Number(exportScaleComboBox.textInput.text);
 				
 				return scale || 1;

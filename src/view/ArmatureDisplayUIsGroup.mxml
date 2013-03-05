@@ -23,7 +23,7 @@
 			import model.SettingDataProxy;
 			
 			import mx.effects.Pause;
-
+			
 			import utils.getPointTarget;
 			
 			use namespace dragonBones_internal;
@@ -58,7 +58,7 @@
 			
 			private var _armatreArea:Rectangle;
 			
-			private var _boneBinder:LinkClip;
+			private var _boneSymbol:BoneSymbol;
 			
 			private var _isMouseIn:Boolean;
 			private var _isMouseDown:Boolean;
@@ -101,10 +101,14 @@
 				
 				_armatureContainer = new Sprite();
 				
-				_boneBinder = new LinkClip();
-				_boneBinder.mouseChildren = false;
-				_boneBinder.mouseEnabled = false;
-				_boneBinder.visible = false;
+				_boneSymbol = new BoneSymbol();
+				_boneSymbol.mouseChildren = false;
+				_boneSymbol.mouseEnabled = false;
+				_boneSymbol.blendMode = BlendMode.LAYER;
+				_boneSymbol.alpha = 0.6;
+				_boneSymbol.visible = false;
+				
+				_boneSymbol.filters =[new GlowFilter(0x000000, 1, 4, 4, 2)];
 				
 				_bgShape = new Shape();
 				_bgShape.graphics.beginFill(0xFF00FF, 0);
@@ -207,6 +211,7 @@
 						highlightBoneDisplay();
 						break;
 					case MessageDispatcher.MOVEMENT_CHANGE:
+						break;
 					case MessageDispatcher.MOVEMENT_START:
 					case MessageDispatcher.MOVEMENT_COMPLETE:
 						updatePlayAndPauseBtn();
@@ -277,7 +282,7 @@
 					
 					if(_isDragedArmature)
 					{
-						if(_isMouseDown && !_boneBinder.visible)
+						if(_isMouseDown && !_boneSymbol.visible)
 						{
 							scrollerViewer.horizontalScrollBar.value = _pointDragGlobal.x - stage.mouseX + _pointScrollBarDrag.x;
 							scrollerViewer.verticalScrollBar.value = _pointDragGlobal.y - stage.mouseY + _pointScrollBarDrag.y;
@@ -350,9 +355,9 @@
 						Mouse.cursor = MouseCursor.AUTO;
 						
 						
-						if(_boneBinder.visible)
+						if(_boneSymbol.visible)
 						{
-							_boneBinder.visible = false;
+							_boneSymbol.visible = false;
 							if(_boneDisplaySelected && _boneDisplayRollOver && mouseTarget == _boneDisplayRollOver)
 							{
 								boneAddToParent();
@@ -369,8 +374,8 @@
 						break;
 					case MouseEvent.MOUSE_MOVE:
 						_armatureContainer.removeEventListener(MouseEvent.MOUSE_MOVE, containerMouseHandler);
-						_armatureContainer.addChild(_boneBinder);
-						_boneBinder.visible = true;
+						_armatureContainer.addChild(_boneSymbol);
+						_boneSymbol.visible = true;
 						break;
 					case MouseEvent.MOUSE_WHEEL:
 						e.delta > 0?(viewScale += 0.2):(viewScale -= 0.2);
@@ -418,7 +423,7 @@
 						{
 							if(_boneDisplaySelected && _isMouseDown)
 							{
-								if(!checkBoneParent(_boneDisplaySelected, mouseTarget))
+								if(!checkBoneParent(mouseTarget, _boneDisplaySelected))
 								{
 									return null;
 								}
@@ -442,7 +447,7 @@
 			
 			private function updateBoneBinder():void
 			{
-				if(_boneBinder.visible)
+				if(_boneSymbol.visible)
 				{
 					var bone:Bone = _importDataProxy.armature.getBoneByDisplay(_boneDisplaySelected);
 					
@@ -450,17 +455,16 @@
 					_pointHelp.y = bone.global.y;
 					_pointHelp = _armatureDisplay.localToGlobal(_pointHelp);
 					_pointHelp = _armatureContainer.globalToLocal(_pointHelp);
-					_boneBinder.x = _pointHelp.x;
-					_boneBinder.y = _pointHelp.y;
+					_boneSymbol.x = _pointHelp.x;
+					_boneSymbol.y = _pointHelp.y;
 					
-					var dX:Number = _armatureContainer.mouseX - _boneBinder.x;
-					var dY:Number = _armatureContainer.mouseY - _boneBinder.y;
+					var dX:Number = _armatureContainer.mouseX - _boneSymbol.x;
+					var dY:Number = _armatureContainer.mouseY - _boneSymbol.y;
 					var radian:Number = Math.atan2(dY, dX);
 					var radius:Number = Math.sqrt(dX * dX + dY * dY);
 					
-					_boneBinder.rotation = radian * 180 / Math.PI;
-					_boneBinder.link.clip.width = radius + 15;
-					_boneBinder.pt.x = radius;
+					_boneSymbol.rotation = radian * 180 / Math.PI;
+					_boneSymbol.line.width = radius;
 				}
 			}
 			
@@ -482,12 +486,12 @@
 			
 			private function boneAddToParent():void
 			{
-				var bone:Bone = _importDataProxy.armature.getBoneByDisplay(_boneDisplaySelected);
+				var bone:Bone = _importDataProxy.armature.getBoneByDisplay(_boneDisplayRollOver);
 				if(bone)
 				{
 					var boneName:String = bone.name;
 				}
-				bone = _importDataProxy.armature.getBoneByDisplay(_boneDisplayRollOver);
+				bone = _importDataProxy.armature.getBoneByDisplay(_boneDisplaySelected);
 				if(bone)
 				{
 					var boneParentName:String = bone.name;

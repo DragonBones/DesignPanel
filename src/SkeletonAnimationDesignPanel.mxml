@@ -182,10 +182,14 @@
 						changeRenderMovement(e.parameters[0], true);
 						break;
 					case MessageDispatcher.UPDATE_BONE_PARENT:
-						updateRenderBoneParent(e.parameters[0]);
+						if(_importDataProxy.armature)
+						{
+							_importDataProxy.updateArmatureBoneOrigin(e.parameters[0]);
+							changeRenderMovement(_importDataProxy.animationDataProxy.movementName, true);
+						}
 						break;
 					case MessageDispatcher.MOVEMENT_CHANGE:
-						_importDataProxy.animationDataProxy.changeMovement(e.parameters[0], true);
+						//_importDataProxy.animationDataProxy.changeMovement(e.parameters[0], true);
 						break;
 				}
 			}
@@ -194,19 +198,25 @@
 			{
 				if(movementName && _importDataProxy.armature && !isChangedByArmature)
 				{
-					if(autoPlay?_importDataProxy.armature.animation.isPlaying:true)
+					if(autoPlay)
+					{
+						if(_importDataProxy.armature.animation.isPlaying)
+						{
+							_importDataProxy.armature.animation.gotoAndPlay(movementName);
+						}
+						else
+						{
+							var currentTime:Number = _importDataProxy.armature.animation.currentTime;
+							_importDataProxy.armature.animation.gotoAndPlay(movementName, 0);
+							_importDataProxy.armature.advanceTime(0);
+							_importDataProxy.armature.advanceTime(currentTime);
+							_importDataProxy.armature.animation.stop();
+						}
+					}
+					else
 					{
 						_importDataProxy.armature.animation.gotoAndPlay(movementName);
 					}
-				}
-			}
-			
-			private function updateRenderBoneParent(boneName:String):void
-			{
-				if(_importDataProxy.armature)
-				{
-					_importDataProxy.updateArmatureBoneOrigin(boneName);
-					changeRenderMovement(_importDataProxy.animationDataProxy.movementName);
 				}
 			}
 			

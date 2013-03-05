@@ -81,6 +81,10 @@ package model
 		}
 		public function set exportScaleID(value:int):void
 		{
+			if(value < 0)
+			{
+				value = 5;
+			}
 			_exportScaleID = value;
 			setData(EXPORT_SCALE_ID, _exportScaleID);
 		}
