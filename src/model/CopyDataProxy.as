@@ -12,6 +12,7 @@ package model
 	import dragonBones.objects.Node;
 	import dragonBones.objects.SkeletonData;
 	import dragonBones.objects.XMLDataParser;
+	import dragonBones.textures.NativeTextureAtlas;
 	import dragonBones.utils.ConstValues;
 	import dragonBones.utils.TransformUtils;
 	import dragonBones.utils.dragonBones_internal;
@@ -38,11 +39,9 @@ package model
 		private var _skeletonData:SkeletonData;
 		private var _copyFactory:BaseFactory;
 		
-		
 		//controlled by view
 		private var _selectedSourceArmature:XML;
 		private var _selectedDestinationArmature:XML;
-		
 		
 		//for view displaying
 		public var selectedSourceBoneList:XMLList;
@@ -58,14 +57,11 @@ package model
 		private var _selectedMultipleSourceBehaviors:Vector.<Object>;
 		private var _selectedMultipleDestinationBehaviors:Vector.<Object>;
 		
-		
 		public var boneCopyable:Boolean;
 		public var behaviorCopyable:Boolean;
 		public var behaviorDeletable:Boolean;
 		
 		private var _sharedBoneNames:Vector.<String>;
-		
-		
 		
 		public function get selectedMultipleDestinationBehaviors():Vector.<Object>
 		{
@@ -275,11 +271,51 @@ package model
 		
 		public function save():void
 		{
+			
 			waitingForSavingBehaviors = calculateChangedArmatures().children();
 			savingIndex = 0;
+			
 			MessageDispatcher.dispatchEvent(MessageDispatcher.SAVE_ANIMATION_START);
-			MessageDispatcher.addEventListener(JSFLProxy.COPY_MOVEMENT, saveOneBehavior);
-			saveOneBehavior(null);
+			
+			var armatureXMLList:XMLList = _copySkeletonXML.descendants(ConstValues.ARMATURE);
+			
+			for each(var armatureXML:XML in armatureXMLList)
+			{
+				var armatureName:String = armatureXML.@[ConstValues.A_NAME];
+				var originArmatureXML:XML = ImportDataProxy.getInstance().skeletonXMLProxy.getArmatureXML(armatureName);
+				if(originArmatureXML != armatureXML)
+				{
+					var isBoneTreeChange:Boolean = true;
+					if(!ImportDataProxy.getInstance().isExportedSource)
+					{
+						JSFLProxy.getInstance().changeArmatureConnection(armatureName, armatureXML);
+					}
+				}
+			}
+			
+			if(isBoneTreeChange || waitingForSavingBehaviors.length() > 0)
+			{
+				ImportDataProxy.getInstance().skeletonXMLProxy.skeletonXML = _copySkeletonXML.copy();
+				
+				var textureAtlas:NativeTextureAtlas = ImportDataProxy.getInstance().textureAtlas;
+				
+				ImportDataProxy.getInstance().setData(
+					ImportDataProxy.getInstance().skeletonXMLProxy, 
+					ImportDataProxy.getInstance().textureBytes,
+					textureAtlas.movieClip || textureAtlas.bitmapData.clone(),
+					ImportDataProxy.getInstance().isExportedSource
+				);
+			}
+			
+			if(!ImportDataProxy.getInstance().isExportedSource)
+			{
+				MessageDispatcher.addEventListener(JSFLProxy.COPY_MOVEMENT, saveOneBehavior);
+				saveOneBehavior(null);
+			}
+			else
+			{
+				MessageDispatcher.dispatchEvent(MessageDispatcher.SAVE_ANIMATION_COMPLETE);
+			}
 		}
 		
 		public function calculateChangedArmatures():XML
@@ -327,11 +363,9 @@ package model
 		
 		public function executeBoneCopy():void
 		{
-			trace(_sharedBoneNames);
 			var sourceBones:XMLList = selectedSourceBoneList;
 			var destinationBones:XMLList = selectedDestinaionBonelist.copy();
 			var plattenDestinationBones:XMLList = copyBones(sourceBones, destinationBones, _sharedBoneNames);
-			trace(plattenDestinationBones);
 			var destinationName:String = selectedDestinationArmature.@[ConstValues.A_NAME];
 			//update _copySkeletonXML;
 			applyCopiedBoneToSkeletonXML(plattenDestinationBones, destinationName);
@@ -340,7 +374,6 @@ package model
 			delete selectedDestinationArmature[ConstValues.BONE];
 			selectedDestinationArmature.appendChild(boneTree);
 			selectedDestinaionBonelist = boneTree.copy();
-			
 			
 			resetDestinationSkeletonData();
 			//occur to update
@@ -354,7 +387,6 @@ package model
 		{
 			var copiedDestinationBehaviors:XMLList = copyBehaviors(_selectedSourceArmatureName, selectedMultipleSourceBehaviors, _sourceAnimationData, selectedDestinaionBehaviorList, _sharedBoneNames, _plattenDestinationBoneList);
 			var destinationName:String = selectedDestinationArmature.@[ConstValues.A_NAME];
-			
 			
 			var container:XML = <{ConstValues.ANIMATION}/>;
 			container.@[ConstValues.A_NAME] = destinationName;
@@ -421,7 +453,6 @@ package model
 		{
 			_skeletonData = XMLDataParser.parseSkeletonData(_copySkeletonXML);
 			_copyFactory.addSkeletonData(_skeletonData);
-			return;
 		}
 		
 		private function checkBonesCopyable():void
@@ -563,7 +594,6 @@ package model
 			}
 			return boneName;
 		}
-		
 		
 		private static function plattenBones(treeBones:XMLList):XMLList
 		{
