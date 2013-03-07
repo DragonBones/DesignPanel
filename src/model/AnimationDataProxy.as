@@ -233,12 +233,10 @@
 			var movementData:MovementData = animationData.getMovementData(movementName);
 			var movementBoneData:MovementBoneData = movementData.getMovementBoneData(boneName);
 			
-			movementBoneData.scale = boneScale * 0.01;
-			movementBoneData.delay = boneDelay * 0.01;
-			if(movementBoneData.delay > 0)
-			{
-				movementBoneData.delay -= 1;
-			}
+			movementBoneData.setValues(
+				boneScale * 0.01,
+				boneDelay * 0.01
+			)
 			
 			if(!ImportDataProxy.getInstance().isExportedSource)
 			{
