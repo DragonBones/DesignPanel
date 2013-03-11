@@ -66,7 +66,7 @@
 					 text="{resourceManager.getString('resources','export') + ':'}"
 					 />
 			<s:Label height="24" textAlign="right" verticalAlign="middle"
-					 text="Armature Scale:"
+					 text="{resourceManager.getString('resources','exportscale') + ':'}"
 					 />
 		</s:VGroup>
 		<s:VGroup width="100%" gap="6">
