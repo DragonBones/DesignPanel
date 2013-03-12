@@ -16,7 +16,6 @@
 	import flash.utils.ByteArray;
 	
 	import message.MessageDispatcher;
-	
 	import mx.collections.XMLListCollection;
 	
 	use namespace dragonBones_internal;
