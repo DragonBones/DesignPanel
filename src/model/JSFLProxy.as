@@ -142,6 +142,7 @@
 		}
 		
 		private var _clientID:uint;
+		private var _serverID:uint;
 		private var _urlLoader:URLLoader;
 		private var _localConnectionSender:LocalConnection;
 		private var _localConnectionReceiver:LocalConnection;
@@ -165,16 +166,6 @@
 			_localConnectionSender.client[CONNECTION_METHOD_NAME] = senderConnectMethod;
 			_localConnectionSender.addEventListener(StatusEvent.STATUS, senderConnectStatusHandler);
 			
-			try 
-			{
-				_localConnectionSender.connect(LOCAL_CONNECTION_NAME + _clientID);
-				trace("localConnectionSender connect success!");
-			}
-			catch (e:Error)
-			{
-				throw new Error("localConnectionSender connect error!");
-			}
-			
 			if(isAvailable)
 			{
 				_localConnectionReceiver = new LocalConnection();
@@ -190,13 +181,31 @@
 				} 
 				catch (e:Error)
 				{
-					throw new Error("localConnectionReceiver connect error!");
+					_serverID = int(Math.random() * 0xFFFFFFFF) + 1;
+					_localConnectionReceiver.connect(LOCAL_CONNECTION_NAME + _serverID);
 				}
 				
 				_urlLoader = new URLLoader();
 				_urlLoader.addEventListener(Event.COMPLETE, jsflLoadHandler);
 				_urlLoader.addEventListener(IOErrorEvent.IO_ERROR, jsflLoadHandler);
 				_urlLoader.load(new URLRequest (JSFL_URL));
+			}
+			
+			try 
+			{
+				if(_serverID)
+				{
+					_localConnectionSender.connect(LOCAL_CONNECTION_NAME + _serverID + _clientID);
+				}
+				else
+				{
+					_localConnectionSender.connect(LOCAL_CONNECTION_NAME + _clientID);
+				}
+				trace("localConnectionSender connect success!");
+			}
+			catch (e:Error)
+			{
+				throw new Error("localConnectionSender connect error!");
 			}
 		}
 		
