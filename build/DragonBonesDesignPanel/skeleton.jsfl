@@ -622,8 +622,8 @@ function generateFrame(_frame, _boneName, _symbol, _z, _noAutoEasing){
 		}
 	}
 	
-	_frameXML.@[A_PIVOT_X] = formatNumber(helpPoint.x, 1);
-	_frameXML.@[A_PIVOT_Y] = formatNumber(helpPoint.y, 1);
+	_frameXML.@[A_PIVOT_X] = formatNumber(helpPoint.x);
+	_frameXML.@[A_PIVOT_Y] = formatNumber(helpPoint.y);
 	_frameXML.@[A_Z] = _z;
 	
 	var _boneXML = getBoneXML(_boneName, _frameXML);

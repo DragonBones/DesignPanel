@@ -384,8 +384,11 @@ package model
 					displayXML.@[ConstValues.A_PIVOT_Y] = -rect.y;
 				}
 				subTextureXML = subTextureXMLDic[subTextureName];
-				subTextureXML.@[ConstValues.A_PIVOT_X] = displayXML.@[ConstValues.A_PIVOT_X];
-				subTextureXML.@[ConstValues.A_PIVOT_Y] = displayXML.@[ConstValues.A_PIVOT_Y];
+				if(subTextureXML)
+				{
+					subTextureXML.@[ConstValues.A_PIVOT_X] = displayXML.@[ConstValues.A_PIVOT_X];
+					subTextureXML.@[ConstValues.A_PIVOT_Y] = displayXML.@[ConstValues.A_PIVOT_Y];
+				}
 			}
 			
 			if(rectList)

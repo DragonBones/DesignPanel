@@ -158,7 +158,6 @@
 		private function init():void
 		{
 			_localConnectionName = LOCAL_CONNECTION_NAME;
-			_clientID = Math.random() * 0xFFFFFFFF;
 			
 			if(isAvailable)
 			{
@@ -175,8 +174,20 @@
 				} 
 				catch (e:Error)
 				{
-					_localConnectionName = _localConnectionName + int(Math.random() * 0xFFFFFFFF) + 1;
-					_localConnectionReceiver.connect(_localConnectionName);
+					while(true)
+					{
+						var localConnectionName:String = _localConnectionName + int(Math.random() * 0xFFFFFFFF) + 1;
+						try 
+						{
+							_localConnectionReceiver.connect(localConnectionName);
+							_localConnectionName = localConnectionName;
+							jsflTrace("localConnectionReceiver connect success!(undebug)");
+							break;
+						}
+						catch (e:Error)
+						{
+						}
+					}
 				}
 				
 				_urlLoader = new URLLoader();
@@ -192,15 +203,20 @@
 			_localConnectionSender.client[CONNECTION_METHOD_NAME] = senderConnectMethod;
 			_localConnectionSender.addEventListener(StatusEvent.STATUS, senderConnectStatusHandler);
 			
-			try 
+			while(true)
 			{
-				_localConnectionSender.connect(_localConnectionName + _clientID);
-				trace("localConnectionSender connect success!");
+				_clientID = Math.random() * 0xFFFFFFFF;
+				try 
+				{
+					_localConnectionSender.connect(_localConnectionName + _clientID);
+					trace("localConnectionSender connect success!");
+					break;
+				}
+				catch (e:Error)
+				{
+				}
 			}
-			catch (e:Error)
-			{
-				throw new Error("localConnectionSender connect error!");
-			}
+
 		}
 		
 		private function jsflLoadHandler(e:Event):void
