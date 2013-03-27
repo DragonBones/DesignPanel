@@ -22,11 +22,10 @@
 		public static const GENERATE_ARMATURE:String = "generateArmature";
 		public static const CLEAR_TEXTURE_SWFITEM:String = "clearTextureSWFItem";
 		public static const ADD_TEXTURE_TO_SWFITEM:String = "addTextureToSWFItem";
-		public static const PACK_TEXTURES:String = "packTextures";
 		public static const EXPORT_SWF:String = "exportSWF";
 		public static const COPY_MOVEMENT:String = "copyArmatureFrom";
 		
-		private static const LOCAL_CONNECTION_NAME:String = "_SkeletonDesignPanelLocalConnection";
+		private static const LOCAL_CONNECTION_NAME:String = "_DragonBonesDesignPanelLocalConnection";
 		private static const CONNECTION_METHOD_NAME:String = "connectionMethodName";
 		private static const STATUS:String = "status";
 		
@@ -142,7 +141,7 @@
 		}
 		
 		private var _clientID:uint;
-		private var _serverID:uint;
+		private var _localConnectionName:String;
 		private var _urlLoader:URLLoader;
 		private var _localConnectionSender:LocalConnection;
 		private var _localConnectionReceiver:LocalConnection;
@@ -158,13 +157,8 @@
 		
 		private function init():void
 		{
+			_localConnectionName = LOCAL_CONNECTION_NAME;
 			_clientID = Math.random() * 0xFFFFFFFF;
-			
-			_localConnectionSender = new LocalConnection();
-			_localConnectionSender.allowDomain("*");
-			_localConnectionSender.client = {};
-			_localConnectionSender.client[CONNECTION_METHOD_NAME] = senderConnectMethod;
-			_localConnectionSender.addEventListener(StatusEvent.STATUS, senderConnectStatusHandler);
 			
 			if(isAvailable)
 			{
@@ -176,13 +170,13 @@
 				
 				try 
 				{
-					_localConnectionReceiver.connect(LOCAL_CONNECTION_NAME);
+					_localConnectionReceiver.connect(_localConnectionName);
 					jsflTrace("localConnectionReceiver connect success!");
 				} 
 				catch (e:Error)
 				{
-					_serverID = int(Math.random() * 0xFFFFFFFF) + 1;
-					_localConnectionReceiver.connect(LOCAL_CONNECTION_NAME + _serverID);
+					_localConnectionName = _localConnectionName + int(Math.random() * 0xFFFFFFFF) + 1;
+					_localConnectionReceiver.connect(_localConnectionName);
 				}
 				
 				_urlLoader = new URLLoader();
@@ -191,16 +185,16 @@
 				_urlLoader.load(new URLRequest (JSFL_URL));
 			}
 			
+			
+			_localConnectionSender = new LocalConnection();
+			_localConnectionSender.allowDomain("*");
+			_localConnectionSender.client = {};
+			_localConnectionSender.client[CONNECTION_METHOD_NAME] = senderConnectMethod;
+			_localConnectionSender.addEventListener(StatusEvent.STATUS, senderConnectStatusHandler);
+			
 			try 
 			{
-				if(_serverID)
-				{
-					_localConnectionSender.connect(LOCAL_CONNECTION_NAME + _serverID + _clientID);
-				}
-				else
-				{
-					_localConnectionSender.connect(LOCAL_CONNECTION_NAME + _clientID);
-				}
+				_localConnectionSender.connect(_localConnectionName + _clientID);
 				trace("localConnectionSender connect success!");
 			}
 			catch (e:Error)
@@ -234,7 +228,7 @@
 			for(var i:int = 0;i < length;i ++)
 			{
 				_localConnectionSender.send(
-					LOCAL_CONNECTION_NAME, 
+					_localConnectionName, 
 					CONNECTION_METHOD_NAME, 
 					_clientID, 
 					type, 
@@ -292,7 +286,7 @@
 				for(var i:int = 0;i < length;i ++)
 				{
 					_localConnectionReceiver.send(
-						LOCAL_CONNECTION_NAME + clientID, 
+						_localConnectionName + clientID, 
 						CONNECTION_METHOD_NAME, 
 						clientID, 
 						type,
@@ -369,14 +363,6 @@
 		public function addTextureToSWFItem(textureName:String, isLast:Boolean = false):void
 		{
 			runJSFLMethod(ADD_TEXTURE_TO_SWFITEM, "dragonBones.addTextureToSWFItem", textureName, isLast);
-		}
-		
-		/**
-		 * Place texture by textureAtlasXML data
-		 */
-		public function packTextures(textureAtlasXML:XML):void
-		{
-			runJSFLMethod(PACK_TEXTURES, "dragonBones.packTextures", textureAtlasXML);
 		}
 		
 		/**

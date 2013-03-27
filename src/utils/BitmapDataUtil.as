@@ -47,7 +47,7 @@ package utils
 				if(!(drawableDisplay is BitmapData))
 				{
 					var display:DisplayObject = drawableDisplay as DisplayObject;
-					var rectOffSet:Rectangle = display.getRect(display);
+					var rectOffSet:Rectangle = display.getBounds(display);
 					matrix.tx -= rectOffSet.x * scale;
 					matrix.ty -= rectOffSet.y * scale;
 				}

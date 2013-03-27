@@ -83,8 +83,8 @@ package control
 								_skeletonXMLProxy = ImportDataProxy.getInstance().skeletonXMLProxy;
 								textureBytes = combine(
 									ImportDataProxy.getInstance().textureBytes, 
-									textureBytes, 
-									_skeletonXMLProxy.textureAtlasXML
+									textureBytes,
+									_skeletonXMLProxy.modifySubTextureSize(null)
 								);
 								loadTextureBytes(textureBytes);
 								break;

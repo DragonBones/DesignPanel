@@ -47,7 +47,7 @@ package control
 				loadTextureBytes(
 					tirm(
 						ImportDataProxy.getInstance().textureBytes, 
-						_skeletonXMLProxy.textureAtlasXML
+						_skeletonXMLProxy.modifySubTextureSize(null)
 					)
 				);
 			}
