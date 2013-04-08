@@ -9,7 +9,7 @@ package model
 	import dragonBones.objects.FrameData;
 	import dragonBones.objects.MovementBoneData;
 	import dragonBones.objects.MovementData;
-	import dragonBones.objects.Node;
+	import dragonBones.objects.BoneTransform;
 	import dragonBones.objects.SkeletonData;
 	import dragonBones.objects.XMLDataParser;
 	import dragonBones.textures.NativeTextureAtlas;
@@ -747,7 +747,7 @@ package model
 			//遍历每个骨骼关键帧
 			var frameXMLList:XMLList = movementBoneXML.elements(ConstValues.FRAME);
 			var frameCount:uint = frameXMLList.length();
-			var frameNode:Node = new Node;
+			var frameNode:BoneTransform = new BoneTransform;
 			var parentFrameData:FrameData = new FrameData;
 			var tweenFrameData:FrameData = new FrameData;
 			var helpMatrix:Matrix = new Matrix;
@@ -798,7 +798,7 @@ package model
 					
 					//将两个XML转成的node计算出补间关键点，再转换为矩阵
 					
-					var parentNode:Node = new Node();
+					var parentNode:BoneTransform = new BoneTransform();
 					TransformUtils.setOffSetNode(parentFrameData.node, tweenFrameData.node, parentNode, tweenFrameData.tweenRotate);
 					TransformUtils.setTweenNode(parentFrameData.node, parentNode, parentNode, progress);
 					

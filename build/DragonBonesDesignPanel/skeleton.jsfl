@@ -622,8 +622,8 @@ function generateFrame(_frame, _boneName, _symbol, _z, _noAutoEasing){
 		}
 	}
 	
-	_frameXML.@[A_PIVOT_X] = formatNumber(helpPoint.x, 1);
-	_frameXML.@[A_PIVOT_Y] = formatNumber(helpPoint.y, 1);
+	_frameXML.@[A_PIVOT_X] = formatNumber(helpPoint.x);
+	_frameXML.@[A_PIVOT_Y] = formatNumber(helpPoint.y);
 	_frameXML.@[A_Z] = _z;
 	
 	var _boneXML = getBoneXML(_boneName, _frameXML);
@@ -929,10 +929,6 @@ dragonBones.addTextureToSWFItem = function(_textureName, _isLast){
 	}
 	
 	var _subTextureXML = <{SUB_TEXTURE} {A_NAME}={_textureName}/>;
-	_subTextureXML.@[A_PIVOT_X] = formatNumber(_symbol.x - _symbol.left);
-	_subTextureXML.@[A_PIVOT_Y] = formatNumber(_symbol.y - _symbol.top);
-	_subTextureXML.@[A_WIDTH] = Math.ceil(_symbol.width);
-	_subTextureXML.@[A_HEIGHT] = Math.ceil(_symbol.height);
 	
 	if(_isLast){
 		_timeline.removeFrames(1, 1);
@@ -944,48 +940,6 @@ dragonBones.addTextureToSWFItem = function(_textureName, _isLast){
 		_timeline.currentFrame = 1;
 	}
 	return _subTextureXML.toXMLString();
-}
-
-dragonBones.packTextures = function(_textureAtlasXML){
-	if(errorDOM()){
-		return false;
-	}
-	
-	if(!currentDom.library.itemExists(TEXTURE_SWF_ITEM)){
-		return false;
-	}
-	_textureAtlasXML = XML(_textureAtlasXML).toXMLString();
-	_textureAtlasXML = replaceString(_textureAtlasXML, "&lt;", "<");
-	_textureAtlasXML = replaceString(_textureAtlasXML, "&gt;", ">");
-	_textureAtlasXML = XML(_textureAtlasXML);
-	
-	var _subTextureXMLList = _textureAtlasXML[SUB_TEXTURE];
-	
-	var _textureItem = currentDom.library.items[currentDom.library.findItemIndex(TEXTURE_SWF_ITEM)];
-	var _timeline = _textureItem.timeline;
-	_timeline.currentFrame = 0;
-	var _name;
-	var _subTextureXML;
-	for each(var _texture in _textureItem.timeline.layers[0].frames[0].elements){
-		_subTextureXML = _subTextureXMLList.(@name == _texture.libraryItem.name)[0];
-		if(_subTextureXML){
-			if(_texture.scaleX != 1){
-				_texture.scaleX = 1;
-			}
-			if(_texture.scaleY != 1){
-				_texture.scaleY = 1;
-			}
-			if(_texture.skewX != 0){
-				_texture.skewX = 0;
-			}
-			if(_texture.skewY != 0){
-				_texture.skewY = 0;
-			}
-			_texture.x += Number(_subTextureXML.@[A_X]) - _texture.left;
-			_texture.y += Number(_subTextureXML.@[A_Y]) - _texture.top;
-		}
-	}
-	return true;
 }
 
 dragonBones.exportSWF = function(){

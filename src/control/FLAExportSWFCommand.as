@@ -1,7 +1,12 @@
 package control
 {
+	import flash.display.DisplayObject;
+	import flash.display.DisplayObjectContainer;
+	import flash.display.Loader;
+	import flash.display.LoaderInfo;
 	import flash.events.Event;
 	import flash.events.IOErrorEvent;
+	import flash.geom.Rectangle;
 	import flash.net.URLLoader;
 	import flash.net.URLLoaderDataFormat;
 	import flash.net.URLRequest;
@@ -11,6 +16,7 @@ package control
 	import message.MessageDispatcher;
 	
 	import model.JSFLProxy;
+	import model.SkeletonXMLProxy;
 	
 	import modifySWF.modify;
 	
@@ -20,7 +26,7 @@ package control
 		
 		private var _urlLoader:URLLoader;
 		
-		private var _textureAtlasXML:XML;
+		private var _skeletonXMLProxy:SkeletonXMLProxy;
 		private var _textureBytes:ByteArray;
 		
 		public function FLAExportSWFCommand()
@@ -29,9 +35,9 @@ package control
 			_urlLoader.dataFormat = URLLoaderDataFormat.BINARY;
 		}
 		
-		public function exportSWF(textureAtlasXML:XML):void
+		public function exportSWF(skeletonXMLProxy:SkeletonXMLProxy):void
 		{
-			_textureAtlasXML = textureAtlasXML;
+			_skeletonXMLProxy = skeletonXMLProxy;
 			MessageDispatcher.addEventListener(JSFLProxy.EXPORT_SWF, jsflProxyHandler);
 			JSFLProxy.getInstance().exportSWF();
 		}
@@ -59,11 +65,33 @@ package control
 					MessageDispatcher.dispatchEvent(IOErrorEvent.IO_ERROR);
 					break;
 				case Event.COMPLETE:
-					_textureBytes = modify(_urlLoader.data, _textureAtlasXML);
+					_textureBytes = _urlLoader.data;
 					
-					MessageDispatcher.dispatchEvent(MessageDispatcher.FLA_TEXTURE_ATLAS_SWF_LOADED, _textureBytes);
+					var loader:Loader = new Loader();
+					loader.contentLoaderInfo.addEventListener(Event.COMPLETE, loaderHandler);
+					loader.loadBytes(_textureBytes);
 					break;
 			}
+		}
+		
+		private function loaderHandler(e:Event):void
+		{
+			var loaderInfo:LoaderInfo = e.target as LoaderInfo;
+			loaderInfo.addEventListener(Event.COMPLETE, loaderHandler);
+			var content:DisplayObjectContainer = loaderInfo.content as DisplayObjectContainer;
+			content = content.getChildAt(0) as DisplayObjectContainer;
+			
+			var length:uint = content.numChildren;
+			var rectList:Vector.<Rectangle> = new Vector.<Rectangle>;
+			for(var i:int = 0;i < length;i ++)
+			{
+				var eachContent:DisplayObject = content.getChildAt(i);
+				var rect:Rectangle = eachContent.getBounds(eachContent);
+				rectList.push(rect);
+			}
+			_textureBytes = modify(_textureBytes, _skeletonXMLProxy.modifySubTextureSize(rectList));
+			
+			MessageDispatcher.dispatchEvent(MessageDispatcher.FLA_TEXTURE_ATLAS_SWF_LOADED, _textureBytes);
 		}
 	}
 }

@@ -406,10 +406,24 @@
 				{
 					_pointHelp.x = display.mouseX;
 					_pointHelp.y = display.mouseY;
-					var filtersBackup:Array = display.filters;
-					display.filters = null;
+					
+					var filtersBackup:Array = [];
+					var numChildren:uint = display.numChildren;
+					
+					for(var i:int = 0;i < numChildren;i ++)
+					{
+						var childDisplay:DisplayObject = display.getChildAt(i);
+						filtersBackup[i] = childDisplay.filters;
+						childDisplay.filters = null;
+					}
+					
 					var mouseTarget:DisplayObject = getPointTarget(display, _pointHelp, 2);
-					display.filters = filtersBackup;
+					
+					for(i = 0;i < numChildren;i ++)
+					{
+						childDisplay = display.getChildAt(i);
+						childDisplay.filters = filtersBackup[i];
+					}
 					
 					if(mouseTarget != _boneDisplayRollOver)
 					{

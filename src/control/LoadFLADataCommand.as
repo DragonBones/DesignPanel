@@ -169,19 +169,9 @@
 			}
 			else
 			{
-				//load texture complete, start to place texture
-				MessageDispatcher.dispatchEvent(MessageDispatcher.LOAD_TEXTURE_DATA_COMPLETE);
-				_skeletonXMLProxy.packTextures(SettingDataProxy.getInstance().textureMaxWidth, SettingDataProxy.getInstance().texturePadding);
-				MessageDispatcher.addEventListener(JSFLProxy.PACK_TEXTURES, packTextureAtlasHandler);
-				_jsflProxy.packTextures(_skeletonXMLProxy.textureAtlasXML);
+				MessageDispatcher.addEventListener(MessageDispatcher.FLA_TEXTURE_ATLAS_SWF_LOADED, flaExportSWFHandler);
+				FLAExportSWFCommand.instance.exportSWF(_skeletonXMLProxy);
 			}
-		}
-		
-		private function packTextureAtlasHandler(e:Message):void
-		{
-			MessageDispatcher.removeEventListener(JSFLProxy.PACK_TEXTURES, packTextureAtlasHandler);
-			MessageDispatcher.addEventListener(MessageDispatcher.FLA_TEXTURE_ATLAS_SWF_LOADED, flaExportSWFHandler);
-			FLAExportSWFCommand.instance.exportSWF(_skeletonXMLProxy.textureAtlasXML);
 		}
 		
 		private function flaExportSWFHandler(e:Message):void

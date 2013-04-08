@@ -4,6 +4,7 @@ package control
 	import dragonBones.utils.ConstValues;
 	
 	import flash.display.BitmapData;
+	import flash.display.MovieClip;
 	import flash.events.Event;
 	import flash.events.IOErrorEvent;
 	import flash.geom.Matrix;
@@ -66,21 +67,37 @@ package control
 			_skeletonXMLProxy = _importDataProxy.skeletonXMLProxy;
 			_bitmapData = _importDataProxy.textureAtlas.bitmapData;
 			
-			if(_exportScale != 1 && _exportType != 4)
+			if(_exportScale != 1)
 			{
 				_skeletonXMLProxy = _skeletonXMLProxy.copy();
-				var subBitmapDataDic:Object = BitmapDataUtil.getSubBitmapDataDic(
-					_bitmapData,
-					_skeletonXMLProxy.getSubTextureRectDic(),
-					_exportScale
-				);
-				_skeletonXMLProxy.scaleData(_exportScale);
+				var subBitmapDataDic:Object;
+				var movieClip:MovieClip = _importDataProxy.textureAtlas.movieClip;
+				if(movieClip && movieClip.totalFrames >= 3)
+				{
+					subBitmapDataDic = {};
+					for each (var displayName:String in _skeletonXMLProxy.getDisplayList())
+					{
+						movieClip.gotoAndStop(movieClip.totalFrames);
+						movieClip.gotoAndStop(displayName);
+						subBitmapDataDic[displayName] = movieClip.getChildAt(0);
+					}
+				}
+				else
+				{
+					subBitmapDataDic = BitmapDataUtil.getSubBitmapDataDic(
+						_bitmapData,
+						_skeletonXMLProxy.getSubTextureRectDic()
+					);
+				}
 				
+				_skeletonXMLProxy.scaleData(_exportScale);
+					
 				_bitmapData = BitmapDataUtil.getMergeBitmapData(
 					subBitmapDataDic,
 					_skeletonXMLProxy.getSubTextureRectDic(),
 					_skeletonXMLProxy.textureAtlasWidth,
-					_skeletonXMLProxy.textureAtlasHeight
+					_skeletonXMLProxy.textureAtlasHeight,
+					_exportScale
 				);
 			}
 			
@@ -190,8 +207,7 @@ package control
 						
 						subBitmapDataDic = BitmapDataUtil.getSubBitmapDataDic(
 							_bitmapData, 
-							_skeletonXMLProxy.getSubTextureRectDic(),
-							_exportScale
+							_skeletonXMLProxy.getSubTextureRectDic()
 						);
 						for(var subTextureName:String in subBitmapDataDic)
 						{
