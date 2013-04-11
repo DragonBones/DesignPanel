@@ -1,0 +1,351 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009"
+			   xmlns:s="library://ns.adobe.com/flex/spark"
+			   xmlns:mx="library://ns.adobe.com/flex/mx"
+			   xmlns:view="view.*"
+			   addedToStage="addedToStageHandler()"
+			   preloader="prevloadClasses.Prevloader" 
+			   width="100%" height="100%"
+			   >
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	<fx:Script>
+		<![CDATA[
+			import control.ImportCommand;
+			import control.RemoveArmatureCommon;
+			
+			import dragonBones.utils.ConstValues;
+			
+			import message.Message;
+			import message.MessageDispatcher;
+			
+			import model.CopyDataProxy;
+			import model.ImportDataProxy;
+			import model.JSFLProxy;
+			import model.SettingDataProxy;
+			
+			import mx.controls.Alert;
+			import mx.managers.PopUpManager;
+			
+			import spark.events.IndexChangeEvent;
+			
+			import view.ExportWindow;
+			import view.ImportWindow;
+			
+			//
+			JSFLProxy.getInstance();
+
+			private var _importDataProxy:ImportDataProxy = ImportDataProxy.getInstance();
+			
+			private var _alert:Alert;
+			
+			private function addedToStageHandler():void
+			{	
+				skeletonDropDownList.dataProvider = _importDataProxy.armaturesMC;
+				skeletonDropDownList.addEventListener(IndexChangeEvent.CHANGE, skeletonDropDownList_onChange);
+				
+				MessageDispatcher.addEventListener(MessageDispatcher.LOAD_FLADATA, commandHandler);
+				MessageDispatcher.addEventListener(MessageDispatcher.LOAD_ARMATURE_DATA, commandHandler);
+				MessageDispatcher.addEventListener(MessageDispatcher.LOAD_TEXTURE_DATA, commandHandler);
+				
+				MessageDispatcher.addEventListener(MessageDispatcher.LOAD_FILEDATA, commandHandler);
+				MessageDispatcher.addEventListener(MessageDispatcher.LOAD_FILEDATA_ERROR, commandHandler);
+				MessageDispatcher.addEventListener(MessageDispatcher.LOAD_FILEDATA_PROGRESS, commandHandler);
+				
+				MessageDispatcher.addEventListener(MessageDispatcher.IMPORT_COMPLETE, commandHandler);
+				
+				MessageDispatcher.addEventListener(MessageDispatcher.EXPORT, commandHandler);
+				MessageDispatcher.addEventListener(MessageDispatcher.EXPORT_CANCEL, commandHandler);
+				MessageDispatcher.addEventListener(MessageDispatcher.EXPORT_ERROR, commandHandler);
+				MessageDispatcher.addEventListener(MessageDispatcher.EXPORT_COMPLETE, commandHandler);
+				
+				MessageDispatcher.addEventListener(MessageDispatcher.UPDATE_MOVEMENT_DATA, commandHandler);
+				MessageDispatcher.addEventListener(MessageDispatcher.UPDATE_MOVEMENT_BONE_DATA, commandHandler);
+				MessageDispatcher.addEventListener(MessageDispatcher.UPDATE_BONE_PARENT, commandHandler);
+				
+				MessageDispatcher.addEventListener(MessageDispatcher.CHANGE_ARMATURE_DATA, commandHandler);
+				MessageDispatcher.addEventListener(MessageDispatcher.CHANGE_MOVEMENT_DATA, commandHandler);
+				
+				MessageDispatcher.addEventListener(MessageDispatcher.MOVEMENT_CHANGE, commandHandler);
+				
+				MessageDispatcher.addEventListener(MessageDispatcher.SAVE_ANIMATION_START, commandHandler);
+				MessageDispatcher.addEventListener(MessageDispatcher.SAVE_ANIMATION_PROGRESS, commandHandler);
+				MessageDispatcher.addEventListener(MessageDispatcher.SAVE_ANIMATION_COMPLETE, commandHandler);
+				MessageDispatcher.addEventListener(MessageDispatcher.SAVE_ANIMATION_ERROR, commandHandler);
+				
+				if(loaderInfo)
+				{
+					loaderInfo.uncaughtErrorEvents.addEventListener(UncaughtErrorEvent.UNCAUGHT_ERROR, uncaughtErrorHandler);
+					var data:String = loaderInfo.parameters["data"];
+					if(data)
+					{
+						ImportCommand.instance.importFileData(false, data);
+					}
+				}
+				
+				stage.frameRate = 60;
+			}
+			
+			private function skeletonDropDownList_onChange(event:IndexChangeEvent):void
+			{
+				var armatureXML:XML = skeletonDropDownList.selectedItem as XML;
+				var armatureName:String = armatureXML?armatureXML.attribute(ConstValues.A_NAME):"";
+				_importDataProxy.armatureDataProxy.setData(_importDataProxy.getArmatureXMLByName(armatureName));
+			}
+			
+			private function commandHandler(e:Message):void
+			{
+				switch(e.type)
+				{
+					case MessageDispatcher.CHANGE_ARMATURE_DATA:
+						for each(var eachItem:XML in skeletonDropDownList.dataProvider)
+						{
+							if(eachItem.attribute(ConstValues.A_NAME) == e.parameters[0])
+							{
+								skeletonDropDownList.selectedItem = eachItem;
+								break;
+							}
+						}
+						
+						break;
+					case MessageDispatcher.LOAD_FLADATA:
+						if(e.parameters[0] > 0)
+						{
+							_alert = Alert.show(resourceManager.getString('resources','importFLAWaitting', [e.parameters[1]]));
+						}
+						else
+						{
+							_alert = Alert.show(resourceManager.getString('resources',"importNoElement", [e.parameters[1]]));
+						}
+						break;
+					case MessageDispatcher.SAVE_ANIMATION_START:
+						_alert = Alert.show(resourceManager.getString('resources',"saveAnimation"));
+						break;
+					case MessageDispatcher.LOAD_ARMATURE_DATA:
+						if(_alert)
+						{
+							_alert.title = resourceManager.getString('resources', 'importSkeletonProgress', [e.parameters[1], e.parameters[2]]);
+						}
+						break;
+					case MessageDispatcher.LOAD_TEXTURE_DATA:
+						if(_alert)
+						{
+							_alert.title = resourceManager.getString('resources', 'importTextureProgress', [e.parameters[1], e.parameters[2]]);
+						}
+						break;
+					case MessageDispatcher.LOAD_FILEDATA:
+						_alert = Alert.show(resourceManager.getString('resources', 'importFileWaitting'));
+						break;
+					case MessageDispatcher.LOAD_FILEDATA_ERROR:
+						clearAlert();
+						_alert = Alert.show(resourceManager.getString('resources', 'importFileError'));
+						break;
+					case MessageDispatcher.LOAD_FILEDATA_PROGRESS:
+						if(_alert)
+						{
+							_alert.title = resourceManager.getString('resources', 'importFileProgress', [Math.round(e.parameters[0] * 100)]);
+						}
+						break;
+					case MessageDispatcher.SAVE_ANIMATION_PROGRESS:
+						if(_alert)
+						{
+							_alert.title = resourceManager.getString('resources', 'saveAnimationProgress', [e.parameters[0], e.parameters[1]]);
+						}
+						break;
+					case MessageDispatcher.SAVE_ANIMATION_COMPLETE:
+						copyWindow.closeCopySession();
+						clearAlert();
+						break;
+					case MessageDispatcher.IMPORT_COMPLETE:
+						clearAlert();
+						_importDataProxy.setData(e.parameters[0], e.parameters[1], e.parameters[2], e.parameters[3]);
+						break;
+					case MessageDispatcher.EXPORT:
+						_alert = Alert.show(resourceManager.getString('resources', 'exportWaitting'));
+						break;
+					case MessageDispatcher.EXPORT_CANCEL:
+						clearAlert();
+						break;
+					case MessageDispatcher.EXPORT_ERROR:
+						clearAlert();
+						_alert = Alert.show(resourceManager.getString('resources', 'exportError'));
+						break;
+					case MessageDispatcher.EXPORT_COMPLETE:
+						clearAlert();
+						break;
+					case MessageDispatcher.CHANGE_MOVEMENT_DATA:
+						changeRenderMovement(e.parameters[0], false, e.parameters[1]);
+						break;
+					case MessageDispatcher.UPDATE_MOVEMENT_DATA:
+					case MessageDispatcher.UPDATE_MOVEMENT_BONE_DATA:
+						changeRenderMovement(e.parameters[0], true);
+						break;
+					case MessageDispatcher.UPDATE_BONE_PARENT:
+						if(_importDataProxy.armature)
+						{
+							_importDataProxy.updateArmatureBoneOrigin(e.parameters[0]);
+							changeRenderMovement(_importDataProxy.animationDataProxy.movementName, true);
+						}
+						break;
+					case MessageDispatcher.MOVEMENT_CHANGE:
+						//_importDataProxy.animationDataProxy.changeMovement(e.parameters[0], true);
+						break;
+				}
+			}
+			
+			private function changeRenderMovement(movementName:String, autoPlay:Boolean = false, isChangedByArmature:Boolean = false):void
+			{
+				if(movementName && _importDataProxy.armature && !isChangedByArmature)
+				{
+					if(autoPlay)
+					{
+						if(_importDataProxy.armature.animation.isPlaying)
+						{
+							_importDataProxy.armature.animation.gotoAndPlay(movementName);
+						}
+						else
+						{
+							var currentTime:Number = _importDataProxy.armature.animation.currentTime;
+							_importDataProxy.armature.animation.gotoAndPlay(movementName, 0);
+							_importDataProxy.armature.advanceTime(0);
+							_importDataProxy.armature.advanceTime(currentTime);
+							_importDataProxy.armature.animation.stop();
+						}
+					}
+					else
+					{
+						_importDataProxy.armature.animation.gotoAndPlay(movementName);
+					}
+				}
+			}
+			
+			private function importData():void
+			{
+				var window:ImportWindow = new ImportWindow();
+				PopUpManager.addPopUp(window, this, true);
+				PopUpManager.centerPopUp(window);
+			}
+			
+			private function exportData():void
+			{
+				var window:ExportWindow = new ExportWindow();
+				PopUpManager.addPopUp(window, this, true);
+				PopUpManager.centerPopUp(window);
+			}
+			
+			private function popUpCopyWindow():void
+			{
+				copyWindow.visible = true;
+			}
+			
+			private function popUpXMLWindow():void
+			{
+				xmlWindow.visible = true;
+			}
+			
+			private function popUpTextureAtlasWindow():void
+			{
+				textureAtlasWindow.visible = true;
+			}
+			
+			private function popUpAboutWindow():void
+			{
+				aboutWindow.visible = true;
+			}
+			
+			private function uncaughtErrorHandler(e:UncaughtErrorEvent):void
+			{
+				Alert.show(e.error);
+			}
+			
+			private function clearAlert():void
+			{
+				if(_alert)
+				{
+					PopUpManager.removePopUp(_alert);
+					_alert = null;
+				}
+			}
+			
+			private function updateCurrentArmature():void
+			{
+				if(_importDataProxy.skeletonData)
+				{
+					var armatureNames:Vector.<String> = new Vector.<String>;
+					armatureNames.push(_importDataProxy.armatureDataProxy.armatureName);
+					ImportCommand.instance.importFLAData(true, false, armatureNames);
+				}
+			}
+			
+			private function removeCurrentArmature():void
+			{
+				if(_importDataProxy.skeletonData)
+				{
+					RemoveArmatureCommon.instance.removeArmature(_importDataProxy.armatureDataProxy.armatureName);
+				}
+			}
+		]]>
+	</fx:Script>
+	<fx:Metadata>
+		[ResourceBundle("resources")]
+	</fx:Metadata>
+	<s:VGroup width="100%" height="100%" gap="10" 
+			  paddingBottom="10" paddingLeft="10" paddingRight="10" paddingTop="10">
+		<s:HGroup width="100%" clipAndEnableScrolling="true">
+			<s:Button width="68" height="24" cornerRadius="0"
+					  label="{resourceManager.getString('resources','import')}"
+					  click="importData()"
+					  />
+			<s:Button width="68" height="24" cornerRadius="0"
+					  label="{resourceManager.getString('resources','export')}"
+					  click="exportData()"
+					  />
+			<s:Button width="68" height="24" cornerRadius="0"
+					  label="{resourceManager.getString('resources','textureAtlas')}"
+					  click="popUpTextureAtlasWindow()"
+					  />
+			<s:Button width="68" height="24" cornerRadius="0"
+					  label="{resourceManager.getString('resources','xml')}"
+					  click="popUpXMLWindow()"
+					  />
+			<s:Button width="68" height="24" cornerRadius="0"
+					  label="{resourceManager.getString('resources','copyBehaviors')}"
+					  click="popUpCopyWindow()"
+					  enabled="{ImportDataProxy.getInstance().skeletonData!=null}"
+					  />
+			<s:Button width="68" height="24" cornerRadius="0"
+					  label="{resourceManager.getString('resources','about')}"
+					  click="popUpAboutWindow()"
+					  />
+			<s:Spacer width="100%"/>
+			<s:DropDownList width="80" height="24" cornerRadius="0" textAlign="right"
+							dataProvider="{SettingDataProxy.getInstance().languageArrayCollection}"
+							selectedIndex="@{SettingDataProxy.getInstance().languageID}"
+							/>
+		</s:HGroup>
+		
+		<s:VGroup width="100%" height="100%">
+			<s:HGroup width="100%" verticalAlign="middle">
+				<s:Label text="{resourceManager.getString('resources','skeleton')}" fontWeight="bold"/>
+				<s:DropDownList id="skeletonDropDownList" width="100%"
+								labelField="{ConstValues.AT + ConstValues.A_NAME}"/>
+				<s:Button icon="@Embed(source='./assets/update_icon.png')" width="21" height="21"
+						  enabled="{ImportDataProxy.getInstance().skeletonData != null}"
+						  click="updateCurrentArmature()"/>
+				<s:Button icon="@Embed(source='./assets/remove_icon.png')" width="21" height="21"
+						  enabled="{ImportDataProxy.getInstance().skeletonData != null}"
+						  click="removeCurrentArmature()"/>
+			</s:HGroup>
+			<mx:HDividedBox width="100%" height="100%">
+				<view:ArmatureDisplayUIsGroup width="60%" height="100%"/>
+				<view:ControlPanelGroup width="40%" height="100%"/>
+			</mx:HDividedBox>
+		</s:VGroup>
+	</s:VGroup>
+	
+	<view:CopyWindow id="copyWindow" visible="false"/>
+	<view:XMLWindow id="xmlWindow" visible="false"/>
+	<view:TextureAtlasWindow id="textureAtlasWindow" visible="false"/>
+	<view:AboutWindow id="aboutWindow" visible="false"/>
+</s:Application>
