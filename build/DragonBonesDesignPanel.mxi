@@ -7,10 +7,6 @@
 
 		<product name="Flash" version="11" primary="true"/>
 
-		<product name="Flash" version="12" primary="true"/>
-
-		<product name="Flash" version="13" primary="true"/>
-
 	</products>
 	<description>
 		<![CDATA[
