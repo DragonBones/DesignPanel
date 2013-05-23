@@ -30,6 +30,8 @@ var A_MOVEMENT_DELAY = "dl";
 var A_PARENT = "parent";
 var A_X = "x";
 var A_Y = "y";
+var A_COCOS2D_X = "cocos2d_x";
+var A_COCOS2D_Y = "cocos2d_y";
 var A_SCALE_X = "cX";
 var A_SCALE_Y = "cY";
 var A_SKEW_X = "kX";
@@ -50,6 +52,9 @@ var A_WIDTH = "width";
 var A_HEIGHT = "height";
 var A_PIVOT_X = "pX";
 var A_PIVOT_Y = "pY";
+
+var A_COCOS2D_PIVOT_X = "cocos2d_pX";
+var A_COCOS2D_PIVOT_Y = "cocos2d_pY";
 
 var A_ALPHA = "a";
 var A_RED = "r";
@@ -574,6 +579,8 @@ function generateFrame(_frame, _boneName, _symbol, _z, _noAutoEasing){
 	var _frameXML = <{FRAME}/>;
 	_frameXML.@[A_X] = formatNumber(_symbol.transformX);
 	_frameXML.@[A_Y] = formatNumber(_symbol.transformY);
+	_frameXML.@[A_COCOS2D_X] = formatNumber(_symbol.x);
+	_frameXML.@[A_COCOS2D_Y] = formatNumber(_symbol.y);
 	_frameXML.@[A_SKEW_X] = formatNumber(_symbol.skewX);
 	_frameXML.@[A_SKEW_Y] = formatNumber(_symbol.skewY);
 	_frameXML.@[A_SCALE_X] = formatNumber(_symbol.scaleX);
@@ -929,6 +936,11 @@ dragonBones.addTextureToSWFItem = function(_textureName, _isLast){
 	}
 	
 	var _subTextureXML = <{SUB_TEXTURE} {A_NAME}={_textureName}/>;
+	
+	_subTextureXML.@[A_WIDTH] = Math.ceil(_symbol.width);
+	_subTextureXML.@[A_HEIGHT] = Math.ceil(_symbol.height);
+	_subTextureXML.@[A_COCOS2D_PIVOT_X] = formatNumber(_symbol.x - _symbol.left);
+	_subTextureXML.@[A_COCOS2D_PIVOT_Y] = formatNumber(_symbol.y - _symbol.top);
 	
 	if(_isLast){
 		_timeline.removeFrames(1, 1);
