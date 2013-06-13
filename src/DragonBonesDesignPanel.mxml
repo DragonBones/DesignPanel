@@ -4,6 +4,7 @@
 			   xmlns:mx="library://ns.adobe.com/flex/mx"
 			   xmlns:view="view.*"
 			   addedToStage="addedToStageHandler()"
+			   applicationComplete="this_applicationCompleteHandler(event)"
 			   preloader="prevloadClasses.Prevloader" 
 			   width="100%" height="100%"
 			   >
@@ -20,12 +21,12 @@
 			import message.Message;
 			import message.MessageDispatcher;
 			
-			import model.CopyDataProxy;
 			import model.ImportDataProxy;
 			import model.JSFLProxy;
 			import model.SettingDataProxy;
 			
 			import mx.controls.Alert;
+			import mx.events.FlexEvent;
 			import mx.managers.PopUpManager;
 			
 			import spark.events.IndexChangeEvent;
@@ -222,6 +223,7 @@
 			
 			private function importData():void
 			{
+				DBGATrackerManager.tracker.trackPageview("/importWindow");
 				var window:ImportWindow = new ImportWindow();
 				PopUpManager.addPopUp(window, this, true);
 				PopUpManager.centerPopUp(window);
@@ -229,6 +231,7 @@
 			
 			private function exportData():void
 			{
+				DBGATrackerManager.tracker.trackPageview("/exportWindow");
 				var window:ExportWindow = new ExportWindow();
 				PopUpManager.addPopUp(window, this, true);
 				PopUpManager.centerPopUp(window);
@@ -236,21 +239,25 @@
 			
 			private function popUpCopyWindow():void
 			{
+				DBGATrackerManager.tracker.trackPageview("/copyWindow");
 				copyWindow.visible = true;
 			}
 			
 			private function popUpXMLWindow():void
 			{
+				DBGATrackerManager.tracker.trackPageview("/xmlWindow");
 				xmlWindow.visible = true;
 			}
 			
 			private function popUpTextureAtlasWindow():void
 			{
+				DBGATrackerManager.tracker.trackPageview("/textureWindow");
 				textureAtlasWindow.visible = true;
 			}
 			
 			private function popUpAboutWindow():void
 			{
+				DBGATrackerManager.tracker.trackPageview("/aboutWindow");
 				aboutWindow.visible = true;
 			}
 			
@@ -272,6 +279,7 @@
 			{
 				if(_importDataProxy.skeletonData)
 				{
+					DBGATrackerManager.tracker.trackEvent("/", "updateArmature");
 					var armatureNames:Vector.<String> = new Vector.<String>;
 					armatureNames.push(_importDataProxy.armatureDataProxy.armatureName);
 					ImportCommand.instance.importFLAData(true, false, armatureNames);
@@ -282,9 +290,18 @@
 			{
 				if(_importDataProxy.skeletonData)
 				{
+					DBGATrackerManager.tracker.trackEvent("/", "removeArmature");
 					RemoveArmatureCommon.instance.removeArmature(_importDataProxy.armatureDataProxy.armatureName);
 				}
 			}
+			
+			protected function this_applicationCompleteHandler(event:FlexEvent):void
+			{
+				DBGATrackerManager.createDBGATracker(this);
+				DBGATrackerManager.tracker.trackPageview("/");
+				DBGATrackerManager.tracker.setVar(String(SettingDataProxy.getInstance().languageArrayCollection[language.selectedIndex].label));
+			}
+			
 		]]>
 	</fx:Script>
 	<fx:Metadata>
@@ -319,7 +336,7 @@
 					  click="popUpAboutWindow()"
 					  />
 			<s:Spacer width="100%"/>
-			<s:DropDownList width="80" height="24" cornerRadius="0" textAlign="right"
+			<s:DropDownList id="language" width="80" height="24" cornerRadius="0" textAlign="right"
 							dataProvider="{SettingDataProxy.getInstance().languageArrayCollection}"
 							selectedIndex="@{SettingDataProxy.getInstance().languageID}"
 							/>

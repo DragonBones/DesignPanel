@@ -10,7 +10,7 @@
 	<fx:Script>
 		<![CDATA[
 			import control.ExportDataCommand;
-
+			
 			import message.Message;
 			import message.MessageDispatcher;
 			
@@ -19,6 +19,7 @@
 			
 			import mx.collections.ArrayCollection;
 			import mx.events.CloseEvent;
+			import mx.events.FlexEvent;
 			import mx.managers.PopUpManager;
 			
 			[Bindable]
@@ -26,6 +27,8 @@
 			
 			private function exportData():void
 			{
+				DBGATrackerManager.tracker.trackEvent("exportWindow", "exportData", "exportType", exportType.selectedIndex);
+				
 				if(!ImportDataProxy.getInstance().skeletonName)
 				{
 					return;
@@ -55,9 +58,17 @@
 			
 			private function closeWindow():void
 			{
+				DBGATrackerManager.tracker.trackPageview("/");
 				MessageDispatcher.removeEventListener(MessageDispatcher.EXPORT, commandHandler);
 				PopUpManager.removePopUp(this);
 			}
+			
+			private function closeBtn_onClick(event:MouseEvent):void
+			{
+				DBGATrackerManager.tracker.trackEvent("exportWindow", "close");
+				closeWindow();
+			}
+			
 		]]>
 	</fx:Script>
 	<s:HGroup left="10" right="10" top="10">
@@ -70,7 +81,7 @@
 					 />
 		</s:VGroup>
 		<s:VGroup width="100%" gap="6">
-			<s:DropDownList width="100%" height="24" cornerRadius="0" textAlign="right"
+			<s:DropDownList id="exportType" width="100%" height="24" cornerRadius="0" textAlign="right"
 							dataProvider="{SettingDataProxy.getInstance().dataExportArrayCollectio}"
 							selectedIndex="@{SettingDataProxy.getInstance().dataExportID}"
 							/>
@@ -89,7 +100,7 @@
 				  />
 		<s:Button width="100" height="24" cornerRadius="0"
 				  label="{resourceManager.getString('resources','cancel')}"
-				  click="closeWindow()"
+				  click="closeBtn_onClick(event)"
 				  />
 	</s:HGroup>
 </s:TitleWindow>

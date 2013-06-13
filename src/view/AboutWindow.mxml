@@ -24,6 +24,8 @@
 			protected function closeHandler(event:Event):void
 			{
 				this.visible = false;
+				DBGATrackerManager.tracker.trackEvent("copyWindow", "close");
+				DBGATrackerManager.tracker.trackPageview("/");
 			}
 			
 			private function updateAbout():XML
