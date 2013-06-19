@@ -220,16 +220,18 @@ package control
 							subBitmapData.dispose();
 						}
 						
+						_skeletonXMLProxy.skeletonXML.appendChild(_skeletonXMLProxy.textureAtlasXML);
+						
 						zip.add(
 							_skeletonXMLProxy.skeletonXML.toXMLString(), 
 							GlobalConstValues.SKELETON_XML_NAME, 
 							date
 						);
-						zip.add(
-							_skeletonXMLProxy.textureAtlasXML.toXMLString(), 
-							GlobalConstValues.TEXTURE_ATLAS_XML_NAME, 
-							date
-						);
+						//						zip.add(
+						//							_skeletonXMLProxy.textureAtlasXML.toXMLString(), 
+						//							GlobalConstValues.TEXTURE_ATLAS_XML_NAME, 
+						//							date
+						//						);
 						
 						exportSave(
 							zip.encode(), 
