@@ -4,47 +4,33 @@
 		  xmlns:mx="library://ns.adobe.com/flex/mx" 
 		  xmlns:components="view.components.*"
 		  width="100%" height="100%" gap="0"
-		  creationComplete="this_creationCompleteHandler(event)" xmlns:view="view.*">
+		  creationComplete="creationCompleteHandler()" xmlns:view="view.*">
 	<fx:Script>
 		<![CDATA[
-			import dragonBones.utils.ConstValues;
-			
 			import message.Message;
 			import message.MessageDispatcher;
 			
+			import model.ArmatureProxy;
 			import model.ImportDataProxy;
-			import model.SettingDataProxy;
 			
 			import mx.events.DragEvent;
-			import mx.events.FlexEvent;
 			import mx.events.ListEvent;
 			
 			import spark.events.GridSelectionEvent;
 			import spark.events.IndexChangeEvent;
 			
-			private static const AT_NAME:String = ConstValues.AT + ConstValues.A_NAME;
-			private var _importDataProxy:ImportDataProxy = ImportDataProxy.getInstance();
+			private var _armatureDataProxy:ArmatureProxy;
 			
-			protected function this_creationCompleteHandler(event:FlexEvent):void
+			protected function creationCompleteHandler():void
 			{
-				movementList.dataProvider = _importDataProxy.animationDataProxy.movementsMC;
-				movementList.addEventListener(IndexChangeEvent.CHANGE, movementList_onChange);
+				_armatureDataProxy = ImportDataProxy.getInstance().armatureProxy;
 				
 				boneTree.addEventListener(ListEvent.CHANGE, boneHandler);
 				boneTree.addEventListener(DragEvent.DRAG_COMPLETE, boneHandler);
 				
-				MessageDispatcher.addEventListener(MessageDispatcher.CHANGE_ARMATURE_DATA, commandHandler);
-				MessageDispatcher.addEventListener(MessageDispatcher.CHANGE_MOVEMENT_DATA, commandHandler);
-				MessageDispatcher.addEventListener(MessageDispatcher.CHANGE_BONE_DATA, commandHandler);
-				
-				MessageDispatcher.addEventListener(MessageDispatcher.UPDATE_BONE_PARENT, commandHandler);		
-			}
-			
-			private function movementList_onChange(e:Event):void
-			{
-				var movementXML:XML = movementList.selectedItem as XML;
-				var movementName:String = movementXML?movementXML.attribute(ConstValues.A_NAME):"";
-				_importDataProxy.animationDataProxy.changeMovement(movementName);
+				MessageDispatcher.addEventListener(MessageDispatcher.SELECT_ARMATURE, commandHandler);
+				MessageDispatcher.addEventListener(MessageDispatcher.SELECT_BONE, commandHandler);
+				MessageDispatcher.addEventListener(MessageDispatcher.CHANGE_BONE_PARENT, commandHandler);		
 			}
 			
 			private function boneHandler(e:Event):void
@@ -53,22 +39,21 @@
 				{
 					case ListEvent.CHANGE:
 						var boneXML:XML = boneTree.selectedItem as XML;
-						var boneName:String = boneXML?boneXML.attribute(ConstValues.A_NAME):"";
-						_importDataProxy.armatureDataProxy.changeBone(boneName);
-						_importDataProxy.animationDataProxy.changeMovementBone(boneName);
+						var boneName:String = boneXML?boneXML.@name:"";
+						_armatureDataProxy.selectBone(boneName);
 						break;
 					case DragEvent.DRAG_COMPLETE:
 						if(boneTree.lastMoveNode)
 						{
-							boneName = boneTree.lastMoveNode.attribute(ConstValues.A_NAME);
+							boneName = boneTree.lastMoveNode.@name;
 							var parentXML:XML = boneTree.lastMoveNode.parent();
-							var parentName:String = parentXML.attribute(ConstValues.A_NAME);
-							if(parentXML.name() != boneTree.lastMoveNode.name())
+							var parentName:String = parentXML.@name;
+							if(parentXML.localName() != boneTree.lastMoveNode.localName())
 							{
 								parentName = null;
 							}
 							
-							_importDataProxy.armatureDataProxy.updateBoneParent(boneName, parentName);
+							_armatureDataProxy.changeBoneParent(boneName, parentName);
 						}
 						break;
 				}
@@ -76,40 +61,27 @@
 			
 			private function commandHandler(e:Message):void
 			{
+				if(e.parameters[0] != _armatureDataProxy)
+				{
+					return;
+				}
 				switch(e.type)
 				{
-					case MessageDispatcher.CHANGE_ARMATURE_DATA:
-					case MessageDispatcher.UPDATE_BONE_PARENT:
-						boneTree.dataProvider = _importDataProxy.armatureDataProxy.bonesMC;
-						boneTree.validateNow();
+					case MessageDispatcher.SELECT_ARMATURE:
+					case MessageDispatcher.CHANGE_BONE_PARENT:
 						for each(var _item:Object in boneTree.dataProvider)
 						{
 							boneTree.expandChildrenOf(_item, true);
 						}
-						if(e.type == MessageDispatcher.UPDATE_BONE_PARENT)
+						if(e.type == MessageDispatcher.CHANGE_BONE_PARENT)
 						{
-							boneTree.selectItemByName(e.parameters[0]);
+							boneTree.selectItemByName(_armatureDataProxy.selectedBoneName);
 						}
 						break;
-					case MessageDispatcher.CHANGE_MOVEMENT_DATA:
-						movementList.selectedItem = getListItemByName(movementList, e.parameters[0]);
-						break;
-					case MessageDispatcher.CHANGE_BONE_DATA:
-						boneTree.selectItemByName(e.parameters[0]);
+					case MessageDispatcher.SELECT_BONE:
+						boneTree.selectItemByName(_armatureDataProxy.selectedBoneName);
 						break;
 				}
-			}
-			
-			private function getListItemByName(list:List, itemName:String):XML
-			{
-				for each(var eachItem:XML in list.dataProvider)
-				{
-					if(eachItem.attribute(ConstValues.A_NAME) == itemName)
-					{
-						return eachItem;
-					}
-				}
-				return null;
 			}
 			
 			protected function behaviorAdvancedSwitch_clickHandler(event:MouseEvent):void
@@ -152,7 +124,11 @@
 						  cornerRadius="0" click="behaviorAdvancedSwitch_clickHandler(event)"/>
 			</s:HGroup>
 			<s:HGroup width="100%" height="100%" gap="-1">
-				<s:List id="movementList" minWidth="110" width="100%" height="100%" labelField="{AT_NAME}" borderColor="#000000"/>
+				<s:List minWidth="110" width="100%" height="100%" borderColor="#000000"
+						labelField="name"
+						dataProvider="{ImportDataProxy.getInstance().armatureProxy.animationsAC}"
+						selectedItem ="@{ImportDataProxy.getInstance().armatureProxy.selecteAnimationData}"
+						/>
 				<view:BehaviorAdvancedControlPanel id="behaviorAdvancedControlPanel" width="0" height="100%"/>
 			</s:HGroup>
 		</s:VGroup>
@@ -164,9 +140,12 @@
 						  cornerRadius="0" click="boneAdvancedSwitch_clickHandler(event)"/>
 			</s:HGroup>
 			<s:HGroup width="100%" height="100%" gap="-1">
-				<components:DragTree id="boneTree" minWidth="110" width="100%" height="100%" dragEnabled="true"
-									 dropEnabled="true" labelField="{AT_NAME}" textRollOverColor="#CCCCCC"
-									 textSelectedColor="#CCCCCC"/>
+				<components:DragTree id="boneTree" minWidth="110" width="100%" height="100%"
+									 textSelectedColor="#CCCCCC" textRollOverColor="#CCCCCC"
+									 dropEnabled="true" dragEnabled="true"
+									 labelField="@name"
+									 dataProvider="{ImportDataProxy.getInstance().armatureProxy.bonesMC}"
+									 />
 				<view:BoneAdvancedControlPanel id="boneAdvancedControlPanel" width="0" height="100%"/>
 			</s:HGroup>
 		</s:VGroup>

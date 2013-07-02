@@ -8,8 +8,8 @@ package message
 	{
 		static public const LOAD_FLADATA:String = "loadFladata";
 		static public const LOAD_FLADATA_ERROR:String = "loadFladataError";
-		static public const LOAD_ARMATURE_DATA:String = "loadSkeletonData";
-		static public const LOAD_ARMATURE_DATA_COMPLETE:String = "loadSkeletonDataComplete";
+		static public const LOAD_ARMATURE_DATA:String = "loadArmatureData";
+		static public const LOAD_ARMATURE_DATA_COMPLETE:String = "loadArmatureDataComplete";
 		static public const LOAD_TEXTURE_DATA_COMPLETE:String = "loadTextureDataComplete";
 		static public const LOAD_TEXTURE_DATA:String = "loadTextureData";
 		static public const LOAD_FLA_COMPLETE:String = "loadFLAComplete";
@@ -32,26 +32,17 @@ package message
 		static public const EXPORT_ERROR:String = "exportError";
 		static public const EXPORT_COMPLETE:String = "exportComplete";
 		
-		public static const CHANGE_IMPORT_DATA:String = "chagneImportData";
-		public static const CHANGE_ARMATURE_DATA:String = "chagneArmatureData";
-		public static const CHANGE_ANIMATION_DATA:String = "chagneAnimationData";
-		public static const CHANGE_MOVEMENT_DATA:String = "chagneMovementData";
-		public static const CHANGE_BONE_DATA:String = "chagneBoneData";
-		public static const CHANGE_MOVEMENT_BONE_DATA:String = "chagneMovementBoneData";
-		public static const CHANGE_DISPLAY_DATA:String = "chagneDisplayData";
-		public static const CHANGE_MOVEMENT_LOOP_DATA:String = "chagneMovementLoopData";
-		
-		public static const UPDATE_BONE_PARENT:String = "updateBoneParent";
-		public static const UPDATE_MOVEMENT_DATA:String = "updateMovementData";
-		public static const UPDATE_MOVEMENT_BONE_DATA:String = "updateMovementBoneData";
-		
-		public static const MOVEMENT_CHANGE:String = "movementChange";
-		public static const MOVEMENT_START:String = "movementStart";
-		public static const MOVEMENT_COMPLETE:String = "movementComplete";
-		
 		public static const FLA_TEXTURE_ATLAS_SWF_LOADED:String = "flaTextureAtlasSWFLoaded";
 		
 		public static const SETTING_DATA_CHANGE:String = "settingDataChange";
+		
+		public static const CHANGE_IMPORT_DATA:String = "chagneImportData";
+		public static const SELECT_ARMATURE:String = "selectArmature";
+		public static const SELECT_ANIMATION:String = "selectAnimation";
+		public static const SELECT_BONE:String = "selectBone";
+		public static const CHANGE_BONE_PARENT:String = "changeBoneParent";
+		public static const CHANGE_ANIMATION_DATA:String = "changeAnimationData";
+		public static const CHANGE_TRANSFORM_TIMELINE_DATA:String = "changeTransformTimelineData";
 		
 		private static var instance:MessageDispatcher = new MessageDispatcher();
 		

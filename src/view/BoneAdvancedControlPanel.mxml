@@ -11,7 +11,6 @@
 			import message.MessageDispatcher;
 			
 			import model.ImportDataProxy;
-			import model.SettingDataProxy;
 			
 			private var _importDataProxy:ImportDataProxy = ImportDataProxy.getInstance();
 			
@@ -20,19 +19,23 @@
 				sliderScale.addEventListener(Event.CHANGE, valueChangeHandler);
 				numScale.addEventListener(Event.CHANGE, valueChangeHandler);
 				
-				sliderDelay.addEventListener(Event.CHANGE, valueChangeHandler);
-				numDelay.addEventListener(Event.CHANGE, valueChangeHandler);
+				sliderOffset.addEventListener(Event.CHANGE, valueChangeHandler);
+				numOffset.addEventListener(Event.CHANGE, valueChangeHandler);
 				
-				MessageDispatcher.addEventListener(MessageDispatcher.CHANGE_MOVEMENT_BONE_DATA, commandHandler);
-				MessageDispatcher.addEventListener(MessageDispatcher.CHANGE_MOVEMENT_LOOP_DATA, commandHandler);
+				MessageDispatcher.addEventListener(MessageDispatcher.SELECT_ANIMATION, commandHandler);
+				MessageDispatcher.addEventListener(MessageDispatcher.SELECT_BONE, commandHandler);
 			}
 			
 			private function commandHandler(e:Message):void
 			{
+				if(e.parameters[0] != _importDataProxy.armatureProxy)
+				{
+					return;
+				}
 				switch(e.type)
 				{
-					case MessageDispatcher.CHANGE_MOVEMENT_BONE_DATA:
-					case MessageDispatcher.CHANGE_MOVEMENT_LOOP_DATA:
+					case MessageDispatcher.SELECT_ANIMATION:
+					case MessageDispatcher.SELECT_BONE:
 						updateScaleAndDelay();
 						break;
 				}
@@ -45,23 +48,22 @@
 					case sliderScale:
 						numScale.value = sliderScale.value;
 					case numScale:
-						_importDataProxy.animationDataProxy.boneScale = sliderScale.value = isNaN(numScale.value)?0:numScale.value;
+						_importDataProxy.armatureProxy.timelineScale = sliderScale.value = isNaN(numScale.value)?0:numScale.value;
 						break;
-					case sliderDelay:
-						numDelay.value = sliderDelay.value;
-					case numDelay:
-						_importDataProxy.animationDataProxy.boneDelay = sliderDelay.value = isNaN(numDelay.value)?0:numDelay.value;
+					case sliderOffset:
+						numOffset.value = sliderOffset.value;
+					case numOffset:
+						_importDataProxy.armatureProxy.timelineOffset = sliderOffset.value = isNaN(numOffset.value)?0:numOffset.value;
 						break;
 				}
 			}
 			
 			private function updateScaleAndDelay():void
 			{
-				var boneScale:Number = _importDataProxy.animationDataProxy.boneScale;
-				var boneDelay:Number = _importDataProxy.animationDataProxy.boneDelay;
-				var loop:Boolean = _importDataProxy.animationDataProxy.loop;
+				var timelineScale:Number = _importDataProxy.armatureProxy.timelineScale;
+				var timelineOffset:Number = _importDataProxy.armatureProxy.timelineOffset;
 				
-				if(isNaN(boneScale) || !loop)
+				if(isNaN(timelineScale))
 				{
 					numScale.enabled = false;
 					sliderScale.enabled = false;
@@ -70,21 +72,21 @@
 				{
 					numScale.enabled = true;
 					sliderScale.enabled = true;
-					numScale.value = boneScale;
-					sliderScale.value = boneScale;
+					numScale.value = timelineScale;
+					sliderScale.value = timelineScale;
 				}
 				
-				if(isNaN(boneDelay) || !loop)
+				if(isNaN(timelineOffset))
 				{
-					numDelay.enabled = false;
-					sliderDelay.enabled = false;
+					numOffset.enabled = false;
+					sliderOffset.enabled = false;
 				}
 				else
 				{
-					numDelay.enabled = true;
-					sliderDelay.enabled = true;
-					numDelay.value = boneDelay;
-					sliderDelay.value = boneDelay;
+					numOffset.enabled = true;
+					sliderOffset.enabled = true;
+					numOffset.value = timelineOffset;
+					sliderOffset.value = timelineOffset;
 				}
 			}
 		]]>
@@ -101,7 +103,7 @@
 					 />
 			<s:HGroup width="100%" verticalAlign="middle">
 				<s:HSlider id="sliderScale" width="100%"
-						   minimum="0" maximum="200" snapInterval="5"
+						   minimum="0" maximum="400" snapInterval="5"
 						   />
 				<s:NumericStepper id="numScale" width="60" height="24" cornerRadius="0" textAlign="right"
 								  maximum="1000" minimum="0" snapInterval="1"
@@ -111,10 +113,10 @@
 					 text="{resourceManager.getString('resources','playDelay')}"
 					 />
 			<s:HGroup width="100%" verticalAlign="middle">
-				<s:HSlider id="sliderDelay" width="100%"
-						   minimum="-100" maximum="100" snapInterval="5"
+				<s:HSlider id="sliderOffset" width="100%"
+						   minimum="0" maximum="100" snapInterval="5"
 						   />
-				<s:NumericStepper id="numDelay" width="60" height="24" cornerRadius="0" textAlign="right"
+				<s:NumericStepper id="numOffset" width="60" height="24" cornerRadius="0" textAlign="right"
 								  maximum="100" minimum="-100" snapInterval="1"
 								  />
 			</s:HGroup>

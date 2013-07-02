@@ -11,6 +11,7 @@
 	</fx:Declarations>
 	<fx:Script>
 		<![CDATA[
+			import dragonBones.core.DragonBones;
 			import dragonBones.utils.ConstValues;
 			
 			[Bindable]
@@ -21,7 +22,7 @@
 				_aboutXML = updateAbout();
 			}
 			
-			protected function closeHandler(event:Event):void
+			private function closeHandler(event:Event):void
 			{
 				this.visible = false;
 				DBGATrackerManager.tracker.trackEvent("copyWindow", "close");
@@ -32,7 +33,7 @@
 			{
 				var xml:XML = 
 					<root>
-						<b>DragonBones V{ConstValues.VERSION}</b>
+						<b>DragonBones V{DragonBones.VERSION}</b>
 						<br/>
 						<a href="http://dragonbones.github.com/">http://dragonbones.github.com/</a>
 						<br/>

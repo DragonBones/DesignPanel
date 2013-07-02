@@ -12,14 +12,14 @@
 		 * Place textures by textureAtlasXML data
 		 */
 		public static function packTextures(_widthDefault:uint, _padding:uint, _textureAtlasXML:XML, _verticalSide:Boolean = false):void{
-			var _subTextureXMLList:XMLList = _textureAtlasXML.elements(ConstValues.SUB_TEXTURE);
+			var _subTextureXMLList:XMLList = _textureAtlasXML[ConstValues.SUB_TEXTURE];
 			if (_subTextureXMLList.length() == 0) {
 				return;
 			}
 			var _dimensions:uint = 0;
 			var _subTextureList:Array = [];
 			for each(var _subTextureXML:XML in _subTextureXMLList){
-				_dimensions += int(_subTextureXML.attribute(ConstValues.A_WIDTH)) * int(_subTextureXML.attribute(ConstValues.A_HEIGHT));
+				_dimensions += int(_subTextureXML.@[ConstValues.A_WIDTH]) * int(_subTextureXML.@[ConstValues.A_HEIGHT]);
 				_subTextureList.push(_subTextureXML);
 			}
 			//sort texture by size
@@ -30,7 +30,7 @@
 				_widthDefault = Math.sqrt(_dimensions);
 			}
 			
-			_widthDefault = getNearest2N(Math.max(int(_subTextureList[0].attribute(ConstValues.A_WIDTH)) + _padding, _widthDefault));
+			_widthDefault = getNearest2N(Math.max(int(_subTextureList[0].@[ConstValues.A_WIDTH]) + _padding, _widthDefault));
 			
 			var _heightMax:uint = 40960;
 			var _remainRectList:Vector.<Rectangle> = new Vector.<Rectangle>;
@@ -55,8 +55,8 @@
 				for(var _iT:String in _subTextureList) {
 					//check if the texture is fit
 					_subTextureXML = _subTextureList[_iT];
-					_width = int(_subTextureXML.attribute(ConstValues.A_WIDTH)) + _padding;
-					_height = int(_subTextureXML.attribute(ConstValues.A_HEIGHT)) + _padding;
+					_width = int(_subTextureXML.@[ConstValues.A_WIDTH]) + _padding;
+					_height = int(_subTextureXML.@[ConstValues.A_HEIGHT]) + _padding;
 					if (_rect.width >= _width && _rect.height >= _height) {
 						//place portrait texture
 						if (_verticalSide?(_height > _width * 4?(_rectID > 0?(_rect.height - _height >= _remainRectList[_rectID - 1].height):true):true):true){
@@ -100,10 +100,10 @@
 		}
 		
 		private static function sortTextureList(_subTextureXML1:XML, _subTextureXML2:XML):int{
-			var _v1:uint = int(_subTextureXML1.attribute(ConstValues.A_WIDTH)) + int(_subTextureXML1.attribute(ConstValues.A_HEIGHT));
-			var _v2:uint = int(_subTextureXML2.attribute(ConstValues.A_WIDTH)) + int(_subTextureXML2.attribute(ConstValues.A_HEIGHT));
+			var _v1:uint = int(_subTextureXML1.@[ConstValues.A_WIDTH]) + int(_subTextureXML1.@[ConstValues.A_HEIGHT]);
+			var _v2:uint = int(_subTextureXML2.@[ConstValues.A_WIDTH]) + int(_subTextureXML2.@[ConstValues.A_HEIGHT]);
 			if (_v1 == _v2) {
-				return int(_subTextureXML1.attribute(ConstValues.A_WIDTH)) > int(_subTextureXML2.attribute(ConstValues.A_WIDTH))?-1:1;
+				return int(_subTextureXML1.@[ConstValues.A_WIDTH]) > int(_subTextureXML2.@[ConstValues.A_WIDTH])?-1:1;
 			}
 			return _v1 > _v2?-1:1;
 		}

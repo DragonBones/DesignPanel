@@ -4,7 +4,7 @@
 			   xmlns:mx="library://ns.adobe.com/flex/mx"
 			   xmlns:view="view.*"
 			   addedToStage="addedToStageHandler()"
-			   applicationComplete="this_applicationCompleteHandler(event)"
+			   applicationComplete="applicationCompleteHandler()"
 			   preloader="prevloadClasses.Prevloader" 
 			   width="100%" height="100%"
 			   >
@@ -14,8 +14,10 @@
 	<fx:Script>
 		<![CDATA[
 			import control.ImportCommand;
-			import control.RemoveArmatureCommon;
+			import control.RemoveArmatureCommand;
 			
+			import dragonBones.animation.WorldClock;
+			import dragonBones.objects.ArmatureData;
 			import dragonBones.utils.ConstValues;
 			
 			import message.Message;
@@ -26,10 +28,7 @@
 			import model.SettingDataProxy;
 			
 			import mx.controls.Alert;
-			import mx.events.FlexEvent;
 			import mx.managers.PopUpManager;
-			
-			import spark.events.IndexChangeEvent;
 			
 			import view.ExportWindow;
 			import view.ImportWindow;
@@ -43,8 +42,10 @@
 			
 			private function addedToStageHandler():void
 			{	
-				skeletonDropDownList.dataProvider = _importDataProxy.armaturesMC;
-				skeletonDropDownList.addEventListener(IndexChangeEvent.CHANGE, skeletonDropDownList_onChange);
+				armatureViewer.addEventListener(ArmatureViewer.VIEW_SELECT_BONE, armatureViewerHandler);
+				armatureViewer.addEventListener(ArmatureViewer.VIEW_CHANGE_BONE_PARENT, armatureViewerHandler);
+				
+				this.addEventListener(Event.ENTER_FRAME, enterFrameHandler);
 				
 				MessageDispatcher.addEventListener(MessageDispatcher.LOAD_FLADATA, commandHandler);
 				MessageDispatcher.addEventListener(MessageDispatcher.LOAD_ARMATURE_DATA, commandHandler);
@@ -61,19 +62,16 @@
 				MessageDispatcher.addEventListener(MessageDispatcher.EXPORT_ERROR, commandHandler);
 				MessageDispatcher.addEventListener(MessageDispatcher.EXPORT_COMPLETE, commandHandler);
 				
-				MessageDispatcher.addEventListener(MessageDispatcher.UPDATE_MOVEMENT_DATA, commandHandler);
-				MessageDispatcher.addEventListener(MessageDispatcher.UPDATE_MOVEMENT_BONE_DATA, commandHandler);
-				MessageDispatcher.addEventListener(MessageDispatcher.UPDATE_BONE_PARENT, commandHandler);
-				
-				MessageDispatcher.addEventListener(MessageDispatcher.CHANGE_ARMATURE_DATA, commandHandler);
-				MessageDispatcher.addEventListener(MessageDispatcher.CHANGE_MOVEMENT_DATA, commandHandler);
-				
-				MessageDispatcher.addEventListener(MessageDispatcher.MOVEMENT_CHANGE, commandHandler);
-				
 				MessageDispatcher.addEventListener(MessageDispatcher.SAVE_ANIMATION_START, commandHandler);
 				MessageDispatcher.addEventListener(MessageDispatcher.SAVE_ANIMATION_PROGRESS, commandHandler);
 				MessageDispatcher.addEventListener(MessageDispatcher.SAVE_ANIMATION_COMPLETE, commandHandler);
 				MessageDispatcher.addEventListener(MessageDispatcher.SAVE_ANIMATION_ERROR, commandHandler);
+				
+				MessageDispatcher.addEventListener(MessageDispatcher.CHANGE_IMPORT_DATA, commandHandler);
+				MessageDispatcher.addEventListener(MessageDispatcher.SELECT_BONE, commandHandler);
+				MessageDispatcher.addEventListener(MessageDispatcher.CHANGE_BONE_PARENT, commandHandler);
+				MessageDispatcher.addEventListener(MessageDispatcher.CHANGE_ANIMATION_DATA, commandHandler);
+				MessageDispatcher.addEventListener(MessageDispatcher.CHANGE_TRANSFORM_TIMELINE_DATA, commandHandler);
 				
 				if(loaderInfo)
 				{
@@ -88,28 +86,30 @@
 				stage.frameRate = 60;
 			}
 			
-			private function skeletonDropDownList_onChange(event:IndexChangeEvent):void
+			private function armatureViewerHandler(e:Message):void
 			{
-				var armatureXML:XML = skeletonDropDownList.selectedItem as XML;
-				var armatureName:String = armatureXML?armatureXML.attribute(ConstValues.A_NAME):"";
-				_importDataProxy.armatureDataProxy.setData(_importDataProxy.getArmatureXMLByName(armatureName));
+				switch(e.type)
+				{
+					case ArmatureViewer.VIEW_SELECT_BONE:
+						_importDataProxy.armatureProxy.selectBone(e.parameters[0]);
+						break;
+					case ArmatureViewer.VIEW_CHANGE_BONE_PARENT:
+						_importDataProxy.armatureProxy.changeBoneParent(e.parameters[0], e.parameters[1]);
+						break;
+				}
+			}
+			
+			private function enterFrameHandler(event:Event):void
+			{
+				WorldClock.clock.advanceTime(-1);
 			}
 			
 			private function commandHandler(e:Message):void
 			{
+				var armatureName:String = _importDataProxy.armatureProxy.armatureName;
+				
 				switch(e.type)
 				{
-					case MessageDispatcher.CHANGE_ARMATURE_DATA:
-						for each(var eachItem:XML in skeletonDropDownList.dataProvider)
-						{
-							if(eachItem.attribute(ConstValues.A_NAME) == e.parameters[0])
-							{
-								skeletonDropDownList.selectedItem = eachItem;
-								break;
-							}
-						}
-						
-						break;
 					case MessageDispatcher.LOAD_FLADATA:
 						if(e.parameters[0] > 0)
 						{
@@ -175,49 +175,61 @@
 					case MessageDispatcher.EXPORT_COMPLETE:
 						clearAlert();
 						break;
-					case MessageDispatcher.CHANGE_MOVEMENT_DATA:
-						changeRenderMovement(e.parameters[0], false, e.parameters[1]);
-						break;
-					case MessageDispatcher.UPDATE_MOVEMENT_DATA:
-					case MessageDispatcher.UPDATE_MOVEMENT_BONE_DATA:
-						changeRenderMovement(e.parameters[0], true);
-						break;
-					case MessageDispatcher.UPDATE_BONE_PARENT:
-						if(_importDataProxy.armature)
+					case MessageDispatcher.CHANGE_IMPORT_DATA:
+						if(_importDataProxy.data && _importDataProxy.data.armatureDataList.length > 0)
 						{
-							_importDataProxy.updateArmatureBoneOrigin(e.parameters[0]);
-							changeRenderMovement(_importDataProxy.animationDataProxy.movementName, true);
-						}
-						break;
-					case MessageDispatcher.MOVEMENT_CHANGE:
-						//_importDataProxy.animationDataProxy.changeMovement(e.parameters[0], true);
-						break;
-				}
-			}
-			
-			private function changeRenderMovement(movementName:String, autoPlay:Boolean = false, isChangedByArmature:Boolean = false):void
-			{
-				if(movementName && _importDataProxy.armature && !isChangedByArmature)
-				{
-					if(autoPlay)
-					{
-						if(_importDataProxy.armature.animation.isPlaying)
-						{
-							_importDataProxy.armature.animation.gotoAndPlay(movementName);
+							_importDataProxy.armatureProxy.armatureData = 
+								_importDataProxy.data.getArmatureData(armatureName) ||
+								_importDataProxy.data.armatureDataList[0];
 						}
 						else
 						{
-							var currentTime:Number = _importDataProxy.armature.animation.currentTime;
-							_importDataProxy.armature.animation.gotoAndPlay(movementName, 0);
-							_importDataProxy.armature.advanceTime(0);
-							_importDataProxy.armature.advanceTime(currentTime);
-							_importDataProxy.armature.animation.stop();
+							_importDataProxy.armatureProxy.armatureData = null;
 						}
-					}
-					else
-					{
-						_importDataProxy.armature.animation.gotoAndPlay(movementName);
-					}
+						break;
+					case MessageDispatcher.SELECT_BONE:
+						if(e.parameters[0] == _importDataProxy.armatureProxy)
+						{
+							armatureViewer.updateBone(_importDataProxy.armatureProxy.selectedBoneName);
+						}
+						break;
+					case MessageDispatcher.CHANGE_BONE_PARENT:
+						if(e.parameters[0] == _importDataProxy.armatureProxy)
+						{
+							_importDataProxy.xmlDataProxy.changeBoneParent(armatureName, e.parameters[1], e.parameters[2]);
+							if(!_importDataProxy.isExportedSource)
+							{
+								var armatureXML:XML = _importDataProxy.xmlDataProxy.getArmatureXML(armatureName);
+								JSFLProxy.getInstance().changeArmatureConnection(armatureName, armatureXML);
+							}
+						}
+						break;
+					case MessageDispatcher.CHANGE_ANIMATION_DATA:
+						if(e.parameters[0] == _importDataProxy.armatureProxy)
+						{
+							var animationName:String = e.parameters[1];
+							_importDataProxy.xmlDataProxy.changeAnimationData(_importDataProxy.armatureProxy.armatureData, animationName);
+							if(!_importDataProxy.isExportedSource)
+							{
+								var movementXML:XML = _importDataProxy.xmlDataProxy.getMovementXML(armatureName, animationName);
+								JSFLProxy.getInstance().changeMovement(armatureName, animationName, movementXML);
+							}
+						}
+						break;
+					case MessageDispatcher.CHANGE_TRANSFORM_TIMELINE_DATA:
+						if(e.parameters[0] == _importDataProxy.armatureProxy)
+						{
+							animationName = e.parameters[1];
+							_importDataProxy.xmlDataProxy.changeTransformTimelineData(_importDataProxy.armatureProxy.armatureData, animationName, e.parameters[2]);
+							if(!_importDataProxy.isExportedSource)
+							{
+								var movementXMLCopy:XML = _importDataProxy.xmlDataProxy.getMovementXML(armatureName, animationName).copy();
+								delete movementXMLCopy[ConstValues.BONE].*;
+								delete movementXMLCopy[ConstValues.FRAME];
+								JSFLProxy.getInstance().changeMovement(armatureName, animationName, movementXMLCopy);
+							}
+						}
+						break;
 				}
 			}
 			
@@ -277,25 +289,25 @@
 			
 			private function updateCurrentArmature():void
 			{
-				if(_importDataProxy.skeletonData)
+				if(_importDataProxy.armatureProxy.armatureData)
 				{
 					DBGATrackerManager.tracker.trackEvent("/", "updateArmature");
 					var armatureNames:Vector.<String> = new Vector.<String>;
-					armatureNames.push(_importDataProxy.armatureDataProxy.armatureName);
+					armatureNames.push(_importDataProxy.armatureProxy.armatureData.name);
 					ImportCommand.instance.importFLAData(true, false, armatureNames);
 				}
 			}
 			
 			private function removeCurrentArmature():void
 			{
-				if(_importDataProxy.skeletonData)
+				if(_importDataProxy.armatureProxy.armatureData)
 				{
 					DBGATrackerManager.tracker.trackEvent("/", "removeArmature");
-					RemoveArmatureCommon.instance.removeArmature(_importDataProxy.armatureDataProxy.armatureName);
+					RemoveArmatureCommand.instance.removeArmature(_importDataProxy.armatureProxy.armatureData.name);
 				}
 			}
 			
-			protected function this_applicationCompleteHandler(event:FlexEvent):void
+			private function applicationCompleteHandler():void
 			{
 				DBGATrackerManager.createDBGATracker(this);
 				DBGATrackerManager.tracker.trackPageview("/");
@@ -329,7 +341,6 @@
 			<s:Button width="68" height="24" cornerRadius="0"
 					  label="{resourceManager.getString('resources','copyBehaviors')}"
 					  click="popUpCopyWindow()"
-					  enabled="{ImportDataProxy.getInstance().skeletonData!=null}"
 					  />
 			<s:Button width="68" height="24" cornerRadius="0"
 					  label="{resourceManager.getString('resources','about')}"
@@ -345,17 +356,18 @@
 		<s:VGroup width="100%" height="100%">
 			<s:HGroup width="100%" verticalAlign="middle">
 				<s:Label text="{resourceManager.getString('resources','skeleton')}" fontWeight="bold"/>
-				<s:DropDownList id="skeletonDropDownList" width="100%"
-								labelField="{ConstValues.AT + ConstValues.A_NAME}"/>
+				<s:DropDownList width="100%"
+								labelField="name"
+								dataProvider="{ImportDataProxy.getInstance().armaturesAC}"
+								selectedItem ="@{ImportDataProxy.getInstance().armatureProxy.armatureData}"
+								/>
 				<s:Button icon="@Embed(source='./assets/update_icon.png')" width="21" height="21"
-						  enabled="{ImportDataProxy.getInstance().skeletonData != null}"
 						  click="updateCurrentArmature()"/>
 				<s:Button icon="@Embed(source='./assets/remove_icon.png')" width="21" height="21"
-						  enabled="{ImportDataProxy.getInstance().skeletonData != null}"
 						  click="removeCurrentArmature()"/>
 			</s:HGroup>
 			<mx:HDividedBox width="100%" height="100%">
-				<view:ArmatureDisplayUIsGroup width="60%" height="100%"/>
+				<view:ArmatureViewer id="armatureViewer" width="60%" height="100%" armature="{ImportDataProxy.getInstance().armatureProxy.armature}"/>
 				<view:ControlPanelGroup width="40%" height="100%"/>
 			</mx:HDividedBox>
 		</s:VGroup>

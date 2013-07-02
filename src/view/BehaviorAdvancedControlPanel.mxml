@@ -11,64 +11,65 @@
 			import message.MessageDispatcher;
 			
 			import model.ImportDataProxy;
-			import model.SettingDataProxy;
 			
 			private var _importDataProxy:ImportDataProxy = ImportDataProxy.getInstance();
 			
 			private function addedToStageHandler(event:Event):void
 			{
-				sliderDurationTo.addEventListener(Event.CHANGE, valueChangeHandler);
-				numDurationTo.addEventListener(Event.CHANGE, valueChangeHandler);
+				sliderFadeTime.addEventListener(Event.CHANGE, valueChangeHandler);
+				numFadeTime.addEventListener(Event.CHANGE, valueChangeHandler);
 				
-				sliderDurationTween.addEventListener(Event.CHANGE, valueChangeHandler);
-				numDurationTween.addEventListener(Event.CHANGE, valueChangeHandler);
+				sliderDurationScaled.addEventListener(Event.CHANGE, valueChangeHandler);
+				numDurationScaled.addEventListener(Event.CHANGE, valueChangeHandler);
 				
 				sliderTweenEasing.addEventListener(Event.CHANGE, valueChangeHandler);
 				
 				checkLoop.addEventListener(Event.CHANGE, valueChangeHandler);
 				
-				MessageDispatcher.addEventListener(MessageDispatcher.CHANGE_MOVEMENT_DATA, commandHandler);	
+				MessageDispatcher.addEventListener(MessageDispatcher.SELECT_ANIMATION, commandHandler);	
 			}
 			
 			private function commandHandler(e:Message):void
 			{
+				if(e.parameters[0] != _importDataProxy.armatureProxy)
+				{
+					return;
+				}
 				switch(e.type)
 				{
-					case MessageDispatcher.CHANGE_MOVEMENT_DATA:
-						var durationTo:Number = _importDataProxy.animationDataProxy.durationTo;
-						var durationTween:Number = _importDataProxy.animationDataProxy.durationTween;
-						if(durationTo < 0)
+					case MessageDispatcher.SELECT_ANIMATION:
+						var fadeTime:Number = _importDataProxy.armatureProxy.fadeTime;
+						var durationScaled:Number = _importDataProxy.armatureProxy.durationScaled;
+						if(fadeTime < 0)
 						{
-							numDurationTo.enabled = false;
-							sliderDurationTo.enabled = false;
+							numFadeTime.enabled = false;
+							sliderFadeTime.enabled = false;
 						}
 						else
 						{
-							numDurationTo.value = durationTo;
-							numDurationTo.enabled = true;
-							sliderDurationTo.value = durationTo;
-							sliderDurationTo.enabled = true;
+							numFadeTime.value = fadeTime;
+							numFadeTime.enabled = true;
+							sliderFadeTime.value = fadeTime;
+							sliderFadeTime.enabled = true;
 						}
-						if(durationTween < 0)
+						if(durationScaled < 0)
 						{
-							numDurationTween.enabled = false;
-							sliderDurationTween.enabled = false;
+							numDurationScaled.enabled = false;
+							sliderDurationScaled.enabled = false;
 							checkLoop.selected = false;
 							checkLoop.enabled = false;
 							sliderTweenEasing.enabled = false;
 						}
 						else
 						{
-							numDurationTween.value = durationTween;
-							numDurationTween.enabled = true;
-							sliderDurationTween.value = durationTween;
-							sliderDurationTween.enabled = true;
-							checkLoop.selected = _importDataProxy.animationDataProxy.loop;
+							numDurationScaled.value = durationScaled;
+							numDurationScaled.enabled = true;
+							sliderDurationScaled.value = durationScaled;
+							sliderDurationScaled.enabled = true;
+							checkLoop.selected = _importDataProxy.armatureProxy.loop;
 							checkLoop.enabled = true;
-							sliderTweenEasing.value = _importDataProxy.animationDataProxy.tweenEasing;
+							sliderTweenEasing.value = _importDataProxy.armatureProxy.tweenEasing;
 							sliderTweenEasing.enabled = true;
-							
-							_importDataProxy.animationDataProxy.loop;
 						}
 						break;
 				}
@@ -78,32 +79,27 @@
 			{
 				switch(e.target)
 				{
-					case sliderDurationTo:
-						_importDataProxy.animationDataProxy.durationTo = sliderDurationTo.value;
-						numDurationTo.value = _importDataProxy.animationDataProxy.durationTo;
-						sliderDurationTo.value = _importDataProxy.animationDataProxy.durationTo;
+					case sliderFadeTime:
+						_importDataProxy.armatureProxy.fadeTime = sliderFadeTime.value;
+						sliderFadeTime.value = numFadeTime.value = _importDataProxy.armatureProxy.fadeTime;
 						break;
-					case numDurationTo:
-						_importDataProxy.animationDataProxy.durationTo = numDurationTo.value;
-						numDurationTo.value = _importDataProxy.animationDataProxy.durationTo;
-						sliderDurationTo.value = _importDataProxy.animationDataProxy.durationTo;
+					case numFadeTime:
+						_importDataProxy.armatureProxy.fadeTime = numFadeTime.value;
+						sliderFadeTime.value = numFadeTime.value = _importDataProxy.armatureProxy.fadeTime;
 						break;
-					case sliderDurationTween:
-						_importDataProxy.animationDataProxy.durationTween = sliderDurationTween.value;
-						numDurationTween.value = _importDataProxy.animationDataProxy.durationTween;
-						sliderDurationTween.value = _importDataProxy.animationDataProxy.durationTween;
+					case sliderDurationScaled:
+						_importDataProxy.armatureProxy.durationScaled = sliderDurationScaled.value;
+						sliderDurationScaled.value = numDurationScaled.value = _importDataProxy.armatureProxy.durationScaled;
 						break;
-					case numDurationTween:
-						_importDataProxy.animationDataProxy.durationTween = numDurationTween.value;
-						numDurationTween.value = _importDataProxy.animationDataProxy.durationTween;
-						sliderDurationTween.value = _importDataProxy.animationDataProxy.durationTween;
+					case numDurationScaled:
+						_importDataProxy.armatureProxy.durationScaled = numDurationScaled.value;
+						sliderDurationScaled.value = numDurationScaled.value = _importDataProxy.armatureProxy.durationScaled;
 						break;
 					case sliderTweenEasing:
-						_importDataProxy.animationDataProxy.tweenEasing = sliderTweenEasing.value;
+						_importDataProxy.armatureProxy.tweenEasing = sliderTweenEasing.value;
 						break;
 					case checkLoop:
-						_importDataProxy.animationDataProxy.loop = checkLoop.selected;
-						MessageDispatcher.dispatchEvent(MessageDispatcher.CHANGE_MOVEMENT_LOOP_DATA);
+						_importDataProxy.armatureProxy.loop = checkLoop.selected;
 						break;
 				}
 			}
@@ -120,10 +116,10 @@
 					 text="{resourceManager.getString('resources','totalTime')}"
 					 />
 			<s:HGroup width="100%" verticalAlign="middle">
-				<s:HSlider id="sliderDurationTween" width="100%"
+				<s:HSlider id="sliderDurationScaled" width="100%"
 						   minimum="0" maximum="10" snapInterval="0.01"
 						   />
-				<s:NumericStepper id="numDurationTween" width="60" height="24" cornerRadius="0" textAlign="right"
+				<s:NumericStepper id="numDurationScaled" width="60" height="24" cornerRadius="0" textAlign="right"
 								  maximum="3000" minimum="0" snapInterval="0.01"
 								  />
 			</s:HGroup>
@@ -131,10 +127,10 @@
 					 text="{resourceManager.getString('resources','blendingTime')}"
 					 />
 			<s:HGroup width="100%" verticalAlign="middle">
-				<s:HSlider id="sliderDurationTo" width="100%"
+				<s:HSlider id="sliderFadeTime" width="100%"
 						   minimum="0" maximum="10" snapInterval="0.01"
 						   />
-				<s:NumericStepper id="numDurationTo" width="60" height="24" cornerRadius="0" textAlign="right"
+				<s:NumericStepper id="numFadeTime" width="60" height="24" cornerRadius="0" textAlign="right"
 								  maximum="3000" minimum="0" snapInterval="0.01"
 								  />
 			</s:HGroup>

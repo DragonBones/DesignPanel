@@ -15,8 +15,6 @@
 			import model.ImportDataProxy;
 			import model.SettingDataProxy;
 			
-			import mx.events.CloseEvent;
-			import mx.events.FlexEvent;
 			import mx.managers.PopUpManager;
 			
 			private function importData():void

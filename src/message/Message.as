@@ -3,8 +3,12 @@ package message{
 	
 	public final class Message extends Event{
 		public var parameters:Array;
-		public function Message(type:String){
+		public function Message(type:String, ...args){
 			super(type, false, false);
+			if(args.length > 0)
+			{
+				parameters = args;
+			}
 		}
 		
 		override public function clone():Event {

@@ -18,8 +18,6 @@
 			import model.SettingDataProxy;
 			
 			import mx.collections.ArrayCollection;
-			import mx.events.CloseEvent;
-			import mx.events.FlexEvent;
 			import mx.managers.PopUpManager;
 			
 			[Bindable]
@@ -29,7 +27,7 @@
 			{
 				DBGATrackerManager.tracker.trackEvent("exportWindow", "exportData", "exportType", exportType.selectedIndex);
 				
-				if(!ImportDataProxy.getInstance().skeletonName)
+				if(!ImportDataProxy.getInstance().xmlDataProxy)
 				{
 					return;
 				}

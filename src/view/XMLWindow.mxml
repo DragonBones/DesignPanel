@@ -5,7 +5,7 @@
 					  xmlns:components="view.components.*"
 					  xmlns:view="view.*"
 					  width="100%" height="100%" backgroundAlpha="0.5" backgroundColor="#CCCCCC"
-					  show="this_showHandler(event)">
+					  show="showHandler(event)">
 	<fx:Declarations>
 		<!-- Place non-visual elements (e.g., services, value objects) here -->
 	</fx:Declarations>
@@ -17,15 +17,15 @@
 
 			private var _importDataProxy:ImportDataProxy = ImportDataProxy.getInstance();
 			
-			private function this_showHandler(event:Event):void
+			private function showHandler(event:Event):void
 			{
-				if(_importDataProxy.skeletonXMLProxy)
+				if(_importDataProxy.xmlDataProxy)
 				{
-					txtXML.text = _importDataProxy.skeletonXMLProxy.skeletonXML;
+					txtXML.text = _importDataProxy.xmlDataProxy.xml;
 				}
 			}
 			
-			protected function titlewindow_closeHandler(event:CloseEvent):void
+			protected function closeHandler(event:Event):void
 			{
 				DBGATrackerManager.tracker.trackPageview("/");
 				this.visible = false;
@@ -33,7 +33,7 @@
 			
 		]]>
 	</fx:Script>
-	<s:TitleWindow left="20" right="20" top="20" bottom="20" title="{resourceManager.getString('resources','xml')}" close="titlewindow_closeHandler(event)">
+	<s:TitleWindow left="20" right="20" top="20" bottom="20" title="{resourceManager.getString('resources','xml')}" close="closeHandler(event)">
 		<s:TextArea id="txtXML" left="2" right="2" top="2" bottom="2" borderColor="#000000" editable="false"/>
 	</s:TitleWindow>
 </s:SkinnableContainer>

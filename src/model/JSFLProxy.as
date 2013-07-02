@@ -390,7 +390,7 @@
 		}
 		
 		/**
-		 * Update skeleton structure data from XML to fla file
+		 * Update armature structure data from XML to fla file
 		 */
 		public function changeArmatureConnection(armatureName:String, armatureXML:XML):void
 		{

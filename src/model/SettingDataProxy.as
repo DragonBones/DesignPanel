@@ -187,9 +187,10 @@ package model
 						if(languageArrayCollection[i].value == languageCode)
 						{
 							languageID = i;
-							break;
+							return;
 						}
 					}
+					languageID = 0;
 					break;
 			}
 		}

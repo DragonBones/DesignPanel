@@ -4,7 +4,6 @@ package control
 	
 	import flash.display.BitmapData;
 	import flash.display.Loader;
-	import flash.display.LoaderInfo;
 	import flash.display.Sprite;
 	import flash.events.Event;
 	import flash.system.LoaderContext;
@@ -14,7 +13,7 @@ package control
 	import message.MessageDispatcher;
 	
 	import model.ImportDataProxy;
-	import model.SkeletonXMLProxy;
+	import model.XMLDataProxy;
 	
 	import modifySWF.combine;
 	
@@ -27,7 +26,7 @@ package control
 		
 		private var _isMerge:Boolean;
 		private var _loaderContext:LoaderContext;
-		private var _skeletonXMLProxy:SkeletonXMLProxy;
+		private var _xmlDataProxy:XMLDataProxy;
 		private var _textureBytes:ByteArray;
 		private var _isExportedSource:Boolean;
 		
@@ -44,7 +43,6 @@ package control
 				return;
 			}
 			_isMerge = isMerge;
-			
 			MessageDispatcher.addEventListener(MessageDispatcher.LOAD_FLA_COMPLETE, loadCommandHandler);
 			
 			LoadFLADataCommand.instance.load(isSelectedInFLALibrary, armatureNames);
@@ -70,7 +68,7 @@ package control
 				case MessageDispatcher.LOAD_FLA_COMPLETE:
 				case MessageDispatcher.LOAD_FILEDATA_COMPLETE:
 					_isExportedSource = e.type == MessageDispatcher.LOAD_FILEDATA_COMPLETE;
-					_skeletonXMLProxy = e.parameters[0] as SkeletonXMLProxy;
+					_xmlDataProxy = e.parameters[0] as XMLDataProxy;
 					var textureBytes:ByteArray = e.parameters[1] as ByteArray;
 					if(_isMerge)
 					{
@@ -78,13 +76,13 @@ package control
 						{
 							case BytesType.SWF:
 								//mergeSWF
-								ImportDataProxy.getInstance().skeletonXMLProxy.merge(_skeletonXMLProxy);
+								ImportDataProxy.getInstance().xmlDataProxy.merge(_xmlDataProxy);
 								
-								_skeletonXMLProxy = ImportDataProxy.getInstance().skeletonXMLProxy;
+								_xmlDataProxy = ImportDataProxy.getInstance().xmlDataProxy;
 								textureBytes = combine(
 									ImportDataProxy.getInstance().textureBytes, 
 									textureBytes,
-									_skeletonXMLProxy.modifySubTextureSize(null)
+									_xmlDataProxy.modifySubTextureSize(null)
 								);
 								loadTextureBytes(textureBytes);
 								break;
@@ -110,11 +108,11 @@ package control
 		
 		private function addLoaderCompleteHandler(e:Event):void
 		{
-			e.target.removeEventListener(Event.COMPLETE, loaderCompleteHandler);
+			e.target.removeEventListener(Event.COMPLETE, addLoaderCompleteHandler);
 			
 			var bitmapData:BitmapData = new BitmapData(
-				_skeletonXMLProxy.textureAtlasWidth,
-				_skeletonXMLProxy.textureAtlasHeight,
+				_xmlDataProxy.textureAtlasWidth,
+				_xmlDataProxy.textureAtlasHeight,
 				true,
 				0xFF00FF
 			);
@@ -123,30 +121,30 @@ package control
 			var mergedBitmapData:BitmapData = mergeBitmapData(
 				ImportDataProxy.getInstance().textureAtlas.bitmapData,
 				bitmapData, 
-				ImportDataProxy.getInstance().skeletonXMLProxy,
-				_skeletonXMLProxy
+				ImportDataProxy.getInstance().xmlDataProxy,
+				_xmlDataProxy
 			);
 			
 			bitmapData.dispose();
 			
 			MessageDispatcher.dispatchEvent(
 				MessageDispatcher.IMPORT_COMPLETE, 
-				ImportDataProxy.getInstance().skeletonXMLProxy, 
+				ImportDataProxy.getInstance().xmlDataProxy, 
 				PNGEncoder.encode(mergedBitmapData), 
 				mergedBitmapData, 
 				_isExportedSource
 			);
 		}
 		
-		private function mergeBitmapData(rawBitmapData:BitmapData, addBitmapData:BitmapData, rawSkeletonXMLProxy:SkeletonXMLProxy, addSkeletonXMLProxy:SkeletonXMLProxy):BitmapData
+		private function mergeBitmapData(rawBitmapData:BitmapData, addBitmapData:BitmapData, rawProxy:XMLDataProxy, addProxy:XMLDataProxy):BitmapData
 		{
 			var rawSubBitmapDataDic:Object = BitmapDataUtil.getSubBitmapDataDic(
 				rawBitmapData, 
-				rawSkeletonXMLProxy.getSubTextureRectDic()
+				rawProxy.getSubTextureRectDic()
 			);
 			var addSubBitmapDataDic:Object = BitmapDataUtil.getSubBitmapDataDic(
 				addBitmapData, 
-				addSkeletonXMLProxy.getSubTextureRectDic()
+				addProxy.getSubTextureRectDic()
 			);
 			
 			for(var subTextureName:String in addSubBitmapDataDic)
@@ -159,13 +157,13 @@ package control
 				rawSubBitmapDataDic[subTextureName] = addSubBitmapDataDic[subTextureName];
 			}
 			
-			rawSkeletonXMLProxy.merge(addSkeletonXMLProxy);
+			rawProxy.merge(addProxy);
 			
 			return BitmapDataUtil.getMergeBitmapData(
 				rawSubBitmapDataDic,
-				rawSkeletonXMLProxy.getSubTextureRectDic(),
-				rawSkeletonXMLProxy.textureAtlasWidth,
-				rawSkeletonXMLProxy.textureAtlasHeight
+				rawProxy.getSubTextureRectDic(),
+				rawProxy.textureAtlasWidth,
+				rawProxy.textureAtlasHeight
 			);
 		}
 		
@@ -188,7 +186,7 @@ package control
 			}
 			MessageDispatcher.dispatchEvent(
 				MessageDispatcher.IMPORT_COMPLETE, 
-				_skeletonXMLProxy, 
+				_xmlDataProxy, 
 				_textureBytes, 
 				content, 
 				_isExportedSource

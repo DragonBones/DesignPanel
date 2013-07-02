@@ -19,7 +19,7 @@ package control
 	
 	import message.MessageDispatcher;
 	
-	import model.SkeletonXMLProxy;
+	import model.XMLDataProxy;
 	
 	import utils.BitmapDataUtil;
 	import utils.GlobalConstValues;
@@ -38,7 +38,7 @@ package control
 		private var _urlLoader:URLLoader;
 		private var _loaderContext:LoaderContext;
 		
-		private var _skeletonXMLProxy:SkeletonXMLProxy;
+		private var _xmlDataProxy:XMLDataProxy;
 		private var _bitmapData:BitmapData;
 		
 		private var _isLoading:Boolean;
@@ -91,7 +91,7 @@ package control
 					break;
 				case ProgressEvent.PROGRESS:
 					var progressEvent:ProgressEvent = e as ProgressEvent;
-					MessageDispatcher.dispatchEvent(MessageDispatcher.LOAD_FILEDATA_PROGRESS, progressEvent.bytesLoaded / progressEvent.bytesTotal );
+					MessageDispatcher.dispatchEvent(MessageDispatcher.LOAD_FILEDATA_PROGRESS, progressEvent.bytesLoaded / progressEvent.bytesTotal);
 					break;
 				case Event.COMPLETE:
 					_urlLoader.removeEventListener(Event.COMPLETE, onURLLoaderHandler);
@@ -132,11 +132,11 @@ package control
 					try
 					{
 						var decompressedData:DecompressedData = XMLDataParser.decompressData(fileData);
-						_skeletonXMLProxy = new SkeletonXMLProxy();
-						_skeletonXMLProxy.skeletonXML = decompressedData.skeletonXML;
-						_skeletonXMLProxy.textureAtlasXML = decompressedData.textureAtlasXML;
+						_xmlDataProxy = new XMLDataProxy();
+						_xmlDataProxy.xml = decompressedData.xml;
+						_xmlDataProxy.textureAtlasXML = decompressedData.textureAtlasXML;
 						
-						MessageDispatcher.dispatchEvent(MessageDispatcher.LOAD_FILEDATA_COMPLETE, _skeletonXMLProxy, decompressedData.textureBytes);
+						MessageDispatcher.dispatchEvent(MessageDispatcher.LOAD_FILEDATA_COMPLETE, _xmlDataProxy, decompressedData.textureBytes);
 						return;
 					}
 					catch(_e:Error)
@@ -149,20 +149,19 @@ package control
 						var images:Object;
 						var zip:Zip = new Zip();
 						zip.decode(fileData);
-						_skeletonXMLProxy = new SkeletonXMLProxy();
+						_xmlDataProxy = new XMLDataProxy();
 						
 						for each(var zipFile:ZipFile in zip.fileV)
 						{
 							if(!zipFile.isDirectory)
 							{
-								
-								if(zipFile.name == GlobalConstValues.SKELETON_XML_NAME)
+								if(zipFile.name == GlobalConstValues.DRAGON_BONES_XML_NAME)
 								{
-									_skeletonXMLProxy.skeletonXML = XML(zipFile.data);
+									_xmlDataProxy.xml = XML(zipFile.data);
 								}
 								else if(zipFile.name == GlobalConstValues.TEXTURE_ATLAS_XML_NAME)
 								{
-									_skeletonXMLProxy.textureAtlasXML = XML(zipFile.data);
+									_xmlDataProxy.textureAtlasXML = XML(zipFile.data);
 								}
 								else if(zipFile.name.indexOf(GlobalConstValues.TEXTURE_NAME) == 0)
 								{
@@ -187,7 +186,7 @@ package control
 						if(textureBytes)
 						{
 							//_textureBytes
-							MessageDispatcher.dispatchEvent(MessageDispatcher.LOAD_FILEDATA_COMPLETE, _skeletonXMLProxy, textureBytes);
+							MessageDispatcher.dispatchEvent(MessageDispatcher.LOAD_FILEDATA_COMPLETE, _xmlDataProxy, textureBytes);
 							return;
 						}
 						else if(images)
@@ -238,13 +237,13 @@ package control
 				
 				MessageDispatcher.dispatchEvent(
 					MessageDispatcher.LOAD_FILEDATA_COMPLETE, 
-					_skeletonXMLProxy, 
+					_xmlDataProxy, 
 					PNGEncoder.encode(
 						BitmapDataUtil.getMergeBitmapData(
 							_images,
-							_skeletonXMLProxy.getSubTextureRectDic(),
-							_skeletonXMLProxy.textureAtlasWidth,
-							_skeletonXMLProxy.textureAtlasHeight
+							_xmlDataProxy.getSubTextureRectDic(),
+							_xmlDataProxy.textureAtlasWidth,
+							_xmlDataProxy.textureAtlasHeight
 						)
 					)
 				);

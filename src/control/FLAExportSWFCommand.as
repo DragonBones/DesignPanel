@@ -16,7 +16,7 @@ package control
 	import message.MessageDispatcher;
 	
 	import model.JSFLProxy;
-	import model.SkeletonXMLProxy;
+	import model.XMLDataProxy;
 	
 	import modifySWF.modify;
 	
@@ -26,7 +26,7 @@ package control
 		
 		private var _urlLoader:URLLoader;
 		
-		private var _skeletonXMLProxy:SkeletonXMLProxy;
+		private var _xmlDataProxy:XMLDataProxy;
 		private var _textureBytes:ByteArray;
 		
 		public function FLAExportSWFCommand()
@@ -35,9 +35,9 @@ package control
 			_urlLoader.dataFormat = URLLoaderDataFormat.BINARY;
 		}
 		
-		public function exportSWF(skeletonXMLProxy:SkeletonXMLProxy):void
+		public function exportSWF(xmlDataProxy:XMLDataProxy):void
 		{
-			_skeletonXMLProxy = skeletonXMLProxy;
+			_xmlDataProxy = xmlDataProxy;
 			MessageDispatcher.addEventListener(JSFLProxy.EXPORT_SWF, jsflProxyHandler);
 			JSFLProxy.getInstance().exportSWF();
 		}
@@ -89,7 +89,7 @@ package control
 				var rect:Rectangle = eachContent.getBounds(eachContent);
 				rectList.push(rect);
 			}
-			_textureBytes = modify(_textureBytes, _skeletonXMLProxy.modifySubTextureSize(rectList));
+			_textureBytes = modify(_textureBytes, _xmlDataProxy.modifySubTextureSize(rectList));
 			
 			MessageDispatcher.dispatchEvent(MessageDispatcher.FLA_TEXTURE_ATLAS_SWF_LOADED, _textureBytes);
 		}

@@ -5,34 +5,30 @@
 					  xmlns:components="view.components.*"
 					  xmlns:view="view.*"
 					  width="100%" height="100%" backgroundAlpha="0.5" backgroundColor="#CCCCCC"
-					  show="this_showHandler(event)">
+					  show="showHandler(event)">
 	<fx:Declarations>
 		<!-- Place non-visual elements (e.g., services, value objects) here -->
 	</fx:Declarations>
 	<fx:Script>
 		<![CDATA[
 			import model.ImportDataProxy;
-			
-			import mx.events.CloseEvent;
 
 			private var _importDataProxy:ImportDataProxy = ImportDataProxy.getInstance();
 			
-			private var bitmap:Bitmap = new Bitmap();
+			private var _bitmap:Bitmap = new Bitmap();
 			
-			private function this_showHandler(event:Event):void
+			private function showHandler(event:Event):void
 			{
-				
 				if(_importDataProxy.textureAtlas)
 				{
-					bitmap.bitmapData = _importDataProxy.textureAtlas.bitmapData;
-					textureContainer.addChild(bitmap);
-					textureContainerGroup.width = bitmap.width;
-					textureContainerGroup.height = bitmap.height;
+					_bitmap.bitmapData = _importDataProxy.textureAtlas.bitmapData;
+					textureContainer.addChild(_bitmap);
+					textureContainerGroup.width = _bitmap.width;
+					textureContainerGroup.height = _bitmap.height;
 				}
-				
 			}
 			
-			protected function titlewindow_closeHandler(event:CloseEvent):void
+			protected function closeHandler(event:Event):void
 			{
 				DBGATrackerManager.tracker.trackPageview("/");
 				this.visible = false;
@@ -40,7 +36,7 @@
 			
 		]]>
 	</fx:Script>
-	<s:TitleWindow left="20" right="20" top="20" bottom="20" title="{resourceManager.getString('resources','textureAtlas')}" close="titlewindow_closeHandler(event)">
+	<s:TitleWindow left="20" right="20" top="20" bottom="20" title="{resourceManager.getString('resources','textureAtlas')}" close="closeHandler(event)">
 		<s:Scroller width="100%" height="100%">
 			<s:Group>
 				<s:Group id="textureContainerGroup">

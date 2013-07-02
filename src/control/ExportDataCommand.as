@@ -16,7 +16,7 @@ package control
 	
 	import model.ImportDataProxy;
 	import model.JSFLProxy;
-	import model.SkeletonXMLProxy;
+	import model.XMLDataProxy;
 	
 	import utils.BitmapDataUtil;
 	import utils.GlobalConstValues;
@@ -36,7 +36,7 @@ package control
 		
 		private var _importDataProxy:ImportDataProxy;
 		
-		private var _skeletonXMLProxy:SkeletonXMLProxy;
+		private var _xmlDataProxy:XMLDataProxy;
 		private var _bitmapData:BitmapData;
 		
 		public function ExportDataCommand()
@@ -64,18 +64,18 @@ package control
 			var zip:Zip;
 			var date:Date;
 			
-			_skeletonXMLProxy = _importDataProxy.skeletonXMLProxy;
+			_xmlDataProxy = _importDataProxy.xmlDataProxy;
 			_bitmapData = _importDataProxy.textureAtlas.bitmapData;
 			
 			if(_exportScale != 1)
 			{
-				_skeletonXMLProxy = _skeletonXMLProxy.copy();
+				_xmlDataProxy = _xmlDataProxy.copy();
 				var subBitmapDataDic:Object;
 				var movieClip:MovieClip = _importDataProxy.textureAtlas.movieClip;
 				if(movieClip && movieClip.totalFrames >= 3)
 				{
 					subBitmapDataDic = {};
-					for each (var displayName:String in _skeletonXMLProxy.getDisplayList())
+					for each (var displayName:String in _xmlDataProxy.getDisplayList())
 					{
 						movieClip.gotoAndStop(movieClip.totalFrames);
 						movieClip.gotoAndStop(displayName);
@@ -86,17 +86,17 @@ package control
 				{
 					subBitmapDataDic = BitmapDataUtil.getSubBitmapDataDic(
 						_bitmapData,
-						_skeletonXMLProxy.getSubTextureRectDic()
+						_xmlDataProxy.getSubTextureRectDic()
 					);
 				}
 				
-				_skeletonXMLProxy.scaleData(_exportScale);
+				_xmlDataProxy.scaleData(_exportScale);
 					
 				_bitmapData = BitmapDataUtil.getMergeBitmapData(
 					subBitmapDataDic,
-					_skeletonXMLProxy.getSubTextureRectDic(),
-					_skeletonXMLProxy.textureAtlasWidth,
-					_skeletonXMLProxy.textureAtlasHeight,
+					_xmlDataProxy.getSubTextureRectDic(),
+					_xmlDataProxy.textureAtlasWidth,
+					_xmlDataProxy.textureAtlasHeight,
 					_exportScale
 				);
 			}
@@ -111,11 +111,11 @@ package control
 						{
 							exportSave(
 								XMLDataParser.compressData(
-									_skeletonXMLProxy.skeletonXML, 
-									_skeletonXMLProxy.textureAtlasXML, 
+									_xmlDataProxy.xml, 
+									_xmlDataProxy.textureAtlasXML, 
 									dataBytes
 								), 
-								_importDataProxy.skeletonName + GlobalConstValues.OUTPUT_SUFFIX + GlobalConstValues.SWF_SUFFIX
+								_importDataProxy.data.name + GlobalConstValues.OUTPUT_SUFFIX + GlobalConstValues.SWF_SUFFIX
 							);
 							return;
 						}
@@ -133,11 +133,11 @@ package control
 						{
 							exportSave(
 								XMLDataParser.compressData(
-									_skeletonXMLProxy.skeletonXML, 
-									_skeletonXMLProxy.textureAtlasXML, 
+									_xmlDataProxy.xml, 
+									_xmlDataProxy.textureAtlasXML, 
 									dataBytes
 								), 
-								_importDataProxy.skeletonName + GlobalConstValues.OUTPUT_SUFFIX + GlobalConstValues.PNG_SUFFIX
+								_importDataProxy.data.name + GlobalConstValues.OUTPUT_SUFFIX + GlobalConstValues.PNG_SUFFIX
 							);
 							return;
 						}
@@ -170,18 +170,18 @@ package control
 								date
 							);
 							zip.add(
-								_skeletonXMLProxy.skeletonXML.toXMLString(), 
-								GlobalConstValues.SKELETON_XML_NAME, 
+								_xmlDataProxy.xml.toXMLString(), 
+								GlobalConstValues.DRAGON_BONES_XML_NAME, 
 								date
 							);
 							zip.add(
-								_skeletonXMLProxy.textureAtlasXML.toXMLString(), 
+								_xmlDataProxy.textureAtlasXML.toXMLString(), 
 								GlobalConstValues.TEXTURE_ATLAS_XML_NAME, 
 								date
 							);
 							exportSave(
 								zip.encode(), 
-								_importDataProxy.skeletonName + GlobalConstValues.OUTPUT_SUFFIX + GlobalConstValues.ZIP_SUFFIX
+								_importDataProxy.data.name + GlobalConstValues.OUTPUT_SUFFIX + GlobalConstValues.ZIP_SUFFIX
 							);
 							zip.clear();
 							return;
@@ -198,16 +198,16 @@ package control
 						date = new Date();
 						zip = new Zip();
 						
-						if(_skeletonXMLProxy == _importDataProxy.skeletonXMLProxy)
+						if(_xmlDataProxy == _importDataProxy.xmlDataProxy)
 						{
-							_skeletonXMLProxy = _skeletonXMLProxy.copy();
+							_xmlDataProxy = _xmlDataProxy.copy();
 						}
-						_skeletonXMLProxy.changePath();
+						_xmlDataProxy.changePath();
 						
 						
 						subBitmapDataDic = BitmapDataUtil.getSubBitmapDataDic(
 							_bitmapData, 
-							_skeletonXMLProxy.getSubTextureRectDic()
+							_xmlDataProxy.getSubTextureRectDic()
 						);
 						for(var subTextureName:String in subBitmapDataDic)
 						{
@@ -221,19 +221,19 @@ package control
 						}
 						
 						zip.add(
-							_skeletonXMLProxy.skeletonXML.toXMLString(), 
-							GlobalConstValues.SKELETON_XML_NAME, 
+							_xmlDataProxy.xml.toXMLString(), 
+							GlobalConstValues.DRAGON_BONES_XML_NAME, 
 							date
 						);
 						zip.add(
-							_skeletonXMLProxy.textureAtlasXML.toXMLString(), 
+							_xmlDataProxy.textureAtlasXML.toXMLString(), 
 							GlobalConstValues.TEXTURE_ATLAS_XML_NAME, 
 							date
 						);
 						
 						exportSave(
 							zip.encode(), 
-							_importDataProxy.skeletonName + GlobalConstValues.OUTPUT_SUFFIX + GlobalConstValues.ZIP_SUFFIX
+							_importDataProxy.data.name + GlobalConstValues.OUTPUT_SUFFIX + GlobalConstValues.ZIP_SUFFIX
 						);
 						zip.clear();
 						return;

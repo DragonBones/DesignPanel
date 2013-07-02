@@ -7,7 +7,7 @@
 	
 	import model.JSFLProxy;
 	import model.SettingDataProxy;
-	import model.SkeletonXMLProxy;
+	import model.XMLDataProxy;
 	
 	public class LoadFLADataCommand
 	{
@@ -15,7 +15,7 @@
 		
 		private var _jsflProxy:JSFLProxy;
 		
-		private var _skeletonXMLProxy:SkeletonXMLProxy;
+		private var _xmlDataProxy:XMLDataProxy;
 		
 		private var _displayList:Vector.<String>;
 		private var _armatureXMLList:XMLList;
@@ -56,17 +56,17 @@
 			else
 			{
 				//start load armature data
-				var _resultXML:XML = XML(result);
-				var _flaDomName:String = _resultXML.attribute(ConstValues.A_NAME);
-				_armatureXMLList = _resultXML.elements(ConstValues.ARMATURE);
+				var resultXML:XML = XML(result);
+				var flaDomName:String = resultXML.@[ConstValues.A_NAME];
+				_armatureXMLList = resultXML[ConstValues.ARMATURE];
 				
 				_totalCount = _armatureXMLList.length();
 				_loadIndex = _totalCount - 1;
-				MessageDispatcher.dispatchEvent(MessageDispatcher.LOAD_FLADATA, _totalCount, _flaDomName);
+				MessageDispatcher.dispatchEvent(MessageDispatcher.LOAD_FLADATA, _totalCount, flaDomName);
 				if(_totalCount > 0)
 				{
 					_isLoading = true;
-					_skeletonXMLProxy = new SkeletonXMLProxy();
+					_xmlDataProxy = new XMLDataProxy();
 					readNextArmature();
 				}
 			}
@@ -75,30 +75,30 @@
 		private function readNextArmature():void
 		{
 			var armatureXML:XML = _armatureXMLList[_loadIndex];
-			var armatureName:String = armatureXML.attribute(ConstValues.A_NAME);
-			var scale:Number = Number(armatureXML.attribute("scale"));
+			var armatureName:String = armatureXML.@[ConstValues.A_NAME];
+			var scale:Number = Number(armatureXML.@["scale"]);
 			
 			MessageDispatcher.dispatchEvent(MessageDispatcher.LOAD_ARMATURE_DATA, armatureName, _totalCount - _loadIndex, _totalCount);
 			MessageDispatcher.addEventListener(JSFLProxy.GENERATE_ARMATURE, readNextArmatureHandler);
 			_jsflProxy.generateArmature(armatureName, scale);
-			delete _armatureXMLList[_loadIndex];
-			_loadIndex --;
+			
+			delete _armatureXMLList[_loadIndex --];
 		}
 		
 		private function readNextArmatureHandler(e:Message):void
 		{
 			MessageDispatcher.removeEventListener(JSFLProxy.GENERATE_ARMATURE, readNextArmatureHandler);
 			var result:String = e.parameters[0];
-			var skeletonXML:XML = result != "false"?XML(result):null;
-			if(skeletonXML)
+			var xml:XML = result != "false"?XML(result):null;
+			if(xml)
 			{
-				if(_skeletonXMLProxy.skeletonXML)
+				if(_xmlDataProxy.xml)
 				{
-					_skeletonXMLProxy.addSkeletonXML(skeletonXML);
+					_xmlDataProxy.addXML(xml);
 				}
 				else
 				{
-					_skeletonXMLProxy.skeletonXML = skeletonXML;
+					_xmlDataProxy.xml = xml;
 				}
 			}
 			
@@ -123,10 +123,10 @@
 			var textureAtlasXML:XML = result != "false"?XML(result):null;
 			if(textureAtlasXML)
 			{
-				_skeletonXMLProxy.textureAtlasXML = textureAtlasXML;
+				_xmlDataProxy.textureAtlasXML = textureAtlasXML;
 			}
 			
-			_displayList = _skeletonXMLProxy.getDisplayList();
+			_displayList = _xmlDataProxy.getDisplayList();
 			_totalCount = _displayList.length;
 			
 			if(_totalCount == 0)
@@ -147,9 +147,7 @@
 			MessageDispatcher.addEventListener(JSFLProxy.ADD_TEXTURE_TO_SWFITEM, readNextSubTextureHandler);
 			_jsflProxy.addTextureToSWFItem(subTextureName, _loadIndex == 0);
 			
-			delete 
-			_displayList.splice(_loadIndex, 1);
-			_loadIndex --;
+			_displayList.splice(_loadIndex --, 1);
 		}
 		
 		private function readNextSubTextureHandler(e:Message):void
@@ -160,7 +158,7 @@
 			var subTextureXML:XML = result != "false"?XML(result):null;
 			if(subTextureXML)
 			{
-				_skeletonXMLProxy.addSubTextureXML(subTextureXML);
+				_xmlDataProxy.addSubTextureXML(subTextureXML);
 			}
 			
 			if(_loadIndex >= 0)
@@ -170,15 +168,16 @@
 			else
 			{
 				MessageDispatcher.addEventListener(MessageDispatcher.FLA_TEXTURE_ATLAS_SWF_LOADED, flaExportSWFHandler);
-				FLAExportSWFCommand.instance.exportSWF(_skeletonXMLProxy);
+				FLAExportSWFCommand.instance.exportSWF(_xmlDataProxy);
 			}
 		}
 		
 		private function flaExportSWFHandler(e:Message):void
 		{
+			MessageDispatcher.removeEventListener(MessageDispatcher.FLA_TEXTURE_ATLAS_SWF_LOADED, flaExportSWFHandler);
 			_isLoading = false;
-			_skeletonXMLProxy.setVersion();
-			MessageDispatcher.dispatchEvent(MessageDispatcher.LOAD_FLA_COMPLETE, _skeletonXMLProxy, e.parameters[0]);
+			_xmlDataProxy.setVersion();
+			MessageDispatcher.dispatchEvent(MessageDispatcher.LOAD_FLA_COMPLETE, _xmlDataProxy, e.parameters[0]);
 		}
 	}
 }
