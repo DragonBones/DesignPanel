@@ -1,19 +1,14 @@
 package model
 {
 	import dragonBones.Armature;
-	import dragonBones.animation.WorldClock;
 	import dragonBones.core.dragonBones_internal;
 	import dragonBones.factorys.NativeFactory;
 	import dragonBones.objects.AnimationData;
 	import dragonBones.objects.ArmatureData;
 	import dragonBones.objects.BoneData;
-	import dragonBones.objects.DBTransform;
-	import dragonBones.objects.Frame;
 	import dragonBones.objects.SkeletonData;
 	import dragonBones.objects.XMLDataParser;
-	import dragonBones.textures.NativeTextureAtlas;
-	import dragonBones.utils.ConstValues;
-	import dragonBones.utils.TransformUtils;
+	import dragonBones.utils.DBDataUtils;
 	
 	import flash.events.EventDispatcher;
 	import flash.geom.Matrix;
@@ -21,6 +16,8 @@ package model
 	
 	import message.Message;
 	import message.MessageDispatcher;
+	
+	import mx.collections.ArrayCollection;
 	
 	use namespace dragonBones_internal;
 	
@@ -37,11 +34,14 @@ package model
 			return _instance;
 		}
 		
+		public var armaturesAC:ArrayCollection;
+		
 		public var sourceArmatureProxy:ArmatureProxy;
 		public var targetArmatureProxy:ArmatureProxy;
 		
 		public var boneCopyable:Boolean;
 		public var behaviorCopyable:Boolean;
+		public var dataChanged:Boolean;
 		
 		private var _factory:NativeFactory;
 		private var _data:SkeletonData;
@@ -49,7 +49,10 @@ package model
 		
 		public function CopyDataProxy()
 		{
+			armaturesAC = new ArrayCollection();
+			
 			_factory = new NativeFactory();
+			_factory.fillBitmapSmooth = true;
 			
 			sourceArmatureProxy = new ArmatureProxy();
 			targetArmatureProxy = new ArmatureProxy();
@@ -71,80 +74,104 @@ package model
 				_xmlDataProxy = ImportDataProxy.getInstance().xmlDataProxy.copy();
 				_data = XMLDataParser.parseSkeletonData(_xmlDataProxy.xml);
 				
+				armaturesAC.source = getArmatureList();
+				
 				_factory.addSkeletonData(_data);
 				_factory.addTextureAtlas(ImportDataProxy.getInstance().textureAtlas);
 				
 				sourceArmatureProxy.armatureData = ImportDataProxy.getInstance().armatureProxy.armatureData;
+				targetArmatureProxy.armatureData = null;
+				
+				boneCopyable = false;
+				behaviorCopyable = false;
+				dataChanged = false;
+			}
+		}
+		
+		public function updateBoneCopyAble():void
+		{
+			if(
+				sourceArmatureProxy.armatureData && 
+				targetArmatureProxy.armatureData && 
+				sourceArmatureProxy.armatureData.name != targetArmatureProxy.armatureData.name
+			)
+			{
+				for each(var boneData:BoneData in targetArmatureProxy.armatureData.boneDataList)
+				{
+					var sourBoneData:BoneData = sourceArmatureProxy.armatureData.getBoneData(boneData.name);
+					if(sourBoneData)
+					{
+						boneCopyable = true;
+						updateBehaviorCopyAble();
+						return;
+					}
+				}
+			}
+			
+			boneCopyable = false;
+			behaviorCopyable = false;
+		}
+		
+		public function updateBehaviorCopyAble():void
+		{
+			if(boneCopyable)
+			{
+				behaviorCopyable = !targetArmatureProxy.armatureData.getAnimationData(sourceArmatureProxy.selecteAnimationData.name);
+			}
+			else
+			{
+				behaviorCopyable = false;
 			}
 		}
 		
 		public function closeCopySession():void
 		{
-			
+			sourceArmatureProxy.armatureData = null;
+			targetArmatureProxy.armatureData = null;
 		}
 		
 		public function executeBoneCopy():void
 		{
-			/*var sourceBones:XMLList = selectedSourceBoneList;
-			var destinationBones:XMLList = selectedDestinaionBonelist.copy();
-			var plattenDestinationBones:XMLList = copyBones(sourceBones, destinationBones, _sharedBoneNames);
-			var destinationName:String = selectedDestinationArmature.@[ConstValues.A_NAME];
-			//update _copySkeletonXML;
-			applyCopiedBoneToSkeletonXML(plattenDestinationBones, destinationName);
-			//update _selectedDestinationBoneList
-			var boneTree:XMLList = generateBoneTree(plattenDestinationBones);
-			delete selectedDestinationArmature[ConstValues.BONE];
-			selectedDestinationArmature.appendChild(boneTree);
-			selectedDestinaionBonelist = boneTree.copy();
+			targetArmatureProxy.copyBoneTree(sourceArmatureProxy.armatureData);
+			_xmlDataProxy.changeBoneTree(targetArmatureProxy.armatureData);
 			
-			resetDestinationSkeletonData();
-			//occur to update
-			var temp:XML = selectedDestinationArmature;
-			selectedDestinationArmature = null;
-			selectedDestinationArmature = temp;*/
+			dataChanged = true;
+			
+			updateBoneCopyAble();
 		}
 		
 		public function executeBehaviorCopy():void
 		{
+			targetArmatureProxy.addAnimationData(sourceArmatureProxy.selecteAnimationData, sourceArmatureProxy.armatureData);
 			
+			dataChanged = true;
+			
+			updateBoneCopyAble();
 		}
 		
-		//return a platten bone list
-		/*private static function copyBones(sourceArmatureData:ArmatureData, destinationArmatureData:ArmatureData, sharedBoneNames:Vector.<String>):void
+		public function save():void
 		{
-			for each (var boneName:String in sharedBoneNames)
+			if(dataChanged)
 			{
-				var parentName:String = getBoneParentName(boneName, plattenBoneList, sourceBones);
-				//container.descendants().(@[ConstValues.A_NAME] == boneName).@[ConstValues.A_PARENT];
-				if (parentName)
-					plattenBoneList.(@[ConstValues.A_NAME] == boneName).@[ConstValues.A_PARENT] = parentName;
-				else
-					delete plattenBoneList.(@[ConstValues.A_NAME] == boneName).@[ConstValues.A_PARENT];
+				//jsfl
+				MessageDispatcher.dispatchEvent(
+					MessageDispatcher.IMPORT_COMPLETE, 
+					_xmlDataProxy, 
+					ImportDataProxy.getInstance().textureBytes, 
+					ImportDataProxy.getInstance().textureAtlas.movieClip || ImportDataProxy.getInstance().textureAtlas.bitmapData.clone(), 
+					ImportDataProxy.getInstance().isExportedSource
+				);
 			}
-			return plattenBoneList;
 		}
 		
-		private static function generateSharedBonesInTree(sourceBones:XMLList, destinationBones:XMLList):Vector.<String>
+		private function getArmatureList():Array
 		{
-			var sharedBones:Vector.<String> = new Vector.<String>;
-			var container:XML = <container/>;
-			container.appendChild(destinationBones);
-			generateSharedBonesInTree2(sourceBones, container, sharedBones);
-			return sharedBones;
-		}
-		
-		private static function generateSharedBonesInTree2(sourceBones:XMLList, container:XML, receiver:Vector.<String>):void
-		{
-			for each (var bone:XML in sourceBones)
+			var armatureList:Array = [];
+			for each(var armatureData:ArmatureData in _data.armatureDataList)
 			{
-				var boneName:String = bone.@[ConstValues.A_NAME];
-				if (container.descendants().(@[ConstValues.A_NAME] == boneName).length())
-				{
-					receiver.push(boneName);
-				}
-				//即使该骨骼不存在于目标骨架中，仍继续遍历其子骨骼
-				generateSharedBonesInTree2(bone.children(), container, receiver);
+				armatureList.push(armatureData);
 			}
-		}*/
+			return armatureList;
+		}
 	}
 }

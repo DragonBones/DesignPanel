@@ -77,6 +77,7 @@
 			
 			armaturesAC = new ArrayCollection();
 			_factory = new NativeFactory();
+			_factory.fillBitmapSmooth = true;
 			
 			armatureProxy = new ArmatureProxy();
 			armatureProxy.factory = _factory;

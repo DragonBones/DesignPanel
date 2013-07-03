@@ -160,6 +160,7 @@
 						break;
 					case MessageDispatcher.IMPORT_COMPLETE:
 						clearAlert();
+						WorldClock.clock.clear();
 						_importDataProxy.setData(e.parameters[0], e.parameters[1], e.parameters[2], e.parameters[3]);
 						break;
 					case MessageDispatcher.EXPORT:

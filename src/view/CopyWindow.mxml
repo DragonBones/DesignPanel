@@ -12,14 +12,38 @@
 	<fx:Script>
 		<![CDATA[
 			
+			import message.Message;
+			import message.MessageDispatcher;
+			
 			import model.CopyDataProxy;
 			import model.ImportDataProxy;
 			
 			private static const CENTER_SPACE:int = 24;
 			
+			private var _copyDataProxy:CopyDataProxy;
+			
 			private function showHandler():void
 			{
-				CopyDataProxy.getInstance().openNewCopySession();
+				_copyDataProxy = CopyDataProxy.getInstance();
+				_copyDataProxy.openNewCopySession();
+				
+				MessageDispatcher.addEventListener(MessageDispatcher.SELECT_ARMATURE, commandHandler);
+			}
+			
+			private function commandHandler(e:Message):void
+			{
+				switch(e.type)
+				{
+					case MessageDispatcher.SELECT_ARMATURE:
+						if(
+							e.parameters[0] == _copyDataProxy.sourceArmatureProxy ||
+							e.parameters[0] == _copyDataProxy.targetArmatureProxy
+						)
+						{
+							_copyDataProxy.updateBoneCopyAble();
+						}
+						break;
+				}
 			}
 			
 			private function closeHandler(event:Event):void
@@ -35,22 +59,22 @@
 				CopyDataProxy.getInstance().closeCopySession();
 			}
 			
-			protected function copyBone():void
+			private function copyBone():void
 			{
 				DBGATrackerManager.tracker.trackEvent("copyWindow", "copyBone");
 				CopyDataProxy.getInstance().executeBoneCopy();
 			}
 			
-			protected function copyBehavior():void
+			private function copyBehavior():void
 			{
 				DBGATrackerManager.tracker.trackEvent("copyWindow", "copyBehavior");
 				CopyDataProxy.getInstance().executeBehaviorCopy();
 			}
 			
-			protected function save():void
+			private function save():void
 			{
 				DBGATrackerManager.tracker.trackEvent("copyWindow", "save");
-				//CopyDataProxy.getInstance().save();
+				CopyDataProxy.getInstance().save();
 			}
 			
 		]]>
@@ -72,7 +96,7 @@
 				<s:Spacer width="{CENTER_SPACE}"/>
 				<s:DropDownList width="100%"
 								labelField="name"
-								dataProvider="{ImportDataProxy.getInstance().armaturesAC}"
+								dataProvider="{CopyDataProxy.getInstance().armaturesAC}"
 								selectedItem="@{CopyDataProxy.getInstance().targetArmatureProxy.armatureData}"
 								/>
 			</s:HGroup>
@@ -130,7 +154,7 @@
 			</mx:VDividedBox>
 			<s:HGroup width="100%" gap="0">
 				<s:Spacer width="100%"/>
-				<s:Button label="{resourceManager.getString('resources','save')}" click="save()"/>
+				<s:Button label="{resourceManager.getString('resources','save')}" click="save()" enabled="{CopyDataProxy.getInstance().dataChanged}"/>
 				<s:Spacer width="{CENTER_SPACE}"/>
 				<s:Button label="{resourceManager.getString('resources','cancel')}" click="closeHandler(event)"/>
 				<s:Spacer width="100%"/>

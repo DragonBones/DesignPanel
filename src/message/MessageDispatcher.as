@@ -41,6 +41,7 @@ package message
 		public static const SELECT_ANIMATION:String = "selectAnimation";
 		public static const SELECT_BONE:String = "selectBone";
 		public static const CHANGE_BONE_PARENT:String = "changeBoneParent";
+		public static const CHANGE_BONE_TREE:String = "changeBoneTree";
 		public static const CHANGE_ANIMATION_DATA:String = "changeAnimationData";
 		public static const CHANGE_TRANSFORM_TIMELINE_DATA:String = "changeTransformTimelineData";
 		
