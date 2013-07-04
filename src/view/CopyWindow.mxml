@@ -28,6 +28,7 @@
 				_copyDataProxy.openNewCopySession();
 				
 				MessageDispatcher.addEventListener(MessageDispatcher.SELECT_ARMATURE, commandHandler);
+				MessageDispatcher.addEventListener(MessageDispatcher.SELECT_ANIMATION, commandHandler);
 			}
 			
 			private function commandHandler(e:Message):void
@@ -43,6 +44,14 @@
 							_copyDataProxy.updateBoneCopyAble();
 						}
 						break;
+					case MessageDispatcher.SELECT_ANIMATION:
+						if(
+							e.parameters[0] == _copyDataProxy.sourceArmatureProxy
+						)
+						{
+							_copyDataProxy.updateBehaviorCopyAble();
+						}
+						break;
 				}
 			}
 			
@@ -52,7 +61,7 @@
 				closeCopySession();
 			}
 			
-			public function closeCopySession():void
+			private function closeCopySession():void
 			{
 				DBGATrackerManager.tracker.trackPageview("/");
 				this.visible = false;
@@ -75,6 +84,7 @@
 			{
 				DBGATrackerManager.tracker.trackEvent("copyWindow", "save");
 				CopyDataProxy.getInstance().save();
+				closeCopySession();
 			}
 			
 		]]>

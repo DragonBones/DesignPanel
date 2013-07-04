@@ -8,6 +8,7 @@ package model
 	import dragonBones.objects.AnimationData;
 	import dragonBones.objects.ArmatureData;
 	import dragonBones.objects.BoneData;
+	import dragonBones.objects.Timeline;
 	import dragonBones.objects.TransformTimeline;
 	import dragonBones.utils.DBDataUtils;
 	
@@ -74,6 +75,7 @@ package model
 			
 			MessageDispatcher.dispatchEvent(MessageDispatcher.SELECT_ARMATURE, this, armatureName);
 			
+			//
 			var selectBoneName:String = this.selectedBoneName;
 			var selectAnimationName:String = this.selectedAnimationName;
 			
@@ -256,15 +258,7 @@ package model
 		
 		public function selectBone(boneName:String):void
 		{
-			if(_armatureData)
-			{
-				var boneData:BoneData = _armatureData.getBoneData(boneName);
-			}
-			else
-			{
-				boneData = null;
-			}
-			
+			var boneData:BoneData = _armatureData?_armatureData.getBoneData(boneName):null;
 			if(_selectedBoneData == boneData)
 			{
 				return;
@@ -294,7 +288,7 @@ package model
 			}
 			
 			DBDataUtils.transformArmatureData(_armatureData);
-			DBDataUtils.transformAnimationData(_armatureData);
+			DBDataUtils.transformArmatureDataAnimations(_armatureData);
 			_armatureData.sortBoneDataList();
 			
 			bonesMC.source = getBoneList();
@@ -306,20 +300,28 @@ package model
 		
 		public function copyBoneTree(sourceArmatureData:ArmatureData):void
 		{
+			var boneName:String;
+			var sourceBoneData:BoneData;
+			var sourceBoneParentName:String;
+			
 			for each(var boneData:BoneData in _armatureData.boneDataList)
 			{
-				var sourceBoneData:BoneData = sourceArmatureData.getBoneData(boneData.name);
-				if(sourceBoneData)
+				boneName = boneData.name;
+				while(true)
 				{
-					var parentData:BoneData = _armatureData.getBoneData(sourceBoneData.parent);
-					if(parentData)
+					sourceBoneData = sourceArmatureData.getBoneData(boneName);
+					sourceBoneParentName = sourceBoneData?sourceBoneData.parent:null;
+					if(!sourceBoneParentName || _armatureData.getBoneData(sourceBoneParentName))
 					{
-						boneData.parent = parentData.name;
+						break;
 					}
+					boneName = sourceBoneParentName;
 				}
+				boneData.parent = sourceBoneParentName;
 			}
+			
 			DBDataUtils.transformArmatureData(_armatureData);
-			DBDataUtils.transformAnimationData(_armatureData);
+			DBDataUtils.transformArmatureDataAnimations(_armatureData);
 			_armatureData.sortBoneDataList();
 			
 			bonesMC.source = getBoneList();
@@ -329,9 +331,11 @@ package model
 			MessageDispatcher.dispatchEvent(MessageDispatcher.CHANGE_BONE_TREE, this);
 		}
 		
-		public function addAnimationData(sourceAnimationData:AnimationData, sourceArmatureData:ArmatureData):void
+		public function addAnimationData(animationData:AnimationData):void
 		{
-			
+			_armatureData.addAnimationData(animationData);
+			animationsAC.source = getAnimationList();
+			selecteAnimationData = animationData;
 		}
 		
 		private function getBoneList():XMLList
@@ -340,15 +344,19 @@ package model
 			if(_armatureData)
 			{
 				var boneXMLs:Object = {};
+				var boneName:String;
+				var parentName:String;
+				var boneXML:XML;
+				var parentXML:XML;
 				for each(var boneData:BoneData in _armatureData.boneDataList)
 				{
-					var boneName:String = boneData.name;
-					var boneXML:XML = <bone name={boneName}/>;
+					boneName = boneData.name;
+					parentName = boneData.parent;
+					boneXML = <bone name={boneName}/>;
 					boneXMLs[boneName] = boneXML;
-					var parentName:String = boneData.parent;
 					if (parentName)
 					{
-						var parentXML:XML = boneXMLs[parentName];
+						parentXML = boneXMLs[parentName];
 						if (parentXML)
 						{
 							parentXML.appendChild(boneXML);
@@ -397,12 +405,10 @@ package model
 				var isPlaying:Boolean = _armature.animation.isPlaying;
 				var currentTime:Number = lastAnimationState.currentTime;
 				var animationName:String = lastAnimationState.name;
-			}
-			
-			armature = factory.buildArmature(armatureName);
-			
-			if(lastAnimationState)
-			{
+				
+				//
+				armature = factory.buildArmature(armatureName);
+				
 				_armature.animation.gotoAndPlay(animationName, 0, -1);
 				lastAnimationState = _armature.animation.lastAnimationState;
 				lastAnimationState.currentTime = currentTime;
@@ -412,6 +418,11 @@ package model
 					_armature.animation.advanceTime(0);
 					_armature.animation.stop();
 				}
+			}
+			else
+			{
+				//
+				armature = factory.buildArmature(armatureName);
 			}
 		}
 	}

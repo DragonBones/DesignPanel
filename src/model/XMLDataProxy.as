@@ -4,6 +4,8 @@ package model
 	import dragonBones.objects.AnimationData;
 	import dragonBones.objects.ArmatureData;
 	import dragonBones.objects.BoneData;
+	import dragonBones.objects.DBTransform;
+	import dragonBones.objects.TransformFrame;
 	import dragonBones.objects.TransformTimeline;
 	import dragonBones.utils.ConstValues;
 	
@@ -13,6 +15,10 @@ package model
 	
 	public class XMLDataProxy
 	{
+		private static const RADIAN_TO_ANGLE:Number =  180 / Math.PI;
+		
+		private static const _helpTransform:DBTransform = new DBTransform();
+		
 		private var _xml:XML
 		public function get xml():XML
 		{
@@ -169,11 +175,6 @@ package model
 			return getArmatureXMLList(_xml).(@[ConstValues.A_NAME] == armatureName)[0];
 		}
 		
-		public function getAnimationXML(animationName:String):XML
-		{
-			return getAnimationXMLList(_xml).(@[ConstValues.A_NAME] == animationName)[0];
-		}
-		
 		public function getBoneXML(armatureName:String, boneName:String):XML
 		{
 			var armatureXML:XML = getArmatureXML(armatureName);
@@ -184,9 +185,9 @@ package model
 			return null;
 		}
 		
-		public function getMovementXML(animationName:String, movementName:String):XML
+		public function getAnimationXML(animationName:String, movementName:String):XML
 		{
-			var animationXML:XML = getAnimationXML(animationName);
+			var animationXML:XML = getAnimationsXML(animationName);
 			if(animationXML)
 			{
 				return animationXML[ConstValues.MOVEMENT].(@[ConstValues.A_NAME] == movementName)[0];
@@ -272,8 +273,8 @@ package model
 				_xml[ConstValues.ARMATURES].appendChild(node2);
 			}
 			
-			xmlList1 = getAnimationXMLList(_xml);
-			xmlList2 = getAnimationXMLList(xml);
+			xmlList1 = getAnimationsXMLList(_xml);
+			xmlList2 = getAnimationsXMLList(xml);
 			for each(node2 in xmlList2)
 			{
 				nodeName = node2.@[ConstValues.A_NAME];
@@ -317,10 +318,10 @@ package model
 			{
 				delete armatureXMLList[armatureXML.childIndex()];
 				
-				var animationXML:XML = getAnimationXML(armatureName);
+				var animationXML:XML = getAnimationsXML(armatureName);
 				if(animationXML)
 				{
-					var animationXMLList:XMLList = getAnimationXMLList(_xml);
+					var animationXMLList:XMLList = getAnimationsXMLList(_xml);
 					delete animationXMLList[animationXML.childIndex()];
 				}
 				
@@ -451,10 +452,71 @@ package model
 			}
 		}
 		
+		public function addAnimationToArmature(sourceAnimationData:AnimationData, sourceArmatureData:ArmatureData, targetArmatureData:ArmatureData):void
+		{
+			var animationsXML:XML = getAnimationsXML(sourceArmatureData.name);
+			var animationXML:XML = getAnimationXML(sourceArmatureData.name, sourceAnimationData.name).copy();
+			
+			var timelineXMLList:XMLList = animationXML[ConstValues.BONE];
+			var i:int = timelineXMLList.length();
+			
+			var timelineXML:XML;
+			var timelineName:String;
+			var targetBoneData:BoneData;
+			var transformTimeline:TransformTimeline;
+			var frameXMLList:XMLList;
+			var j:int;
+			var frameXMLListLength:uint;
+			var frameXML:XML;
+			var frame:TransformFrame;
+			while(i --)
+			{
+				timelineXML = timelineXMLList[i];
+				timelineName = timelineXML.@[ConstValues.A_NAME];
+				targetBoneData = targetArmatureData.getBoneData(timelineName);
+				if(targetBoneData)
+				{
+					transformTimeline = sourceAnimationData.getTimeline(timelineName);
+					frameXMLList = timelineXML[ConstValues.FRAME];
+					frameXMLListLength = frameXMLList.length();
+					for(j = 0;i < frameXMLListLength;j ++)
+					{
+						frameXML = frameXMLList[i];
+						frame = transformTimeline.frameList[i] as TransformFrame;
+						
+						_helpTransform.x = targetBoneData.global.x + frame.transform.x;
+						_helpTransform.y = targetBoneData.global.y + frame.transform.y;
+						_helpTransform.skewX = targetBoneData.global.skewX + frame.transform.skewX;
+						_helpTransform.skewY = targetBoneData.global.skewY + frame.transform.skewY;
+						_helpTransform.scaleX = targetBoneData.global.scaleX + frame.transform.scaleX;
+						_helpTransform.scaleY = targetBoneData.global.scaleY + frame.transform.scaleY;
+						
+						//frame.pivot
+						
+						frameXML.@[ConstValues.A_X] = _helpTransform.x;
+						frameXML.@[ConstValues.A_Y] = _helpTransform.y;
+						frameXML.@[ConstValues.A_SKEW_X] = _helpTransform.skewX * RADIAN_TO_ANGLE;
+						frameXML.@[ConstValues.A_SKEW_Y] = _helpTransform.skewY * RADIAN_TO_ANGLE;
+						frameXML.@[ConstValues.A_SCALE_X] = _helpTransform.scaleX;
+						frameXML.@[ConstValues.A_SCALE_Y] = _helpTransform.scaleY;
+						
+						//frameXML.@[ConstValues.A_PIVOT_X] = frameNode.pivotX;
+						//frameXML.@[ConstValues.A_PIVOT_Y] = frameNode.pivotY;
+					}
+				}
+				else
+				{
+					delete timelineXMLList[i];
+				}
+			}
+			
+			animationsXML.appendChild(animationXML);
+		}
+		
 		public function changeAnimationData(armatureData:ArmatureData, animationName:String):void
 		{
 			var animationData:AnimationData = armatureData.getAnimationData(animationName);
-			var movementXML:XML = getMovementXML(armatureData.name, animationName);
+			var movementXML:XML = getAnimationXML(armatureData.name, animationName);
 			movementXML.@[ConstValues.A_DURATION_TO] = Math.round(animationData.fadeTime * animationData.frameRate);
 			movementXML.@[ConstValues.A_DURATION_TWEEN] = Math.round(animationData.duration * animationData.scale * animationData.frameRate);
 			movementXML.@[ConstValues.A_LOOP] = animationData.loop == 0?1:0;
@@ -465,7 +527,7 @@ package model
 		{
 			var animationData:AnimationData = armatureData.getAnimationData(animationName);
 			var transformTimeline:TransformTimeline = animationData.getTimeline(boneName) as TransformTimeline;
-			var movementXML:XML = getMovementXML(armatureData.name, animationName);
+			var movementXML:XML = getAnimationXML(armatureData.name, animationName);
 			var movementBoneXML:XML = movementXML[ConstValues.BONE].(@[ConstValues.A_NAME] == boneName)[0];
 			movementBoneXML.@[ConstValues.A_MOVEMENT_SCALE] = transformTimeline.scale;
 			movementBoneXML.@[ConstValues.A_MOVEMENT_DELAY] = transformTimeline.offset;
@@ -477,22 +539,27 @@ package model
 			return Math.round(num * retain) / retain;
 		}
 		
-		public static function getArmatureXMLList(xml:XML):XMLList
+		private function getAnimationsXML(animationName:String):XML
+		{
+			return getAnimationsXMLList(_xml).(@[ConstValues.A_NAME] == animationName)[0];
+		}
+		
+		private static function getArmatureXMLList(xml:XML):XMLList
 		{
 			return xml[ConstValues.ARMATURES][ConstValues.ARMATURE];
 		}
 		
-		public static function getAnimationXMLList(xml:XML):XMLList
+		private static function getAnimationsXMLList(xml:XML):XMLList
 		{
 			return xml[ConstValues.ANIMATIONS][ConstValues.ANIMATION];
 		}
 		
-		public static function getDisplayXMLList(xml:XML):XMLList
+		private static function getDisplayXMLList(xml:XML):XMLList
 		{
 			return xml[ConstValues.ARMATURES][ConstValues.ARMATURE][ConstValues.BONE][ConstValues.DISPLAY];
 		}
 		
-		public static function getSubTextureXMLList(textureAtlasXML:XML):XMLList
+		private static function getSubTextureXMLList(textureAtlasXML:XML):XMLList
 		{
 			return textureAtlasXML[ConstValues.SUB_TEXTURE];
 		}

@@ -155,7 +155,6 @@
 						}
 						break;
 					case MessageDispatcher.SAVE_ANIMATION_COMPLETE:
-						copyWindow.closeCopySession();
 						clearAlert();
 						break;
 					case MessageDispatcher.IMPORT_COMPLETE:
@@ -212,7 +211,7 @@
 							_importDataProxy.xmlDataProxy.changeAnimationData(_importDataProxy.armatureProxy.armatureData, animationName);
 							if(!_importDataProxy.isExportedSource)
 							{
-								var movementXML:XML = _importDataProxy.xmlDataProxy.getMovementXML(armatureName, animationName);
+								var movementXML:XML = _importDataProxy.xmlDataProxy.getAnimationXML(armatureName, animationName);
 								JSFLProxy.getInstance().changeMovement(armatureName, animationName, movementXML);
 							}
 						}
@@ -224,7 +223,7 @@
 							_importDataProxy.xmlDataProxy.changeTransformTimelineData(_importDataProxy.armatureProxy.armatureData, animationName, e.parameters[2]);
 							if(!_importDataProxy.isExportedSource)
 							{
-								var movementXMLCopy:XML = _importDataProxy.xmlDataProxy.getMovementXML(armatureName, animationName).copy();
+								var movementXMLCopy:XML = _importDataProxy.xmlDataProxy.getAnimationXML(armatureName, animationName).copy();
 								delete movementXMLCopy[ConstValues.BONE].*;
 								delete movementXMLCopy[ConstValues.FRAME];
 								JSFLProxy.getInstance().changeMovement(armatureName, animationName, movementXMLCopy);

@@ -142,11 +142,23 @@ package model
 		
 		public function executeBehaviorCopy():void
 		{
-			targetArmatureProxy.addAnimationData(sourceArmatureProxy.selecteAnimationData, sourceArmatureProxy.armatureData);
+			//拷贝动画前先拷贝骨架
+			//executeBoneCopy();
+			
+			var animationXML:XML = null;
+				//_xmlDataProxy.addAnimationToArmature(sourceArmatureProxy.selecteAnimationData, sourceArmatureProxy.armatureData, targetArmatureProxy.armatureData);
+			
+			var copyAnimationData:AnimationData = XMLDataParser.parseAnimationData(
+				animationXML,
+				sourceArmatureProxy.armatureData,
+				sourceArmatureProxy.selecteAnimationData.frameRate
+			);
+			
+			targetArmatureProxy.addAnimationData(copyAnimationData);
 			
 			dataChanged = true;
 			
-			updateBoneCopyAble();
+			updateBehaviorCopyAble();
 		}
 		
 		public function save():void
@@ -154,6 +166,8 @@ package model
 			if(dataChanged)
 			{
 				//jsfl
+				
+				
 				MessageDispatcher.dispatchEvent(
 					MessageDispatcher.IMPORT_COMPLETE, 
 					_xmlDataProxy, 
@@ -162,6 +176,7 @@ package model
 					ImportDataProxy.getInstance().isExportedSource
 				);
 			}
+			
 		}
 		
 		private function getArmatureList():Array
