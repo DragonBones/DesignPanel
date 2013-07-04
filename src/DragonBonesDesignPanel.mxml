@@ -13,6 +13,7 @@
 	</fx:Declarations>
 	<fx:Script>
 		<![CDATA[
+			import control.CopyBoneAndAnimationCommand;
 			import control.ImportCommand;
 			import control.RemoveArmatureCommand;
 			
@@ -61,6 +62,8 @@
 				MessageDispatcher.addEventListener(MessageDispatcher.EXPORT_CANCEL, commandHandler);
 				MessageDispatcher.addEventListener(MessageDispatcher.EXPORT_ERROR, commandHandler);
 				MessageDispatcher.addEventListener(MessageDispatcher.EXPORT_COMPLETE, commandHandler);
+				
+				MessageDispatcher.addEventListener(MessageDispatcher.COPY_BONE_AND_ANIMATION, commandHandler);
 				
 				MessageDispatcher.addEventListener(MessageDispatcher.SAVE_ANIMATION_START, commandHandler);
 				MessageDispatcher.addEventListener(MessageDispatcher.SAVE_ANIMATION_PROGRESS, commandHandler);
@@ -120,9 +123,6 @@
 							_alert = Alert.show(resourceManager.getString('resources',"importNoElement", [e.parameters[1]]));
 						}
 						break;
-					case MessageDispatcher.SAVE_ANIMATION_START:
-						_alert = Alert.show(resourceManager.getString('resources',"saveAnimation"));
-						break;
 					case MessageDispatcher.LOAD_ARMATURE_DATA:
 						if(_alert)
 						{
@@ -147,6 +147,10 @@
 						{
 							_alert.title = resourceManager.getString('resources', 'importFileProgress', [Math.round(e.parameters[0] * 100)]);
 						}
+						break;
+					case MessageDispatcher.SAVE_ANIMATION_START:
+						clearAlert();
+						_alert = Alert.show(resourceManager.getString('resources',"saveAnimation"));
 						break;
 					case MessageDispatcher.SAVE_ANIMATION_PROGRESS:
 						if(_alert)
@@ -185,6 +189,12 @@
 						else
 						{
 							_importDataProxy.armatureProxy.armatureData = null;
+						}
+						break;
+					case MessageDispatcher.COPY_BONE_AND_ANIMATION:
+						if(!_importDataProxy.isExportedSource)
+						{
+							CopyBoneAndAnimationCommand.instance.copy(e.parameters[0], e.parameters[1]);
 						}
 						break;
 					case MessageDispatcher.SELECT_BONE:

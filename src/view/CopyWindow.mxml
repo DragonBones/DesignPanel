@@ -49,7 +49,7 @@
 							e.parameters[0] == _copyDataProxy.sourceArmatureProxy
 						)
 						{
-							_copyDataProxy.updateBehaviorCopyAble();
+							_copyDataProxy.updateAnimationCopyAble();
 						}
 						break;
 				}
@@ -74,10 +74,10 @@
 				CopyDataProxy.getInstance().executeBoneCopy();
 			}
 			
-			private function copyBehavior():void
+			private function copyAnimation():void
 			{
 				DBGATrackerManager.tracker.trackEvent("copyWindow", "copyBehavior");
-				CopyDataProxy.getInstance().executeBehaviorCopy();
+				CopyDataProxy.getInstance().executeAnimationCopy();
 			}
 			
 			private function save():void
@@ -110,8 +110,8 @@
 								selectedItem="@{CopyDataProxy.getInstance().targetArmatureProxy.armatureData}"
 								/>
 			</s:HGroup>
-			<mx:VDividedBox id="dividedBox" width="100%" height="100%">
-				<mx:TabNavigator id="boneAndBehavior" width="100%" height="100%" paddingBottom="2" paddingLeft="2"
+			<mx:VDividedBox width="100%" height="100%">
+				<mx:TabNavigator width="100%" height="100%" paddingBottom="2" paddingLeft="2"
 								 paddingRight="2" paddingTop="2">
 					<s:NavigatorContent label="{resourceManager.getString('resources','bone')}" width="100%" height="100%">
 						<s:HGroup width="100%" height="100%" gap="0" verticalAlign="middle">
@@ -146,8 +146,8 @@
 									/>
 							<s:Button icon="@Embed(source='./assets/copy_icon.png')" 
 									  width="24" height="24" horizontalCenter="0" verticalCenter="0"
-									  enabled="{CopyDataProxy.getInstance().behaviorCopyable}"
-									  click="copyBehavior()"/>
+									  enabled="{CopyDataProxy.getInstance().animationCopyable}"
+									  click="copyAnimation()"/>
 							<s:List width="100%" height="100%" borderColor="#000000"
 									labelField="name"
 									dataProvider="{CopyDataProxy.getInstance().targetArmatureProxy.animationsAC}"

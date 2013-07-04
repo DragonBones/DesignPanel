@@ -22,6 +22,8 @@ package message
 		static public const MERGE_BITMAPDATA_COMPLETE:String = "mergeBitmapDataComplete";
 		static public const IMPORT_COMPLETE:String = "importComplete";
 		
+		static public const COPY_BONE_AND_ANIMATION:String = "copyBoneAndAnimation";
+		
 		static public const SAVE_ANIMATION_START:String = "saveAnimationStart";
 		static public const SAVE_ANIMATION_ERROR:String = "saveAnimationError";
 		static public const SAVE_ANIMATION_PROGRESS:String = "saveAnimationProgress";

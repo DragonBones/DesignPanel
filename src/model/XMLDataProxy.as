@@ -8,8 +8,11 @@ package model
 	import dragonBones.objects.TransformFrame;
 	import dragonBones.objects.TransformTimeline;
 	import dragonBones.utils.ConstValues;
+	import dragonBones.utils.DBDataUtils;
+	import dragonBones.utils.TransformUtils;
 	
 	import flash.geom.Rectangle;
+	import flash.geom.Matrix;
 	
 	import utils.TextureUtil;
 	
@@ -18,6 +21,8 @@ package model
 		private static const RADIAN_TO_ANGLE:Number =  180 / Math.PI;
 		
 		private static const _helpTransform:DBTransform = new DBTransform();
+		
+		private static const _helpMatrix:Matrix = new Matrix();
 		
 		private var _xml:XML
 		public function get xml():XML
@@ -452,65 +457,104 @@ package model
 			}
 		}
 		
-		public function addAnimationToArmature(sourceAnimationData:AnimationData, sourceArmatureData:ArmatureData, targetArmatureData:ArmatureData):void
+		public function copyAnimationToArmature(sourceAnimationData:AnimationData, sourceArmatureData:ArmatureData, targetArmatureData:ArmatureData):XML
 		{
-			var animationsXML:XML = getAnimationsXML(sourceArmatureData.name);
 			var animationXML:XML = getAnimationXML(sourceArmatureData.name, sourceAnimationData.name).copy();
 			
 			var timelineXMLList:XMLList = animationXML[ConstValues.BONE];
-			var i:int = timelineXMLList.length();
+			var boneDataList:Vector.<BoneData> = sourceArmatureData.boneDataList;
 			
+			var boneName:String;
 			var timelineXML:XML;
-			var timelineName:String;
+			var sourceBoneData:BoneData;
 			var targetBoneData:BoneData;
 			var transformTimeline:TransformTimeline;
+			var parentTimeline:TransformTimeline;
 			var frameXMLList:XMLList;
 			var j:int;
 			var frameXMLListLength:uint;
 			var frameXML:XML;
 			var frame:TransformFrame;
-			while(i --)
+			
+			var pivotX:Number;
+			var pivotY:Number;
+			
+			for(var i:int = 0;i < boneDataList.length;i ++)
 			{
-				timelineXML = timelineXMLList[i];
-				timelineName = timelineXML.@[ConstValues.A_NAME];
-				targetBoneData = targetArmatureData.getBoneData(timelineName);
+				sourceBoneData = boneDataList[i];
+				boneName = sourceBoneData.name;
+				timelineXML = timelineXMLList.(@[ConstValues.A_NAME] == boneName)[0];
+				targetBoneData = targetArmatureData.getBoneData(boneName);
 				if(targetBoneData)
 				{
-					transformTimeline = sourceAnimationData.getTimeline(timelineName);
+					transformTimeline = sourceAnimationData.getTimeline(boneName);
 					frameXMLList = timelineXML[ConstValues.FRAME];
 					frameXMLListLength = frameXMLList.length();
-					for(j = 0;i < frameXMLListLength;j ++)
+					
+					if(sourceBoneData.parent)
 					{
-						frameXML = frameXMLList[i];
-						frame = transformTimeline.frameList[i] as TransformFrame;
+						parentTimeline = sourceAnimationData.getTimeline(sourceBoneData.parent);
+					}
+					else
+					{
+						parentTimeline = null;
+					}
+					
+					for(j = 0;j < frameXMLListLength;j ++)
+					{
+						frameXML = frameXMLList[j];
+						frame = transformTimeline.frameList[j] as TransformFrame;
 						
-						_helpTransform.x = targetBoneData.global.x + frame.transform.x;
-						_helpTransform.y = targetBoneData.global.y + frame.transform.y;
-						_helpTransform.skewX = targetBoneData.global.skewX + frame.transform.skewX;
-						_helpTransform.skewY = targetBoneData.global.skewY + frame.transform.skewY;
-						_helpTransform.scaleX = targetBoneData.global.scaleX + frame.transform.scaleX;
-						_helpTransform.scaleY = targetBoneData.global.scaleY + frame.transform.scaleY;
+						frame.global.x = targetBoneData.transform.x + transformTimeline.originTransform.x + frame.transform.x;
+						frame.global.y = targetBoneData.transform.y + transformTimeline.originTransform.y + frame.transform.y;
+						frame.global.skewX = targetBoneData.transform.skewX + transformTimeline.originTransform.skewX + frame.transform.skewX;
+						frame.global.skewY = targetBoneData.transform.skewY + transformTimeline.originTransform.skewY + frame.transform.skewY;
+						frame.global.scaleX = targetBoneData.transform.scaleX + transformTimeline.originTransform.scaleX + frame.transform.scaleX;
+						frame.global.scaleY = targetBoneData.transform.scaleY + transformTimeline.originTransform.scaleY + frame.transform.scaleY;
+						pivotX = targetBoneData.pivot.x + transformTimeline.originPivot.x + frame.pivot.x;
+						pivotY = targetBoneData.pivot.y + transformTimeline.originPivot.y + frame.pivot.y;
 						
-						//frame.pivot
+						if(parentTimeline)
+						{
+							DBDataUtils.getTimelineTransform(parentTimeline, frame.position, _helpTransform);
+							
+							var x:Number = frame.global.x;
+							var y:Number = frame.global.y;
+							
+							TransformUtils.transformToMatrix(_helpTransform, _helpMatrix);
+							
+							frame.global.x = _helpMatrix.a * x + _helpMatrix.c * y + _helpMatrix.tx;
+							frame.global.y = _helpMatrix.d * y + _helpMatrix.b * x + _helpMatrix.ty;
+							
+							frame.global.skewX += _helpTransform.skewX;
+							frame.global.skewY += _helpTransform.skewY;
+						}
 						
-						frameXML.@[ConstValues.A_X] = _helpTransform.x;
-						frameXML.@[ConstValues.A_Y] = _helpTransform.y;
-						frameXML.@[ConstValues.A_SKEW_X] = _helpTransform.skewX * RADIAN_TO_ANGLE;
-						frameXML.@[ConstValues.A_SKEW_Y] = _helpTransform.skewY * RADIAN_TO_ANGLE;
-						frameXML.@[ConstValues.A_SCALE_X] = _helpTransform.scaleX;
-						frameXML.@[ConstValues.A_SCALE_Y] = _helpTransform.scaleY;
-						
-						//frameXML.@[ConstValues.A_PIVOT_X] = frameNode.pivotX;
-						//frameXML.@[ConstValues.A_PIVOT_Y] = frameNode.pivotY;
+						frameXML.@[ConstValues.A_X] = frame.global.x;
+						frameXML.@[ConstValues.A_Y] = frame.global.y;
+						frameXML.@[ConstValues.A_SKEW_X] = frame.global.skewX * RADIAN_TO_ANGLE;
+						frameXML.@[ConstValues.A_SKEW_Y] = frame.global.skewY * RADIAN_TO_ANGLE;
+						frameXML.@[ConstValues.A_SCALE_X] = frame.global.scaleX;
+						frameXML.@[ConstValues.A_SCALE_Y] = frame.global.scaleY;
+						frameXML.@[ConstValues.A_PIVOT_X] = -pivotX;
+						frameXML.@[ConstValues.A_PIVOT_Y] = -pivotY;
 					}
 				}
 				else
 				{
-					delete timelineXMLList[i];
+					delete timelineXMLList[timelineXML.childIndex()];
 				}
 			}
 			
+			var animationsXML:XML = getAnimationsXML(targetArmatureData.name);
+			if(!animationsXML)
+			{
+				animationsXML = <{ConstValues.ANIMATION} {ConstValues.A_NAME}={targetArmatureData.name}/>
+				_xml[ConstValues.ANIMATIONS][0].appendChild(animationsXML);
+			}
 			animationsXML.appendChild(animationXML);
+			
+			return animationXML;
 		}
 		
 		public function changeAnimationData(armatureData:ArmatureData, animationName:String):void

@@ -17,6 +17,9 @@ package model
 	import message.Message;
 	import message.MessageDispatcher;
 	
+	import model.vo.CopyAnimationVO;
+	import model.vo.CopyBoneVO;
+	
 	import mx.collections.ArrayCollection;
 	
 	use namespace dragonBones_internal;
@@ -40,12 +43,15 @@ package model
 		public var targetArmatureProxy:ArmatureProxy;
 		
 		public var boneCopyable:Boolean;
-		public var behaviorCopyable:Boolean;
+		public var animationCopyable:Boolean;
 		public var dataChanged:Boolean;
 		
 		private var _factory:NativeFactory;
 		private var _data:SkeletonData;
 		private var _xmlDataProxy:XMLDataProxy;
+		
+		private var _copyBoneVOList:Vector.<CopyBoneVO>;
+		private var _copyAnimationVOList:Vector.<CopyAnimationVO>;
 		
 		public function CopyDataProxy()
 		{
@@ -53,6 +59,9 @@ package model
 			
 			_factory = new NativeFactory();
 			_factory.fillBitmapSmooth = true;
+			
+			_copyBoneVOList = new Vector.<CopyBoneVO>;
+			_copyAnimationVOList = new Vector.<CopyAnimationVO>;
 			
 			sourceArmatureProxy = new ArmatureProxy();
 			targetArmatureProxy = new ArmatureProxy();
@@ -83,7 +92,7 @@ package model
 				targetArmatureProxy.armatureData = null;
 				
 				boneCopyable = false;
-				behaviorCopyable = false;
+				animationCopyable = false;
 				dataChanged = false;
 			}
 		}
@@ -102,25 +111,25 @@ package model
 					if(sourBoneData)
 					{
 						boneCopyable = true;
-						updateBehaviorCopyAble();
+						updateAnimationCopyAble();
 						return;
 					}
 				}
 			}
 			
 			boneCopyable = false;
-			behaviorCopyable = false;
+			animationCopyable = false;
 		}
 		
-		public function updateBehaviorCopyAble():void
+		public function updateAnimationCopyAble():void
 		{
 			if(boneCopyable)
 			{
-				behaviorCopyable = !targetArmatureProxy.armatureData.getAnimationData(sourceArmatureProxy.selecteAnimationData.name);
+				animationCopyable = !targetArmatureProxy.armatureData.getAnimationData(sourceArmatureProxy.selectedAnimationName);
 			}
 			else
 			{
-				behaviorCopyable = false;
+				animationCopyable = false;
 			}
 		}
 		
@@ -128,45 +137,79 @@ package model
 		{
 			sourceArmatureProxy.armatureData = null;
 			targetArmatureProxy.armatureData = null;
+			
+			_copyBoneVOList.length = 0;
+			_copyAnimationVOList.length = 0;
+			
+			boneCopyable = false;
+			animationCopyable = false;
 		}
 		
 		public function executeBoneCopy():void
 		{
+			
 			targetArmatureProxy.copyBoneTree(sourceArmatureProxy.armatureData);
 			_xmlDataProxy.changeBoneTree(targetArmatureProxy.armatureData);
+			
+			var armatureName:String = targetArmatureProxy.armatureName;
+			
+			var i:int = _copyBoneVOList.length;
+			while(i --)
+			{
+				if(_copyBoneVOList[i].armatureName == armatureName)
+				{
+					_copyBoneVOList.length --;
+				}
+			}
+			
+			var copyBoneVO:CopyBoneVO = new CopyBoneVO(armatureName, _xmlDataProxy.getArmatureXML(armatureName));
+			_copyBoneVOList.push(copyBoneVO);
 			
 			dataChanged = true;
 			
 			updateBoneCopyAble();
 		}
 		
-		public function executeBehaviorCopy():void
+		public function executeAnimationCopy():void
 		{
 			//拷贝动画前先拷贝骨架
 			//executeBoneCopy();
 			
-			var animationXML:XML = null;
-				//_xmlDataProxy.addAnimationToArmature(sourceArmatureProxy.selecteAnimationData, sourceArmatureProxy.armatureData, targetArmatureProxy.armatureData);
-			
 			var copyAnimationData:AnimationData = XMLDataParser.parseAnimationData(
-				animationXML,
+				_xmlDataProxy.getAnimationXML(sourceArmatureProxy.armatureName, sourceArmatureProxy.selectedAnimationName),
 				sourceArmatureProxy.armatureData,
 				sourceArmatureProxy.selecteAnimationData.frameRate
 			);
 			
+			var animationXML:XML = _xmlDataProxy.copyAnimationToArmature(copyAnimationData, sourceArmatureProxy.armatureData, targetArmatureProxy.armatureData);
+			
 			targetArmatureProxy.addAnimationData(copyAnimationData);
+			
+			var copyAnimationVO:CopyAnimationVO = 
+				new CopyAnimationVO(
+					targetArmatureProxy.armatureName,
+					sourceArmatureProxy.armatureName,
+					copyAnimationData.name,
+					animationXML
+				);
+			
+			_copyAnimationVOList.push(copyAnimationVO);
 			
 			dataChanged = true;
 			
-			updateBehaviorCopyAble();
+			updateAnimationCopyAble();
 		}
 		
 		public function save():void
 		{
 			if(dataChanged)
 			{
-				//jsfl
 				
+				MessageDispatcher.dispatchEvent(
+					MessageDispatcher.COPY_BONE_AND_ANIMATION,
+					_copyBoneVOList.concat(),
+					_copyAnimationVOList.concat()
+				);
 				
 				MessageDispatcher.dispatchEvent(
 					MessageDispatcher.IMPORT_COMPLETE, 
