@@ -658,35 +658,9 @@ function generateMovement(item, mainFrame, layers)
 			//sometimes, x0 need to be ingored
 			if(prevFrameXML && prevFrameXML.@[A_TWEEN_ROTATE_][0])
 			{
-				var dSkY = Number(frameXML.@[A_SKEW_Y]) - Number(prevFrameXML.@[A_SKEW_Y]);
-				if(dSkY < -180)
-				{
-					dSkY += 360;
-				}
-				if(dSkY > 180)
-				{
-					dSkY -= 360;
-				}
 				tweenRotate = Number(prevFrameXML.@[A_TWEEN_ROTATE_]);
-				if(dSkY !=0)
-				{
-					if(dSkY < 0)
-					{
-						if(tweenRotate >= 0)
-						{
-							tweenRotate ++;
-						}
-					}
-					else
-					{
-						if(tweenRotate < 0)
-						{
-							tweenRotate --;
-						}
-					}
-				}
-				frameXML.@[A_TWEEN_ROTATE] = tweenRotate;
 				delete prevFrameXML.@[A_TWEEN_ROTATE_];
+				frameXML.@[A_TWEEN_ROTATE] = tweenRotate;
 			}
 			
 			prevFrameXML = frameXML;
@@ -802,7 +776,7 @@ function generateFrame(frame, boneName, symbol, z, noAutoEasing)
 		else
 		{
 			frameXML.@[A_TWEEN_EASING] = formatNumber(frame.tweenEasing * 0.01);
-			var tweenRotate = NaN;
+			var tweenRotate = 0;
 			switch(frame.motionTweenRotate)
 			{
 				case "clockwise":
@@ -812,7 +786,7 @@ function generateFrame(frame, boneName, symbol, z, noAutoEasing)
 					tweenRotate = - frame.motionTweenRotateTimes - 1;
 					break;
 			}
-			if(!isNaN(tweenRotate))
+			if(tweenRotate)
 			{
 				frameXML.@[A_TWEEN_ROTATE_] = tweenRotate;
 			}
@@ -827,17 +801,17 @@ function generateFrame(frame, boneName, symbol, z, noAutoEasing)
 		else if(frame.tweenType == "motion")
 		{
 			frameXML.@[A_TWEEN_EASING] = formatNumber(frame.tweenEasing * 0.01);
-			var tweenRotate = NaN;
+			var tweenRotate = 0;
 			switch(frame.motionTweenRotate)
 			{
 				case "clockwise":
-					tweenRotate = frame.motionTweenRotateTimes;
+					tweenRotate = frame.motionTweenRotateTimes + 1;
 					break;
 				case "counter-clockwise":
-					tweenRotate = - frame.motionTweenRotateTimes;
+					tweenRotate = - frame.motionTweenRotateTimes - 1;
 					break;
 			}
-			if(!isNaN(tweenRotate))
+			if(tweenRotate)
 			{
 				frameXML.@[A_TWEEN_ROTATE_] = tweenRotate;
 			}
