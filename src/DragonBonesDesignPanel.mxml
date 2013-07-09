@@ -18,6 +18,7 @@
 			import control.RemoveArmatureCommand;
 			
 			import dragonBones.animation.WorldClock;
+			import dragonBones.core.DragonBones;
 			import dragonBones.objects.ArmatureData;
 			import dragonBones.utils.ConstValues;
 			
@@ -301,7 +302,7 @@
 			{
 				if(_importDataProxy.armatureProxy.armatureData)
 				{
-					DBGATrackerManager.tracker.trackEvent("/", "updateArmature");
+					DBGATrackerManager.tracker.trackEvent("/:UpdateArmature", "UpdateArmature");
 					var armatureNames:Vector.<String> = new Vector.<String>;
 					armatureNames.push(_importDataProxy.armatureProxy.armatureData.name);
 					ImportCommand.instance.importFLAData(true, false, armatureNames);
@@ -312,7 +313,7 @@
 			{
 				if(_importDataProxy.armatureProxy.armatureData)
 				{
-					DBGATrackerManager.tracker.trackEvent("/", "removeArmature");
+					DBGATrackerManager.tracker.trackEvent("/:RemoveArmature", "RemoveArmature");
 					RemoveArmatureCommand.instance.removeArmature(_importDataProxy.armatureProxy.armatureData.name);
 				}
 			}
@@ -321,7 +322,8 @@
 			{
 				DBGATrackerManager.createDBGATracker(this);
 				DBGATrackerManager.tracker.trackPageview("/");
-				DBGATrackerManager.tracker.setVar(String(SettingDataProxy.getInstance().languageArrayCollection[language.selectedIndex].label));
+				DBGATrackerManager.tracker.trackEvent("Version", "Version:" + String(DragonBones.VERSION));
+				DBGATrackerManager.tracker.trackEvent("Language", "Language:" + String(SettingDataProxy.getInstance().languageArrayCollection[language.selectedIndex].label));
 			}
 			
 		]]>
@@ -357,6 +359,9 @@
 					  click="popUpAboutWindow()"
 					  />
 			<s:Spacer width="100%"/>
+			<s:Label id="updateBtn" width="24" color="#03E2EA" rotation="90" text="&lt;&lt;" 
+					 verticalAlign="middle" textAlign="center" buttonMode="true" useHandCursor="true"
+					 click=""/>
 			<s:DropDownList id="language" width="80" height="24" cornerRadius="0" textAlign="right"
 							dataProvider="{SettingDataProxy.getInstance().languageArrayCollection}"
 							selectedIndex="@{SettingDataProxy.getInstance().languageID}"

@@ -25,7 +25,7 @@
 			private function closeHandler(event:Event):void
 			{
 				this.visible = false;
-				DBGATrackerManager.tracker.trackEvent("copyWindow", "close");
+				DBGATrackerManager.tracker.trackEvent("CopyWindow:Close", "CopyWindow:Close");
 				DBGATrackerManager.tracker.trackPageview("/");
 			}
 			

@@ -19,7 +19,7 @@
 			
 			private function importData():void
 			{
-				DBGATrackerManager.tracker.trackEvent("importWindow", "import", "dataSource", SettingDataProxy.getInstance().dataImportID);
+				DBGATrackerManager.tracker.trackEvent("ImportWindow:ImportData", "ImportWindow:ImportData:"+String(SettingDataProxy.getInstance().dataImportArrayCollection[SettingDataProxy.getInstance().dataImportID]));
 				
 				MessageDispatcher.addEventListener(MessageDispatcher.LOAD_FLADATA, commandHandler);
 				MessageDispatcher.addEventListener(MessageDispatcher.LOAD_FILEDATA, commandHandler);
@@ -55,7 +55,7 @@
 			
 			private function closeBtn_onClick(event:MouseEvent):void
 			{
-				DBGATrackerManager.tracker.trackEvent("importWindow", "close");
+				DBGATrackerManager.tracker.trackEvent("ImportWindow:Close", "ImportWindow:Close");
 				closeWindow();
 			}
 			

@@ -57,7 +57,7 @@
 			
 			private function closeHandler(event:Event):void
 			{
-				DBGATrackerManager.tracker.trackEvent("copyWindow", "close");
+				DBGATrackerManager.tracker.trackEvent("CopyWindow:Close", "CopyWindow:Close");
 				closeCopySession();
 			}
 			
@@ -70,19 +70,19 @@
 			
 			private function copyBone():void
 			{
-				DBGATrackerManager.tracker.trackEvent("copyWindow", "copyBone");
+				DBGATrackerManager.tracker.trackEvent("CopyWindow:CopyBone", "CopyWindow:CopyBone");
 				CopyDataProxy.getInstance().executeBoneCopy();
 			}
 			
 			private function copyAnimation():void
 			{
-				DBGATrackerManager.tracker.trackEvent("copyWindow", "copyBehavior");
+				DBGATrackerManager.tracker.trackEvent("CopyWindow:CopyBehavior", "CopyWindow:CopyBehavior");
 				CopyDataProxy.getInstance().executeAnimationCopy();
 			}
 			
 			private function save():void
 			{
-				DBGATrackerManager.tracker.trackEvent("copyWindow", "save");
+				DBGATrackerManager.tracker.trackEvent("CopyWindow:Save", "CopyWindow:Save");
 				CopyDataProxy.getInstance().save();
 				closeCopySession();
 			}

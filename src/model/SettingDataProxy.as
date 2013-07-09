@@ -89,7 +89,7 @@ package model
 			setData(EXPORT_SCALE_ID, _exportScaleID);
 		}
 		
-		public var dataExportArrayCollectio:ArrayCollection = new ArrayCollection([]);
+		public var dataExportArrayCollection:ArrayCollection = new ArrayCollection([]);
 		
 		private var _languageID:int = -1;
 		public function get languageID():int
@@ -106,12 +106,12 @@ package model
 			dataImportArrayCollection.source.push(ResourceManager.getInstance().getString('resources','selectedItems'));
 			dataImportArrayCollection.source.push(ResourceManager.getInstance().getString('resources','exportedData'));
 			
-			dataExportArrayCollectio.source.length = 0;
-			dataExportArrayCollectio.source.push(ResourceManager.getInstance().getString('resources','SWFwithXML'));
-			dataExportArrayCollectio.source.push(ResourceManager.getInstance().getString('resources','PNGwithXML'));
-			dataExportArrayCollectio.source.push(ResourceManager.getInstance().getString('resources','ZIPwithXMLAndSWF'));
-			dataExportArrayCollectio.source.push(ResourceManager.getInstance().getString('resources','ZIPwithXMLAndPNG'));
-			dataExportArrayCollectio.source.push(ResourceManager.getInstance().getString('resources','ZIPwithXMLAndPNGs'));
+			dataExportArrayCollection.source.length = 0;
+			dataExportArrayCollection.source.push(ResourceManager.getInstance().getString('resources','SWFwithXML'));
+			dataExportArrayCollection.source.push(ResourceManager.getInstance().getString('resources','PNGwithXML'));
+			dataExportArrayCollection.source.push(ResourceManager.getInstance().getString('resources','ZIPwithXMLAndSWF'));
+			dataExportArrayCollection.source.push(ResourceManager.getInstance().getString('resources','ZIPwithXMLAndPNG'));
+			dataExportArrayCollection.source.push(ResourceManager.getInstance().getString('resources','ZIPwithXMLAndPNGs'));
 			
 			setData(LANGUAGE_ID, _languageID);
 		}

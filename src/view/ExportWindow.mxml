@@ -25,7 +25,7 @@
 			
 			private function exportData():void
 			{
-				DBGATrackerManager.tracker.trackEvent("exportWindow", "exportData", "exportType", exportType.selectedIndex);
+				DBGATrackerManager.tracker.trackEvent("ExportWindow:ExportData", "ExportWindow:ExportData:"+String(SettingDataProxy.getInstance().dataExportArrayCollection[SettingDataProxy.getInstance().dataExportID]));
 				
 				if(!ImportDataProxy.getInstance().xmlDataProxy)
 				{
@@ -80,7 +80,7 @@
 		</s:VGroup>
 		<s:VGroup width="100%" gap="6">
 			<s:DropDownList id="exportType" width="100%" height="24" cornerRadius="0" textAlign="right"
-							dataProvider="{SettingDataProxy.getInstance().dataExportArrayCollectio}"
+							dataProvider="{SettingDataProxy.getInstance().dataExportArrayCollection}"
 							selectedIndex="@{SettingDataProxy.getInstance().dataExportID}"
 							/>
 			<s:ComboBox id="exportScaleComboBox" width="100%" height="24" cornerRadius="0" textAlign="right" restrict="0-9."
