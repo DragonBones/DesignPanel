@@ -63,7 +63,7 @@
 			
 			private function closeBtn_onClick(event:MouseEvent):void
 			{
-				DBGATrackerManager.tracker.trackEvent("exportWindow", "close");
+				DBGATrackerManager.tracker.trackEvent("ExportWindow:Close", "ExportWindow:Close");
 				closeWindow();
 			}
 			

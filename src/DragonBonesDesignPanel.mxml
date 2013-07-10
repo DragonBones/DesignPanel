@@ -13,6 +13,9 @@
 	</fx:Declarations>
 	<fx:Script>
 		<![CDATA[
+			import cloud.DBCloud;
+			import cloud.events.DBCloudEvent;
+			
 			import control.CopyBoneAndAnimationCommand;
 			import control.ImportCommand;
 			import control.RemoveArmatureCommand;
@@ -324,8 +327,31 @@
 				DBGATrackerManager.tracker.trackPageview("/");
 				DBGATrackerManager.tracker.trackEvent("Version", "Version:" + String(DragonBones.VERSION));
 				DBGATrackerManager.tracker.trackEvent("Language", "Language:" + String(SettingDataProxy.getInstance().languageArrayCollection[language.selectedIndex].label));
+				
+				DBCloud.instance.addEventListener(DBCloudEvent.INITED, Cloud_onInited);
+				DBCloud.instance.init();
 			}
 			
+			private function Cloud_onInited():void
+			{
+				DBCloud.instance.removeEventListener(DBCloudEvent.INITED, Cloud_onInited);
+				DBCloud.instance.addEventListener(DBCloudEvent.LOAD_LATESTVERSION_SUCCESS, cloud_onLoadLatestVersionSuccess);
+				DBCloud.instance.loadLatestVersion();
+			}
+			
+			private function cloud_onLoadLatestVersionSuccess(event:DBCloudEvent):void
+			{
+				var latestVersion:Number = Number(event.data.outputData);
+				if(latestVersion == DragonBones.VERSION_NUMBER)
+				{
+					updateBtn.visible = true;
+				}
+			}
+			
+			private function updateVersion():void
+			{
+				trace(updateVersion);
+			}
 		]]>
 	</fx:Script>
 	<fx:Metadata>
@@ -359,9 +385,9 @@
 					  click="popUpAboutWindow()"
 					  />
 			<s:Spacer width="100%"/>
-			<s:Label id="updateBtn" width="24" color="#03E2EA" rotation="90" text="&lt;&lt;" 
+			<s:Label id="updateBtn" visible="false" width="24" color="#03E2EA" rotation="90" text="&lt;&lt;" 
 					 verticalAlign="middle" textAlign="center" buttonMode="true" useHandCursor="true"
-					 click=""/>
+					 click="updateVersion()"/>
 			<s:DropDownList id="language" width="80" height="24" cornerRadius="0" textAlign="right"
 							dataProvider="{SettingDataProxy.getInstance().languageArrayCollection}"
 							selectedIndex="@{SettingDataProxy.getInstance().languageID}"
