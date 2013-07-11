@@ -332,7 +332,7 @@
 				DBCloud.instance.init();
 			}
 			
-			private function Cloud_onInited():void
+			private function Cloud_onInited(event:DBCloudEvent):void
 			{
 				DBCloud.instance.removeEventListener(DBCloudEvent.INITED, Cloud_onInited);
 				DBCloud.instance.addEventListener(DBCloudEvent.LOAD_LATESTVERSION_SUCCESS, cloud_onLoadLatestVersionSuccess);
@@ -342,7 +342,7 @@
 			private function cloud_onLoadLatestVersionSuccess(event:DBCloudEvent):void
 			{
 				var latestVersion:Number = Number(event.data.outputData);
-				if(latestVersion == DragonBones.VERSION_NUMBER)
+				if(latestVersion > DragonBones.VERSION_NUMBER)
 				{
 					updateBtn.visible = true;
 				}
@@ -350,7 +350,7 @@
 			
 			private function updateVersion():void
 			{
-				trace(updateVersion);
+				navigateToURL(new URLRequest("http://dragonbones.github.io/download.html"));
 			}
 		]]>
 	</fx:Script>
