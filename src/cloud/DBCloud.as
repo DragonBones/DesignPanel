@@ -51,5 +51,10 @@ package cloud
 		{
 			new DBNC_LoadLatestVersion().execute();
 		}
+		
+		public function loadOnlineHelp():void
+		{
+			new DBNC_LoadOnlineHelp().execute();
+		}
 	}
 }

@@ -5,27 +5,54 @@
 					  xmlns:components="view.components.*"
 					  xmlns:view="view.*"
 					  width="100%" height="100%" backgroundAlpha="0.5" backgroundColor="#CCCCCC"
+					  creationComplete="this_creationCompleteHandler(event)"
 					  show="showHandler(event)">
 	<fx:Declarations>
 		<!-- Place non-visual elements (e.g., services, value objects) here -->
 	</fx:Declarations>
 	<fx:Script>
 		<![CDATA[
+			import cloud.DBCloud;
+			import cloud.events.DBCloudEvent;
+			
 			import dragonBones.core.DragonBones;
 			import dragonBones.utils.ConstValues;
+			
+			import mx.events.FlexEvent;
 			
 			[Bindable]
 			private var _aboutXML:XML;
 			
+			[Bindable]
+			private var _onlineHelp:String = "";
+			
+			
+			protected function this_creationCompleteHandler(event:FlexEvent):void
+			{
+				DBCloud.instance.addEventListener(DBCloudEvent.LOAD_ONLINEHELP_SUCCESS, cloud_onLoadOnlineHelpSuccess);
+				DBCloud.instance.loadOnlineHelp();
+			}
+			
+			private function cloud_onLoadOnlineHelpSuccess(event:DBCloudEvent):void
+			{
+				DBCloud.instance.removeEventListener(DBCloudEvent.LOAD_ONLINEHELP_SUCCESS, cloud_onLoadOnlineHelpSuccess);
+				//_onlineHelp = "<a href='http://dragonbones.github.com/'>DragonBones Website</a>      <a href='http://dragonbones.github.com/'>DragonBones Forum</a>      <a href='http://dragonbones.github.com/'>DragonBones Wiki</a><br/><br/><font size='20'><b>Online Document</b></font><br/>      <font size='16'><b>Getting Started Guide(V2.1 Updated)</b></font><br/>      <font color='#66ccff'><a href='http://dragonbones.github.com/'>English Version</a>    <a href='http://dragonbones.github.com/'>中文版</a></font><br/><br/>      <font size='16'><b>API Reference</b></font><br/>      <a href='http://dragonbones.github.com/'>English Version</a><br/><br/>      <font size='16'><b>Skeleton Data Format Spec (V2.1 Updated)</b></font><br/>      <a href='http://dragonbones.github.com/'>English Version</a>    <a href='http://dragonbones.github.com/'>中文版</a><br/><br/><font size='20'><b>Downloads</b></font><br/>      <a href='http://dragonbones.github.com/'>Free Samples</a><br/>      <a href='http://dragonbones.github.com/'>Starling Framework</a><br/>      <a href='http://dragonbones.github.com/'>Adobe Gaming SDK</a><br/>";
+				_onlineHelp = String(event.data.outputData);
+			}
+			
 			private function showHandler(event:Event):void
 			{
 				_aboutXML = updateAbout();
+				if(_onlineHelp == "")
+				{
+					DBCloud.instance.loadOnlineHelp();
+				}
 			}
 			
 			private function closeHandler(event:Event):void
 			{
 				this.visible = false;
-				DBGATrackerManager.tracker.trackEvent("CopyWindow:Close", "CopyWindow:Close");
+				DBGATrackerManager.tracker.trackEvent("AboutWindow:Close", "AboutWindow:Close");
 				DBGATrackerManager.tracker.trackPageview("/");
 			}
 			
@@ -43,9 +70,23 @@
 					</root>
 				return xml;
 			}
+
+			
 		]]>
 	</fx:Script>
 	<s:TitleWindow left="20" right="20" top="20" bottom="20" title="{resourceManager.getString('resources','about')}" close="closeHandler(event)">
-		<mx:TextArea id="aboutText" htmlText="{_aboutXML}" left="2" right="2" top="2" bottom="2" borderColor="#000000" editable="false"/>
+		
+		<s:TabBar id="tabs" width="100%" dataProvider="{vs}"/>
+		<mx:ViewStack id="vs" width="100%" height="100%" top="24">
+			<s:NavigatorContent label="Help">
+				<mx:TextArea left="5" right="5" top="5" bottom="5" borderVisible="false"
+							 editable="false" fontSize="14" htmlText="{_onlineHelp}"/>
+			</s:NavigatorContent>
+			<s:NavigatorContent label="Contact Us">
+			</s:NavigatorContent>
+			<s:NavigatorContent label="About">
+				<mx:TextArea id="aboutText" htmlText="{_aboutXML}" left="2" right="2" top="2" bottom="2" borderColor="#000000" editable="false"/>
+			</s:NavigatorContent>
+		</mx:ViewStack>
 	</s:TitleWindow>
 </s:SkinnableContainer>
