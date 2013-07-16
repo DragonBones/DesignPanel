@@ -39,12 +39,12 @@ var A_PARENT = "parent";
 var A_TYPE = "type";
 var A_X = "x";
 var A_Y = "y";
-var A_SKEW_X = "skewX";
-var A_SKEW_Y = "skewY";
-var A_SCALE_X = "scaleX";
-var A_SCALE_Y = "scaleY";
-var A_PIVOT_X = "pivotX";
-var A_PIVOT_Y = "pivotY";
+var A_SKEW_X = "skX";
+var A_SKEW_Y = "skY";
+var A_SCALE_X = "scX";
+var A_SCALE_Y = "scY";
+var A_PIVOT_X = "pX";
+var A_PIVOT_Y = "pY";
 var A_Z_ORDER = "z";
 var A_DISPLAY_INDEX = "displayIndex";
 var A_EVENT = "event";
@@ -489,13 +489,13 @@ function getAnimationXML(armatureXML, name, item, duration)
 		xml = 
 			<{ANIMATION} 
 				{A_NAME}={name}
-				{A_FADE_IN_TIME}={fadeInTime}
+				{A_FADE_IN_TIME}={formatNumber(fadeInTime, 1000)}
 				{A_DURATION}={duration}
-				{A_SCALE}={scale}
+				{A_SCALE}={formatNumber(scale)}
 				{A_LOOP}={loop}
-				{A_TWEEN_EASING}={tweenEasing}
+				{A_TWEEN_EASING}={formatNumber(tweenEasing)}
 			/>;
-		appendXML(armatureXML, xml);
+		armatureXML.appendChild(xml);
 	}
 	
 	return xml;
@@ -546,8 +546,8 @@ function getTimelineXML(animationXML, name, item)
 		xml = 
 			<{TIMELINE}
 				{A_NAME}={name}
-				{A_SCALE}={scale}
-				{A_OFFSET}={offset}
+				{A_SCALE}={formatNumber(scale)}
+				{A_OFFSET}={formatNumber(offset)}
 			/>;
 		
 		animationXML.appendChild(xml);
@@ -610,6 +610,7 @@ function getSlotXML(armatureXML, name, item, frameXML)
 			<{SLOT}
 				{A_NAME}={name}
 				{A_PARENT}={name}
+				{A_Z_ORDER}={frameXML.@[A_Z_ORDER]}
 			/>;
 			
 		appendXML(skinXML, xml);
@@ -627,7 +628,6 @@ function getDisplayXML(slotXML, name, item, frameXML, isArmature)
 			<{DISPLAY} 
 				{A_NAME}={name}
 				{A_TYPE}={isArmature?V_ARMATURE:V_IMAGE}
-				{A_Z_ORDER}={frameXML.@[A_Z_ORDER]}
 			>
 				<{TRANSFORM}
 					{A_X}={Number(transformXML.@[A_PIVOT_X])}

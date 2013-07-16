@@ -378,10 +378,10 @@ package model
 		{
 			var rectDic:Object = {};
 			var subTextureXMLDic:Object = {};
-			var subTextureXMLLisst:XMLList = getSubTextureXMLList();
-			for(var i:int = subTextureXMLLisst.length() - 1;i >= 0;i --)
+			var subTextureXMLList:XMLList = getSubTextureXMLList();
+			for(var i:int = subTextureXMLList.length() - 1;i >= 0;i --)
 			{
-				var subTextureXML:XML = subTextureXMLLisst[i];
+				var subTextureXML:XML = subTextureXMLList[i];
 				var subTextureName:String = subTextureXML.@[ConstValues.A_NAME];
 				subTextureXMLDic[subTextureName] = subTextureXML;
 				if(rectList)
@@ -399,14 +399,14 @@ package model
 				rect = rectDic[subTextureName];
 				if(rect)
 				{
-					displayXML.@[ConstValues.A_PIVOT_X] = -rect.x;
-					displayXML.@[ConstValues.A_PIVOT_Y] = -rect.y;
+					displayXML[ConstValues.TRANSFORM][0].@[ConstValues.A_PIVOT_X] = -rect.x;
+					displayXML[ConstValues.TRANSFORM][0].@[ConstValues.A_PIVOT_Y] = -rect.y;
 				}
 				subTextureXML = subTextureXMLDic[subTextureName];
 				if(subTextureXML)
 				{
-					subTextureXML.@[ConstValues.A_PIVOT_X] = displayXML.@[ConstValues.A_PIVOT_X];
-					subTextureXML.@[ConstValues.A_PIVOT_Y] = displayXML.@[ConstValues.A_PIVOT_Y];
+					subTextureXML.@[ConstValues.A_PIVOT_X] = displayXML[ConstValues.TRANSFORM][0].@[ConstValues.A_PIVOT_X];
+					subTextureXML.@[ConstValues.A_PIVOT_Y] = displayXML[ConstValues.TRANSFORM][0].@[ConstValues.A_PIVOT_Y];
 				}
 			}
 			
@@ -416,8 +416,8 @@ package model
 			}
 			
 			var textureAtlasXMLCopy:XML = _textureAtlasXML.copy();
-			delete subTextureXMLLisst.@[ConstValues.A_PIVOT_X];
-			delete subTextureXMLLisst.@[ConstValues.A_PIVOT_Y];
+			delete subTextureXMLList.@[ConstValues.A_PIVOT_X];
+			delete subTextureXMLList.@[ConstValues.A_PIVOT_Y];
 			
 			return textureAtlasXMLCopy;
 		}
