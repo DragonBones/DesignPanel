@@ -213,7 +213,7 @@
 							_importDataProxy.xmlDataProxy.changeBoneParent(armatureName, e.parameters[1], e.parameters[2]);
 							if(!_importDataProxy.isExportedSource)
 							{
-								var armatureXML:XML = _importDataProxy.xmlDataProxy.getArmatureXML(armatureName);
+								var armatureXML:XML = _importDataProxy.xmlDataProxy.getArmatureXMLList(armatureName)[0];
 								JSFLProxy.getInstance().changeArmatureConnection(armatureName, armatureXML);
 							}
 						}
@@ -225,8 +225,8 @@
 							_importDataProxy.xmlDataProxy.changeAnimationData(_importDataProxy.armatureProxy.armatureData, animationName);
 							if(!_importDataProxy.isExportedSource)
 							{
-								var movementXML:XML = _importDataProxy.xmlDataProxy.getAnimationXML(armatureName, animationName);
-								JSFLProxy.getInstance().changeMovement(armatureName, animationName, movementXML);
+								var animationXML:XML = _importDataProxy.xmlDataProxy.getAnimationXMLList(armatureName, animationName)[0];
+								JSFLProxy.getInstance().changeMovement(armatureName, animationName, animationXML);
 							}
 						}
 						break;
@@ -237,10 +237,10 @@
 							_importDataProxy.xmlDataProxy.changeTransformTimelineData(_importDataProxy.armatureProxy.armatureData, animationName, e.parameters[2]);
 							if(!_importDataProxy.isExportedSource)
 							{
-								var movementXMLCopy:XML = _importDataProxy.xmlDataProxy.getAnimationXML(armatureName, animationName).copy();
-								delete movementXMLCopy[ConstValues.BONE].*;
-								delete movementXMLCopy[ConstValues.FRAME];
-								JSFLProxy.getInstance().changeMovement(armatureName, animationName, movementXMLCopy);
+								var animationXMLCopy:XML = _importDataProxy.xmlDataProxy.getAnimationXMLList(armatureName, animationName)[0].copy();
+								delete animationXMLCopy[ConstValues.BONE].*;
+								delete animationXMLCopy[ConstValues.FRAME];
+								JSFLProxy.getInstance().changeMovement(armatureName, animationName, animationXMLCopy);
 							}
 						}
 						break;

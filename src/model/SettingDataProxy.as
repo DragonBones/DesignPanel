@@ -83,7 +83,7 @@ package model
 		{
 			if(value < 0)
 			{
-				value = 5;
+				value = 7;
 			}
 			_exportScaleID = value;
 			setData(EXPORT_SCALE_ID, _exportScaleID);
@@ -107,11 +107,14 @@ package model
 			dataImportArrayCollection.source.push(ResourceManager.getInstance().getString('resources','exportedData'));
 			
 			dataExportArrayCollection.source.length = 0;
-			dataExportArrayCollection.source.push(ResourceManager.getInstance().getString('resources','SWFwithXML'));
-			dataExportArrayCollection.source.push(ResourceManager.getInstance().getString('resources','PNGwithXML'));
+			dataExportArrayCollection.source.push(ResourceManager.getInstance().getString('resources','SWFwithDBData'));
+			dataExportArrayCollection.source.push(ResourceManager.getInstance().getString('resources','PNGwithDBData'));
 			dataExportArrayCollection.source.push(ResourceManager.getInstance().getString('resources','ZIPwithXMLAndSWF'));
 			dataExportArrayCollection.source.push(ResourceManager.getInstance().getString('resources','ZIPwithXMLAndPNG'));
 			dataExportArrayCollection.source.push(ResourceManager.getInstance().getString('resources','ZIPwithXMLAndPNGs'));
+			dataExportArrayCollection.source.push(ResourceManager.getInstance().getString('resources','ZIPwithJSONAndSWF'));
+			dataExportArrayCollection.source.push(ResourceManager.getInstance().getString('resources','ZIPwithJSONAndPNG'));
+			dataExportArrayCollection.source.push(ResourceManager.getInstance().getString('resources','ZIPwithJSONAndPNGs'));
 			
 			setData(LANGUAGE_ID, _languageID);
 		}

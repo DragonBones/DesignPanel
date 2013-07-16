@@ -1,8 +1,11 @@
 package control
 {
+	import com.adobe.serialization.json.JSON;
+	
+	import dragonBones.objects.DataParser;
 	import dragonBones.objects.DecompressedData;
-	import dragonBones.objects.XMLDataParser;
 	import dragonBones.utils.BytesType;
+	import dragonBones.utils.ConstValues;
 	
 	import flash.display.BitmapData;
 	import flash.display.Loader;
@@ -24,6 +27,7 @@ package control
 	import utils.BitmapDataUtil;
 	import utils.GlobalConstValues;
 	import utils.PNGEncoder;
+	import utils.objectToXML;
 	
 	import zero.zip.Zip;
 	import zero.zip.ZipFile;
@@ -131,11 +135,18 @@ package control
 				case BytesType.JPG:
 					try
 					{
-						var decompressedData:DecompressedData = XMLDataParser.decompressData(fileData);
+						var decompressedData:DecompressedData = DataParser.decompressData(fileData);
 						_xmlDataProxy = new XMLDataProxy();
-						_xmlDataProxy.xml = decompressedData.xml;
-						_xmlDataProxy.textureAtlasXML = decompressedData.textureAtlasXML;
-						
+						if(!(decompressedData.dragonBonesData is XML))
+						{
+							decompressedData.dragonBonesData = objectToXML(decompressedData.dragonBonesData, ConstValues.DRAGON_BONES);
+						}
+						_xmlDataProxy.xml = decompressedData.dragonBonesData as XML;
+						if(!(decompressedData.textureAtlasData is XML))
+						{
+							decompressedData.textureAtlasData = objectToXML(decompressedData.textureAtlasData, ConstValues.TEXTURE_ATLAS);
+						}
+						_xmlDataProxy.textureAtlasXML = decompressedData.textureAtlasData as XML;
 						MessageDispatcher.dispatchEvent(MessageDispatcher.LOAD_FILEDATA_COMPLETE, _xmlDataProxy, decompressedData.textureBytes);
 						return;
 					}
@@ -146,6 +157,7 @@ package control
 				case BytesType.ZIP:
 					try
 					{
+						var object:Object;
 						var images:Object;
 						var zip:Zip = new Zip();
 						zip.decode(fileData);
@@ -155,13 +167,35 @@ package control
 						{
 							if(!zipFile.isDirectory)
 							{
-								if(zipFile.name == GlobalConstValues.DRAGON_BONES_XML_NAME)
+								if(
+									zipFile.name == GlobalConstValues.DRAGON_BONES_DATA_NAME + GlobalConstValues.XML_SUFFIX ||
+									zipFile.name == GlobalConstValues.DRAGON_BONES_DATA_NAME + GlobalConstValues.JSON_SUFFIX
+								)
 								{
-									_xmlDataProxy.xml = XML(zipFile.data);
+									if(zipFile.data[zipFile.data.length - 1] != ">".charCodeAt(0))
+									{
+										object = com.adobe.serialization.json.JSON.decode(zipFile.data.toString());
+										_xmlDataProxy.xml = objectToXML(object, ConstValues.DRAGON_BONES);
+									}
+									else
+									{
+										_xmlDataProxy.xml = XML(zipFile.data);
+									}
 								}
-								else if(zipFile.name == GlobalConstValues.TEXTURE_ATLAS_XML_NAME)
+								else if(
+									zipFile.name == GlobalConstValues.TEXTURE_ATLAS_DATA_NAME + GlobalConstValues.XML_SUFFIX ||
+									zipFile.name == GlobalConstValues.TEXTURE_ATLAS_DATA_NAME + GlobalConstValues.JSON_SUFFIX
+								)
 								{
-									_xmlDataProxy.textureAtlasXML = XML(zipFile.data);
+									if(zipFile.data[zipFile.data.length - 1] != ">".charCodeAt(0))
+									{
+										object = com.adobe.serialization.json.JSON.decode(zipFile.data.toString());
+										_xmlDataProxy.textureAtlasXML = objectToXML(object, ConstValues.TEXTURE_ATLAS);
+									}
+									else
+									{
+										_xmlDataProxy.textureAtlasXML = XML(zipFile.data);
+									}
 								}
 								else if(zipFile.name.indexOf(GlobalConstValues.TEXTURE_NAME) == 0)
 								{

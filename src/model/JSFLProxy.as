@@ -360,9 +360,9 @@
 		/**
 		 * Get armature data by name
 		 */
-		public function generateArmature(armatureName:String, scale:Number):void
+		public function generateArmature(armatureName:String):void
 		{
-			runJSFLMethod(GENERATE_ARMATURE, "dragonBones.generateArmature", armatureName, scale, true);
+			runJSFLMethod(GENERATE_ARMATURE, "dragonBones.generateArmature", armatureName, false, true);
 		}
 		
 		/**

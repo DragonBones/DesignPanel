@@ -53,6 +53,10 @@ package control
 				_urlLoader.addEventListener(Event.COMPLETE, urlLoaderHandler);
 				_urlLoader.load(new URLRequest(swfURL));
 			}
+			else
+			{
+				MessageDispatcher.dispatchEvent(IOErrorEvent.IO_ERROR);
+			}
 		}
 		
 		private function urlLoaderHandler(e:Event):void

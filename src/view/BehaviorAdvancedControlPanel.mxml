@@ -16,17 +16,20 @@
 			
 			private function addedToStageHandler(event:Event):void
 			{
-				sliderFadeTime.addEventListener(Event.CHANGE, valueChangeHandler);
-				numFadeTime.addEventListener(Event.CHANGE, valueChangeHandler);
+				sliderFadeInTime.addEventListener(Event.CHANGE, valueChangeHandler);
+				numFadeInTime.addEventListener(Event.CHANGE, valueChangeHandler);
 				
 				sliderDurationScaled.addEventListener(Event.CHANGE, valueChangeHandler);
 				numDurationScaled.addEventListener(Event.CHANGE, valueChangeHandler);
 				
-				sliderTweenEasing.addEventListener(Event.CHANGE, valueChangeHandler);
+				sliderLoop.addEventListener(Event.CHANGE, valueChangeHandler);
+				numLoop.addEventListener(Event.CHANGE, valueChangeHandler);
 				
-				checkLoop.addEventListener(Event.CHANGE, valueChangeHandler);
+				sliderTweenEasing.addEventListener(Event.CHANGE, valueChangeHandler);
+				checkTweenEasing.addEventListener(Event.CHANGE, valueChangeHandler);
 				
 				MessageDispatcher.addEventListener(MessageDispatcher.SELECT_ANIMATION, commandHandler);	
+				MessageDispatcher.addEventListener(MessageDispatcher.CHANGE_ANIMATION_DATA, commandHandler);	
 			}
 			
 			private function commandHandler(e:Message):void
@@ -38,26 +41,29 @@
 				switch(e.type)
 				{
 					case MessageDispatcher.SELECT_ANIMATION:
-						var fadeTime:Number = _importDataProxy.armatureProxy.fadeTime;
+					case MessageDispatcher.CHANGE_ANIMATION_DATA:
+						var fadeTime:Number = _importDataProxy.armatureProxy.fadeInTime;
 						var durationScaled:Number = _importDataProxy.armatureProxy.durationScaled;
+						var loop:int = _importDataProxy.armatureProxy.loop;
+						var tweenEasing:Number = _importDataProxy.armatureProxy.tweenEasing;
 						if(fadeTime < 0)
 						{
-							numFadeTime.enabled = false;
-							sliderFadeTime.enabled = false;
+							numFadeInTime.enabled = false;
+							sliderFadeInTime.enabled = false;
 						}
 						else
 						{
-							numFadeTime.value = fadeTime;
-							numFadeTime.enabled = true;
-							sliderFadeTime.value = fadeTime;
-							sliderFadeTime.enabled = true;
+							numFadeInTime.value = fadeTime;
+							numFadeInTime.enabled = true;
+							sliderFadeInTime.value = fadeTime;
+							sliderFadeInTime.enabled = true;
 						}
 						if(durationScaled < 0)
 						{
 							numDurationScaled.enabled = false;
 							sliderDurationScaled.enabled = false;
-							checkLoop.selected = false;
-							checkLoop.enabled = false;
+							sliderLoop.enabled = false;
+							numLoop.enabled = false;
 							sliderTweenEasing.enabled = false;
 						}
 						else
@@ -66,10 +72,23 @@
 							numDurationScaled.enabled = true;
 							sliderDurationScaled.value = durationScaled;
 							sliderDurationScaled.enabled = true;
-							checkLoop.selected = _importDataProxy.armatureProxy.loop;
-							checkLoop.enabled = true;
-							sliderTweenEasing.value = _importDataProxy.armatureProxy.tweenEasing;
-							sliderTweenEasing.enabled = true;
+							sliderLoop.enabled = true;
+							numLoop.enabled = true;
+							sliderLoop.value = loop;
+							numLoop.value = loop
+							
+							if(isNaN(tweenEasing))
+							{
+								checkTweenEasing.selected = false;
+								sliderTweenEasing.enabled = false;
+								sliderTweenEasing.value = 0;
+							}
+							else
+							{
+								checkTweenEasing.selected = true;
+								sliderTweenEasing.enabled = true;
+								sliderTweenEasing.value = tweenEasing;
+							}
 						}
 						break;
 				}
@@ -79,13 +98,13 @@
 			{
 				switch(e.target)
 				{
-					case sliderFadeTime:
-						_importDataProxy.armatureProxy.fadeTime = sliderFadeTime.value;
-						sliderFadeTime.value = numFadeTime.value = _importDataProxy.armatureProxy.fadeTime;
+					case sliderFadeInTime:
+						_importDataProxy.armatureProxy.fadeInTime = sliderFadeInTime.value;
+						sliderFadeInTime.value = numFadeInTime.value = _importDataProxy.armatureProxy.fadeInTime;
 						break;
-					case numFadeTime:
-						_importDataProxy.armatureProxy.fadeTime = numFadeTime.value;
-						sliderFadeTime.value = numFadeTime.value = _importDataProxy.armatureProxy.fadeTime;
+					case numFadeInTime:
+						_importDataProxy.armatureProxy.fadeInTime = numFadeInTime.value;
+						sliderFadeInTime.value = numFadeInTime.value = _importDataProxy.armatureProxy.fadeInTime;
 						break;
 					case sliderDurationScaled:
 						_importDataProxy.armatureProxy.durationScaled = sliderDurationScaled.value;
@@ -95,11 +114,26 @@
 						_importDataProxy.armatureProxy.durationScaled = numDurationScaled.value;
 						sliderDurationScaled.value = numDurationScaled.value = _importDataProxy.armatureProxy.durationScaled;
 						break;
+					case sliderLoop:
+						_importDataProxy.armatureProxy.loop = sliderLoop.value;
+						sliderLoop.value = numLoop.value = _importDataProxy.armatureProxy.loop;
+						break;
+					case numLoop:
+						_importDataProxy.armatureProxy.loop = numLoop.value;
+						sliderLoop.value = numLoop.value = _importDataProxy.armatureProxy.loop;
+						break;
 					case sliderTweenEasing:
 						_importDataProxy.armatureProxy.tweenEasing = sliderTweenEasing.value;
 						break;
-					case checkLoop:
-						_importDataProxy.armatureProxy.loop = checkLoop.selected;
+					case checkTweenEasing:
+						if(checkTweenEasing.selected)
+						{
+							_importDataProxy.armatureProxy.tweenEasing = 0;
+						}
+						else
+						{
+							_importDataProxy.armatureProxy.tweenEasing = NaN;
+						}
 						break;
 				}
 			}
@@ -123,15 +157,28 @@
 								  maximum="3000" minimum="0" snapInterval="0.01"
 								  />
 			</s:HGroup>
+			
 			<s:Label width="100%" height="24" verticalAlign="bottom"
 					 text="{resourceManager.getString('resources','blendingTime')}"
 					 />
 			<s:HGroup width="100%" verticalAlign="middle">
-				<s:HSlider id="sliderFadeTime" width="100%"
+				<s:HSlider id="sliderFadeInTime" width="100%"
 						   minimum="0" maximum="10" snapInterval="0.01"
 						   />
-				<s:NumericStepper id="numFadeTime" width="60" height="24" cornerRadius="0" textAlign="right"
+				<s:NumericStepper id="numFadeInTime" width="60" height="24" cornerRadius="0" textAlign="right"
 								  maximum="3000" minimum="0" snapInterval="0.01"
+								  />
+			</s:HGroup>
+			
+			<s:Label width="100%" height="24" verticalAlign="bottom"
+					 text="{resourceManager.getString('resources','loop')}"
+					 />
+			<s:HGroup width="100%" verticalAlign="middle">
+				<s:HSlider id="sliderLoop" width="100%"
+						   minimum="-20" maximum="20" snapInterval="1"
+						   />
+				<s:NumericStepper id="numLoop" width="60" height="24" cornerRadius="0" textAlign="right"
+								  maximum="100" minimum="-100" snapInterval="1"
 								  />
 			</s:HGroup>
 			
@@ -140,13 +187,10 @@
 					 />
 			<s:HGroup width="100%" verticalAlign="middle">
 				<s:HSlider id="sliderTweenEasing" width="100%"
-						   minimum="-1.1" maximum="2" snapInterval="0.05"
+						   minimum="-1" maximum="2" snapInterval="0.05"
 						   />
-				<s:Spacer width="60" height="24"/>
+				<s:CheckBox id="checkTweenEasing" width="15" label=""/>
 			</s:HGroup>
-			
-			<s:CheckBox id="checkLoop" width="100%" height="24"
-						label="{resourceManager.getString('resources','loop')}"/>
 			
 		</s:VGroup>
 	</s:Scroller>

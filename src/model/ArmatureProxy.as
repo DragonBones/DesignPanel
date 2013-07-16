@@ -10,7 +10,7 @@ package model
 	import dragonBones.objects.BoneData;
 	import dragonBones.objects.Timeline;
 	import dragonBones.objects.TransformTimeline;
-	import dragonBones.utils.DBDataUtils;
+	import dragonBones.utils.DBDataUtil;
 	
 	import flash.events.Event;
 	
@@ -131,20 +131,19 @@ package model
 			return _selectedBoneData?_selectedBoneData.name:null;
 		}
 		
-		public function get fadeTime():Number
+		public function get fadeInTime():Number
 		{
 			if(!_selectAnimationData)
 			{
 				return -1;
 			}
-			return _selectAnimationData.fadeTime;
+			return _selectAnimationData.fadeInTime;
 		}
-		public function set fadeTime(value:Number):void
+		public function set fadeInTime(value:Number):void
 		{
 			if(_selectAnimationData)
 			{
-				var frame:uint = Math.round(value * _selectAnimationData.frameRate);
-				_selectAnimationData.fadeTime =  frame / _selectAnimationData.frameRate;
+				_selectAnimationData.fadeInTime =  value;
 				updateAnimation();
 			}
 		}
@@ -161,21 +160,20 @@ package model
 		{
 			if(_selectAnimationData)
 			{
-				var frameScaled:Number = Math.round(value * _selectAnimationData.frameRate);
-				_selectAnimationData.scale = frameScaled / _selectAnimationData.frameRate / _selectAnimationData.duration;
+				_selectAnimationData.scale = value / _selectAnimationData.duration;
 				updateAnimation();
 			}
 		}
 		
-		public function get loop():Boolean
+		public function get loop():int
 		{
-			return _selectAnimationData?_selectAnimationData.loop != 1:false;
+			return _selectAnimationData?_selectAnimationData.loop:0;
 		}
-		public function set loop(value:Boolean):void
+		public function set loop(value:int):void
 		{
 			if(_selectAnimationData)
 			{ 
-				_selectAnimationData.loop = value?0:1;
+				_selectAnimationData.loop = value;
 				updateAnimation();
 			}
 		}
@@ -287,8 +285,8 @@ package model
 				boneData.parent = null;
 			}
 			
-			DBDataUtils.transformArmatureData(_armatureData);
-			DBDataUtils.transformArmatureDataAnimations(_armatureData);
+			DBDataUtil.transformArmatureData(_armatureData);
+			DBDataUtil.transformArmatureDataAnimations(_armatureData);
 			_armatureData.sortBoneDataList();
 			
 			bonesMC.source = getBoneList();
@@ -320,8 +318,8 @@ package model
 				boneData.parent = sourceBoneParentName;
 			}
 			
-			DBDataUtils.transformArmatureData(_armatureData);
-			DBDataUtils.transformArmatureDataAnimations(_armatureData);
+			DBDataUtil.transformArmatureData(_armatureData);
+			DBDataUtil.transformArmatureDataAnimations(_armatureData);
 			_armatureData.sortBoneDataList();
 			
 			bonesMC.source = getBoneList();

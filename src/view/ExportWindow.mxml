@@ -37,13 +37,6 @@
 			
 			private function getExportScale():Number
 			{
-				switch(SettingDataProxy.getInstance().dataExportID)
-				{
-					case 0:
-					case 2:
-						return 1;
-				}
-				
 				var scale:Number = Number(exportScaleComboBox.textInput.text);
 				
 				return scale || 1;
@@ -85,7 +78,7 @@
 							/>
 			<s:ComboBox id="exportScaleComboBox" width="100%" height="24" cornerRadius="0" textAlign="right" restrict="0-9."
 						dataProvider="{exportScaleArrayCollection}"
-						enabled="{SettingDataProxy.getInstance().dataExportID != 0 &amp;&amp; SettingDataProxy.getInstance().dataExportID != 2}"
+						enabled="{SettingDataProxy.getInstance().dataExportID != 0 &amp;&amp; SettingDataProxy.getInstance().dataExportID != 2 &amp;&amp; SettingDataProxy.getInstance().dataExportID != 5}"
 						selectedIndex="@{SettingDataProxy.getInstance().exportScaleID}"
 						/>
 		</s:VGroup>

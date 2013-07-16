@@ -61,10 +61,10 @@
 				_armatureXMLList = resultXML[ConstValues.ARMATURE];
 				
 				_totalCount = _armatureXMLList.length();
-				_loadIndex = _totalCount - 1;
 				MessageDispatcher.dispatchEvent(MessageDispatcher.LOAD_FLADATA, _totalCount, flaDomName);
 				if(_totalCount > 0)
 				{
+					_loadIndex = _totalCount - 1;
 					_isLoading = true;
 					_xmlDataProxy = new XMLDataProxy();
 					readNextArmature();
@@ -76,29 +76,43 @@
 		{
 			var armatureXML:XML = _armatureXMLList[_loadIndex];
 			var armatureName:String = armatureXML.@[ConstValues.A_NAME];
-			var scale:Number = Number(armatureXML.@["scale"]);
 			
 			MessageDispatcher.dispatchEvent(MessageDispatcher.LOAD_ARMATURE_DATA, armatureName, _totalCount - _loadIndex, _totalCount);
-			MessageDispatcher.addEventListener(JSFLProxy.GENERATE_ARMATURE, readNextArmatureHandler);
-			_jsflProxy.generateArmature(armatureName, scale);
 			
 			delete _armatureXMLList[_loadIndex --];
+			if(_xmlDataProxy.xml && _xmlDataProxy.getArmatureXMLList(armatureName)[0])
+			{
+				readNextArmatureHandler(null);
+			}
+			else
+			{
+				MessageDispatcher.addEventListener(JSFLProxy.GENERATE_ARMATURE, readNextArmatureHandler);
+				_jsflProxy.generateArmature(armatureName);
+			}
+			
 		}
 		
 		private function readNextArmatureHandler(e:Message):void
 		{
 			MessageDispatcher.removeEventListener(JSFLProxy.GENERATE_ARMATURE, readNextArmatureHandler);
-			var result:String = e.parameters[0];
-			var xml:XML = result != "false"?XML(result):null;
-			if(xml)
+			if(e)
 			{
-				if(_xmlDataProxy.xml)
+				var result:String = e.parameters[0];
+				var xml:XML = result != "false"?XML(result):null;
+				if(xml)
 				{
-					_xmlDataProxy.addXML(xml);
-				}
-				else
-				{
-					_xmlDataProxy.xml = xml;
+					if(_xmlDataProxy.xml)
+					{
+						for each(var armatureXML:XML in xml[ConstValues.ARMATURE])
+						{
+							_xmlDataProxy.addArmatureXML(armatureXML);
+							
+						}
+					}
+					else
+					{
+						_xmlDataProxy.xml = xml;
+					}
 				}
 			}
 			
@@ -132,6 +146,7 @@
 			if(_totalCount == 0)
 			{
 				MessageDispatcher.dispatchEvent(MessageDispatcher.LOAD_FLADATA_ERROR);
+				_isLoading = false;
 				return;
 			}
 			_loadIndex = _totalCount - 1;

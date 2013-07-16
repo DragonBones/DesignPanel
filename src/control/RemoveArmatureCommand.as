@@ -36,7 +36,7 @@ package control
 		public function removeArmature(armatureName:String):Boolean
 		{
 			var rawXMLDataProxy:XMLDataProxy = ImportDataProxy.getInstance().xmlDataProxy;
-			_xmlDataProxy = rawXMLDataProxy.copy();
+			_xmlDataProxy = rawXMLDataProxy.clone();
 			if(!_xmlDataProxy.removeArmature(armatureName))
 			{
 				return false;

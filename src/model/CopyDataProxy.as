@@ -8,7 +8,7 @@ package model
 	import dragonBones.objects.BoneData;
 	import dragonBones.objects.SkeletonData;
 	import dragonBones.objects.XMLDataParser;
-	import dragonBones.utils.DBDataUtils;
+	import dragonBones.utils.DBDataUtil;
 	
 	import flash.events.EventDispatcher;
 	import flash.geom.Matrix;
@@ -80,7 +80,7 @@ package model
 			
 			if(ImportDataProxy.getInstance().xmlDataProxy)
 			{
-				_xmlDataProxy = ImportDataProxy.getInstance().xmlDataProxy.copy();
+				_xmlDataProxy = ImportDataProxy.getInstance().xmlDataProxy.clone();
 				_data = XMLDataParser.parseSkeletonData(_xmlDataProxy.xml);
 				
 				armaturesAC.source = getArmatureList();
@@ -162,7 +162,7 @@ package model
 				}
 			}
 			
-			var copyBoneVO:CopyBoneVO = new CopyBoneVO(armatureName, _xmlDataProxy.getArmatureXML(armatureName));
+			var copyBoneVO:CopyBoneVO = new CopyBoneVO(armatureName, _xmlDataProxy.getArmatureXMLList(armatureName)[0]);
 			_copyBoneVOList.push(copyBoneVO);
 			
 			dataChanged = true;
@@ -175,8 +175,8 @@ package model
 			//拷贝动画前先拷贝骨架
 			//executeBoneCopy();
 			
-			var copyAnimationData:AnimationData = XMLDataParser.parseAnimationData(
-				_xmlDataProxy.getAnimationXML(sourceArmatureProxy.armatureName, sourceArmatureProxy.selectedAnimationName),
+			/*var copyAnimationData:AnimationData = XMLDataParser.parseAnimationData(
+				_xmlDataProxy.getAnimationXMLList(sourceArmatureProxy.armatureName, sourceArmatureProxy.selectedAnimationName)[0],
 				sourceArmatureProxy.armatureData,
 				sourceArmatureProxy.selecteAnimationData.frameRate
 			);
@@ -196,7 +196,7 @@ package model
 			_copyAnimationVOList.push(copyAnimationVO);
 			
 			dataChanged = true;
-			
+			*/
 			updateAnimationCopyAble();
 		}
 		

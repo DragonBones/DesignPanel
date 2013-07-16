@@ -1,20 +1,23 @@
 package model
 {
+	import dragonBones.core.DBObject;
 	import dragonBones.core.DragonBones;
 	import dragonBones.objects.AnimationData;
 	import dragonBones.objects.ArmatureData;
 	import dragonBones.objects.BoneData;
 	import dragonBones.objects.DBTransform;
+	import dragonBones.objects.DisplayData;
 	import dragonBones.objects.TransformFrame;
 	import dragonBones.objects.TransformTimeline;
 	import dragonBones.utils.ConstValues;
-	import dragonBones.utils.DBDataUtils;
-	import dragonBones.utils.TransformUtils;
+	import dragonBones.utils.DBDataUtil;
+	import dragonBones.utils.TransformUtil;
 	
-	import flash.geom.Rectangle;
 	import flash.geom.Matrix;
+	import flash.geom.Rectangle;
 	
 	import utils.TextureUtil;
+	import utils.formatDataToCurrentVersion;
 	
 	public class XMLDataProxy
 	{
@@ -31,7 +34,7 @@ package model
 		}
 		public function set xml(value:XML):void
 		{
-			_xml = value;
+			_xml = formatXML(value);
 		}
 		
 		private var _textureAtlasXML:XML;
@@ -56,21 +59,26 @@ package model
 		
 		public function XMLDataProxy()
 		{
+			
 		}
 		
+		/*
 		public function moveTexturePivotToData():void
 		{
-			var subTextureXMLList:XMLList = getSubTextureXMLList(_textureAtlasXML);
+			var subTextureXMLList:XMLList = getSubTextureXMLList();
 			var subTextureXML:XML = subTextureXMLList[0];
+			var displayXMLList:XMLList;
+			var subTextureName:String;
+			var pivotX:int;
+			var pivotY:int;
 			if(subTextureXML && subTextureXML.@[ConstValues.A_PIVOT_X].length() > 0)
 			{
-				var displayXMLList:XMLList = getDisplayXMLList(_xml);
+				displayXMLList = getDisplayXMLList(_xml);
 				for each(subTextureXML in subTextureXMLList)
 				{
-					_xml.@[ConstValues.A_VERSION] = DragonBones.DATA_VERSION;
-					var subTextureName:String = subTextureXML.@[ConstValues.A_NAME];
-					var pivotX:int = int(subTextureXML.@[ConstValues.A_PIVOT_X]);
-					var pivotY:int = int(subTextureXML.@[ConstValues.A_PIVOT_Y]);
+					subTextureName = subTextureXML.@[ConstValues.A_NAME];
+					pivotX = int(subTextureXML.@[ConstValues.A_PIVOT_X]);
+					pivotY = int(subTextureXML.@[ConstValues.A_PIVOT_Y]);
 					
 					delete subTextureXML.@[ConstValues.A_PIVOT_X];
 					delete subTextureXML.@[ConstValues.A_PIVOT_Y];
@@ -79,26 +87,100 @@ package model
 						var displayName:String = displayXML.@[ConstValues.A_NAME];
 						if(displayName == subTextureName)
 						{
-							displayXML.@[ConstValues.A_PIVOT_X] = pivotX;
-							displayXML.@[ConstValues.A_PIVOT_Y] = pivotY;
+							displayXML[ConstValues.TRANSFORM].@[ConstValues.A_PIVOT_X] = pivotX;
+							displayXML[ConstValues.TRANSFORM].@[ConstValues.A_PIVOT_Y] = pivotY;
 						}
 					}
 				}
+				setVersion();
 			}
 		}
+		*/
 		
 		public function setVersion():void
 		{
 			_xml.@[ConstValues.A_VERSION] = DragonBones.DATA_VERSION;
 		}
 		
+		public function getArmatureXMLList(armatureName:String = null):XMLList
+		{
+			if(armatureName)
+			{
+				return getArmatureXMLList().(@[ConstValues.A_NAME] == armatureName);
+			}
+			return _xml[ConstValues.ARMATURE];
+		}
+		
+		public function getBoneXMLList(armatureName:String = null, boneName:String = null):XMLList
+		{
+			if(boneName)
+			{
+				return getBoneXMLList(armatureName).(@[ConstValues.A_NAME] == boneName);
+			}
+			return getArmatureXMLList(armatureName)[ConstValues.BONE];
+		}
+		
+		public function getSkinXMLList(armatureName:String = null, skinName:String = null):XMLList
+		{
+			if(skinName)
+			{
+				return getSkinXMLList(armatureName).(@[ConstValues.A_NAME] == skinName);
+			}
+			return getArmatureXMLList(armatureName)[ConstValues.SKIN];
+		}
+		
+		public function getSlotXMLList(armatureName:String = null, skinName:String = null, slotName:String = null):XMLList
+		{
+			if(slotName)
+			{
+				return getSlotXMLList(armatureName, skinName).(@[ConstValues.A_NAME] == skinName);
+			}
+			return getSkinXMLList(armatureName, skinName)[ConstValues.SLOT];
+		}
+		
+		public function getDisplayXMLList(armatureName:String = null, skinName:String = null, slotName:String = null, displayName:String = null):XMLList
+		{
+			if(displayName)
+			{
+				return getDisplayXMLList(armatureName, skinName, slotName).(@[ConstValues.A_NAME] == displayName);
+			}
+			return getSlotXMLList(armatureName, skinName, slotName)[ConstValues.DISPLAY];
+		}
+		
+		public function getAnimationXMLList(armatureName:String = null, animationName:String = null):XMLList
+		{
+			if(animationName)
+			{
+				return getAnimationXMLList(armatureName).(@[ConstValues.A_NAME] == animationName);
+			}
+			return getArmatureXMLList(armatureName)[ConstValues.ANIMATION];
+		}
+		
+		public function getTimelineXMLList(armatureName:String = null, animationName:String = null, timelineName:String = null):XMLList
+		{
+			if(timelineName)
+			{
+				return getTimelineXMLList(armatureName, animationName).(@[ConstValues.A_NAME] == timelineName);
+			}
+			return getAnimationXMLList(armatureName, animationName)[ConstValues.TIMELINE];
+		}
+		
+		public function getSubTextureXMLList(subTextureName:String = null):XMLList
+		{
+			if(subTextureName)
+			{
+				return getSubTextureXMLList().(@[ConstValues.A_NAME] == subTextureName);
+			}
+			return _textureAtlasXML[ConstValues.SUB_TEXTURE];
+		}
+		
 		public function getDisplayList():Vector.<String>
 		{
 			var displayList:Vector.<String> = new Vector.<String>;
 			
-			for each(var displayXML:XML in getDisplayXMLList(_xml))
+			for each(var displayXML:XML in getDisplayXMLList())
 			{
-				if(int(displayXML.@[ConstValues.A_IS_ARMATURE]) != 1)
+				if(displayXML.@[ConstValues.A_TYPE] == DisplayData.IMAGE)
 				{
 					var displayName:String = displayXML.@[ConstValues.A_NAME];
 					if(displayList.indexOf(displayName) < 0)
@@ -113,8 +195,8 @@ package model
 		public function getSubTextureRectDic():Object
 		{
 			var subTextureRectDic:Object = {};
-			var subTextureXMLList:XMLList = getSubTextureXMLList(_textureAtlasXML);
-			for each(var subTextureXML:XML in  subTextureXMLList)
+			var subTextureXMLList:XMLList = getSubTextureXMLList();
+			for each(var subTextureXML:XML in subTextureXMLList)
 			{
 				var rect:Rectangle = new Rectangle(
 					int(subTextureXML.@[ConstValues.A_X]),
@@ -122,24 +204,25 @@ package model
 					int(subTextureXML.@[ConstValues.A_WIDTH]),
 					int(subTextureXML.@[ConstValues.A_HEIGHT])
 				);
-				subTextureRectDic[String(subTextureXML.@[ConstValues.A_NAME])] = rect;
+				var subTextureName:String = subTextureXML.@[ConstValues.A_NAME];
+				subTextureRectDic[subTextureName] = rect;
 			}
 			return subTextureRectDic;
 		}
 		
 		public function scaleData(scale:Number):void
 		{
-			var boneXMLList:XMLList = _xml[ConstValues.ARMATURES][ConstValues.ARMATURE][ConstValues.BONE];
-			scaleXMLList(boneXMLList, scale);
+			var boneTransformXMLList:XMLList = getBoneXMLList()[ConstValues.TRANSFORM];
+			scaleXMLList(boneTransformXMLList, scale);
 			
-			var displayXMLList:XMLList = getDisplayXMLList(_xml);
-			scaleXMLList(displayXMLList, scale);
+			var displayTransformXMLList:XMLList = getDisplayXMLList()[ConstValues.TRANSFORM];
+			scaleXMLList(displayTransformXMLList, scale);
 			
-			var frameXMLList:XMLList = _xml[ConstValues.ANIMATIONS][ConstValues.ANIMATION][ConstValues.MOVEMENT][ConstValues.BONE][ConstValues.FRAME];
-			scaleXMLList(frameXMLList, scale);
+			var frameTransformXMLList:XMLList = getTimelineXMLList()[ConstValues.FRAME][ConstValues.TRANSFORM];
+			scaleXMLList(frameTransformXMLList, scale);
 			
-			var subTextureXMLList:XMLList = getSubTextureXMLList(_textureAtlasXML);
-			scaleXMLList(subTextureXMLList, scale);
+			var subTextureTransformXMLList:XMLList = getSubTextureXMLList();
+			scaleXMLList(subTextureTransformXMLList, scale);
 			
 			packTextures(SettingDataProxy.getInstance().textureMaxWidth, SettingDataProxy.getInstance().texturePadding);
 		}
@@ -175,58 +258,21 @@ package model
 			}
 		}
 		
-		public function getArmatureXML(armatureName:String):XML
-		{
-			return getArmatureXMLList(_xml).(@[ConstValues.A_NAME] == armatureName)[0];
-		}
-		
-		public function getBoneXML(armatureName:String, boneName:String):XML
-		{
-			var armatureXML:XML = getArmatureXML(armatureName);
-			if(armatureXML)
-			{
-				return armatureXML[ConstValues.BONE].(@[ConstValues.A_NAME] == boneName)[0];
-			}
-			return null;
-		}
-		
-		public function getAnimationXML(animationName:String, movementName:String):XML
-		{
-			var animationXML:XML = getAnimationsXML(animationName);
-			if(animationXML)
-			{
-				return animationXML[ConstValues.MOVEMENT].(@[ConstValues.A_NAME] == movementName)[0];
-			}
-			return null;
-		}
-		
 		public function changePath():void
 		{
-			for each(var displayXML:XML in getDisplayXMLList(_xml))
+			for each(var displayXML:XML in getDisplayXMLList())
 			{
 				var subTextureName:String = displayXML.@[ConstValues.A_NAME];
 				subTextureName = subTextureName.split("/").join("-");
 				displayXML.@[ConstValues.A_NAME] = subTextureName;
 			}
 			
-			for each(var subTextureXML:XML in getSubTextureXMLList(_textureAtlasXML))
+			for each(var subTextureXML:XML in getSubTextureXMLList())
 			{
 				subTextureName = subTextureXML.@[ConstValues.A_NAME];
 				subTextureName = subTextureName.split("/").join("-");
 				subTextureXML.@[ConstValues.A_NAME] = subTextureName;
 			}
-		}
-		
-		public function merge(xmlDataProxy:XMLDataProxy):void
-		{
-			addXML(xmlDataProxy.xml);
-			
-			for each(var subTextureXML:XML in getSubTextureXMLList(_textureAtlasXML))
-			{
-				addSubTextureXML(subTextureXML);
-			}
-			
-			packTextures(SettingDataProxy.getInstance().textureMaxWidth, SettingDataProxy.getInstance().texturePadding);
 		}
 		
 		public function packTextures(width:uint, padding:uint):void
@@ -238,68 +284,22 @@ package model
 			);
 		}
 		
-		public function addXML(xml:XML):void
+		public function addArmatureXML(armatureXML:XML):void
 		{
-			var xmlList1:XMLList;
-			var xmlList2:XMLList;
-			var node1:XML;
-			var node2:XML;
-			var nodeName:String;
-			
-			xmlList1 = getDisplayXMLList(_xml);
-			xmlList2 = getDisplayXMLList(xml);
-			var displayNames:Object = {};
-			for each(node2 in xmlList2)
+			var oldArmatureXML:XML = getArmatureXMLList(armatureXML.@[ConstValues.A_NAME])[0];
+			if(oldArmatureXML)
 			{
-				nodeName = node2.@[ConstValues.A_NAME];
-				if(displayNames[nodeName])
-				{
-					continue;
-				}
-				displayNames[nodeName] = true;
-				var sameDisplayXMLList:XMLList = xmlList1.(@[ConstValues.A_NAME] == nodeName);
-				for each(node1 in sameDisplayXMLList)
-				{
-					//
-					node1.parent().children()[node1.childIndex()] = node2.copy();
-				}
+				delete getArmatureXMLList()[oldArmatureXML.childIndex()];
 			}
-			
-			xmlList1 = getArmatureXMLList(_xml);
-			xmlList2 = getArmatureXMLList(xml);
-			for each(node2 in xmlList2)
-			{
-				nodeName = node2.@[ConstValues.A_NAME];
-				node1 = xmlList1.(@[ConstValues.A_NAME] == nodeName)[0];
-				if(node1)
-				{
-					delete xmlList1[node1.childIndex()];
-				}
-				_xml[ConstValues.ARMATURES].appendChild(node2);
-			}
-			
-			xmlList1 = getAnimationsXMLList(_xml);
-			xmlList2 = getAnimationsXMLList(xml);
-			for each(node2 in xmlList2)
-			{
-				nodeName = node2.@[ConstValues.A_NAME];
-				node1 = xmlList1.(@[ConstValues.A_NAME] == nodeName)[0];
-				if(node1)
-				{
-					delete xmlList1[node1.childIndex()];
-				}
-				_xml[ConstValues.ANIMATIONS].appendChild(node2);
-			}
+			_xml.appendChild(armatureXML);
 		}
 		
 		public function addSubTextureXML(subTextureXML:XML):void
 		{
-			var subTextureName:String = subTextureXML.@[ConstValues.A_NAME];
-			var subTextureXMLList:XMLList = getSubTextureXMLList(_textureAtlasXML);
-			var oldSubTextureXML:XML = subTextureXMLList.(@[ConstValues.A_NAME] == subTextureName)[0];
+			var oldSubTextureXML:XML = getSubTextureXMLList(subTextureXML.@[ConstValues.A_NAME])[0];
 			if(oldSubTextureXML)
 			{
-				delete subTextureXMLList[oldSubTextureXML.childIndex()];
+				delete getSubTextureXMLList()[oldSubTextureXML.childIndex()];
 			}
 			
 			_textureAtlasXML.appendChild(subTextureXML);
@@ -307,54 +307,39 @@ package model
 		
 		public function removeArmature(armatureName:String):Boolean
 		{
-			var displayXMLList:XMLList = getDisplayXMLList(_xml);
-			if(displayXMLList.(@[ConstValues.A_NAME] == armatureName)[0])
+			if(getDisplayXMLList(null, null, null, armatureName)[0])
 			{
 				return false;
 			}
-			var armatureXMLList:XMLList = getArmatureXMLList(_xml);
-			if(armatureXMLList.length() <= 1)
+			if(getArmatureXMLList().length() <= 1)
 			{
 				return false;
 			}
 			
-			var armatureXML:XML = getArmatureXML(armatureName);
+			var armatureXML:XML = getArmatureXMLList(armatureName)[0];
 			if(armatureXML)
 			{
-				delete armatureXMLList[armatureXML.childIndex()];
+				delete getArmatureXMLList()[armatureXML.childIndex()];
 				
-				var animationXML:XML = getAnimationsXML(armatureName);
-				if(animationXML)
-				{
-					var animationXMLList:XMLList = getAnimationsXMLList(_xml);
-					delete animationXMLList[animationXML.childIndex()];
-				}
-				
-				var deleteDisplayList:XMLList = armatureXML[ConstValues.BONE][ConstValues.DISPLAY];
-				
+				var deleteDisplayList:XMLList = getDisplayXMLList(armatureName);
 				for each(var displayXML:XML in deleteDisplayList)
 				{
-					var isArmature:Boolean = displayXML.@[ConstValues.A_IS_ARMATURE] == "1";
-					if(isArmature)
+					if(displayXML.@[ConstValues.A_TYPE] == DisplayData.ARMATURE)
 					{
 						var childArmatureName:String = displayXML.@[ConstValues.A_NAME];
-						var remainDisplayList:XMLList = getDisplayXMLList(_xml);
-						
-						if(!displayXMLList.(@[ConstValues.A_NAME] == childArmatureName)[0])
+						if(!getDisplayXMLList(armatureName, null, null, childArmatureName)[0])
 						{
 							removeArmature(childArmatureName);
 						}
 					}
 				}
 				
-				displayXMLList = getDisplayXMLList(_xml);
-				
-				var subTextureXMLLisst:XMLList = getSubTextureXMLList(_textureAtlasXML);
+				var subTextureXMLLisst:XMLList = getSubTextureXMLList();
 				for(var i:int = subTextureXMLLisst.length() - 1;i >= 0;i --)
 				{
 					var subTextureXML:XML = subTextureXMLLisst[i];
 					var subTextureName:String = subTextureXML.@[ConstValues.A_NAME];
-					if(!displayXMLList.(@[ConstValues.A_NAME] == subTextureName)[0])
+					if(!getDisplayXMLList(null, null, null, subTextureName)[0])
 					{
 						delete subTextureXMLLisst[i];
 					}
@@ -366,11 +351,34 @@ package model
 			return false;
 		}
 		
+		public function merge(xmlDataProxy:XMLDataProxy):void
+		{
+			for each(var armatureXML:XML in xmlDataProxy.getArmatureXMLList())
+			{
+				addArmatureXML(armatureXML);
+			}
+			
+			for each(var subTextureXML:XML in xmlDataProxy.getSubTextureXMLList())
+			{
+				addSubTextureXML(subTextureXML);
+			}
+			
+			packTextures(SettingDataProxy.getInstance().textureMaxWidth, SettingDataProxy.getInstance().texturePadding);
+		}
+		
+		public function clone():XMLDataProxy
+		{
+			var proxy:XMLDataProxy = new XMLDataProxy();
+			proxy.xml = _xml.copy();
+			proxy.textureAtlasXML = _textureAtlasXML.copy();
+			return proxy;
+		}
+		
 		public function modifySubTextureSize(rectList:Vector.<Rectangle>):XML
 		{
 			var rectDic:Object = {};
 			var subTextureXMLDic:Object = {};
-			var subTextureXMLLisst:XMLList = getSubTextureXMLList(_textureAtlasXML);
+			var subTextureXMLLisst:XMLList = getSubTextureXMLList();
 			for(var i:int = subTextureXMLLisst.length() - 1;i >= 0;i --)
 			{
 				var subTextureXML:XML = subTextureXMLLisst[i];
@@ -385,7 +393,7 @@ package model
 				}
 			}
 			
-			for each(var displayXML:XML in getDisplayXMLList(_xml))
+			for each(var displayXML:XML in getDisplayXMLList())
 			{
 				subTextureName = displayXML.@[ConstValues.A_NAME];
 				rect = rectDic[subTextureName];
@@ -414,17 +422,13 @@ package model
 			return textureAtlasXMLCopy;
 		}
 		
-		public function copy():XMLDataProxy
-		{
-			var proxy:XMLDataProxy = new XMLDataProxy();
-			proxy.xml = _xml.copy();
-			proxy.textureAtlasXML = _textureAtlasXML.copy();
-			return proxy;
-		}
-		
 		public function changeBoneParent(armatureName:String, boneName:String, parentName:String):void
 		{
-			var boneXML:XML = getBoneXML(armatureName, boneName);
+			var boneXML:XML = getBoneXMLList(armatureName, boneName)[0];
+			if(!boneXML)
+			{
+				return;
+			}
 			if(parentName)
 			{
 				boneXML.@[ConstValues.A_PARENT] = parentName;
@@ -437,7 +441,11 @@ package model
 		
 		public function changeBoneTree(armatureData:ArmatureData):void
 		{
-			var armatureXML:XML = getArmatureXML(armatureData.name);
+			var armatureXML:XML = getArmatureXMLList(armatureData.name)[0];
+			if(!armatureXML)
+			{
+				return;
+			}
 			for each(var boneXML:XML in armatureXML[ConstValues.BONE])
 			{
 				var boneName:String = boneXML.@[ConstValues.A_NAME];
@@ -459,9 +467,8 @@ package model
 		
 		public function copyAnimationToArmature(sourceAnimationData:AnimationData, sourceArmatureData:ArmatureData, targetArmatureData:ArmatureData):XML
 		{
-			var animationXML:XML = getAnimationXML(sourceArmatureData.name, sourceAnimationData.name).copy();
-			
-			var timelineXMLList:XMLList = animationXML[ConstValues.BONE];
+			var animationXML:XML = getAnimationXMLList(sourceArmatureData.name, sourceAnimationData.name)[0].copy();
+			var timelineXMLList:XMLList = animationXML[ConstValues.TIMELINE];
 			var boneDataList:Vector.<BoneData> = sourceArmatureData.boneDataList;
 			
 			var boneName:String;
@@ -516,12 +523,12 @@ package model
 						
 						if(parentTimeline)
 						{
-							DBDataUtils.getTimelineTransform(parentTimeline, frame.position, _helpTransform);
+							DBDataUtil.getTimelineTransform(parentTimeline, frame.position, _helpTransform);
 							
 							var x:Number = frame.global.x;
 							var y:Number = frame.global.y;
 							
-							TransformUtils.transformToMatrix(_helpTransform, _helpMatrix);
+							TransformUtil.transformToMatrix(_helpTransform, _helpMatrix);
 							
 							frame.global.x = _helpMatrix.a * x + _helpMatrix.c * y + _helpMatrix.tx;
 							frame.global.y = _helpMatrix.d * y + _helpMatrix.b * x + _helpMatrix.ty;
@@ -536,8 +543,8 @@ package model
 						frameXML.@[ConstValues.A_SKEW_Y] = frame.global.skewY * RADIAN_TO_ANGLE;
 						frameXML.@[ConstValues.A_SCALE_X] = frame.global.scaleX;
 						frameXML.@[ConstValues.A_SCALE_Y] = frame.global.scaleY;
-						frameXML.@[ConstValues.A_PIVOT_X] = -pivotX;
-						frameXML.@[ConstValues.A_PIVOT_Y] = -pivotY;
+						frameXML.@[ConstValues.A_PIVOT_X] = pivotX;
+						frameXML.@[ConstValues.A_PIVOT_Y] = pivotY;
 					}
 				}
 				else
@@ -546,13 +553,8 @@ package model
 				}
 			}
 			
-			var animationsXML:XML = getAnimationsXML(targetArmatureData.name);
-			if(!animationsXML)
-			{
-				animationsXML = <{ConstValues.ANIMATION} {ConstValues.A_NAME}={targetArmatureData.name}/>
-				_xml[ConstValues.ANIMATIONS][0].appendChild(animationsXML);
-			}
-			animationsXML.appendChild(animationXML);
+			var armatureXML:XML = getArmatureXMLList(targetArmatureData.name)[0];
+			armatureXML.appendChild(animationXML);
 			
 			return animationXML;
 		}
@@ -560,21 +562,20 @@ package model
 		public function changeAnimationData(armatureData:ArmatureData, animationName:String):void
 		{
 			var animationData:AnimationData = armatureData.getAnimationData(animationName);
-			var movementXML:XML = getAnimationXML(armatureData.name, animationName);
-			movementXML.@[ConstValues.A_DURATION_TO] = Math.round(animationData.fadeTime * animationData.frameRate);
-			movementXML.@[ConstValues.A_DURATION_TWEEN] = Math.round(animationData.duration * animationData.scale * animationData.frameRate);
-			movementXML.@[ConstValues.A_LOOP] = animationData.loop == 0?1:0;
-			movementXML.@[ConstValues.A_TWEEN_EASING] = animationData.tweenEasing;
+			var animationXML:XML = getAnimationXMLList(armatureData.name, animationName)[0];
+			animationXML.@[ConstValues.A_FADE_IN_TIME] = formatNumber(animationData.fadeInTime, 1000);
+			animationXML.@[ConstValues.A_SCALE] = formatNumber(animationData.scale);
+			animationXML.@[ConstValues.A_LOOP] = animationData.loop;
+			animationXML.@[ConstValues.A_TWEEN_EASING] = formatNumber(animationData.tweenEasing);
 		}
 		
-		public function changeTransformTimelineData(armatureData:ArmatureData, animationName:String, boneName:String):void
+		public function changeTransformTimelineData(armatureData:ArmatureData, animationName:String, timelineName:String):void
 		{
 			var animationData:AnimationData = armatureData.getAnimationData(animationName);
-			var transformTimeline:TransformTimeline = animationData.getTimeline(boneName) as TransformTimeline;
-			var movementXML:XML = getAnimationXML(armatureData.name, animationName);
-			var movementBoneXML:XML = movementXML[ConstValues.BONE].(@[ConstValues.A_NAME] == boneName)[0];
-			movementBoneXML.@[ConstValues.A_MOVEMENT_SCALE] = transformTimeline.scale;
-			movementBoneXML.@[ConstValues.A_MOVEMENT_DELAY] = transformTimeline.offset;
+			var transformTimeline:TransformTimeline = animationData.getTimeline(timelineName) as TransformTimeline;
+			var timelineXML:XML = getTimelineXMLList(armatureData.name, animationName, timelineName)[0];
+			timelineXML.@[ConstValues.A_SCALE] = formatNumber(transformTimeline.scale);
+			timelineXML.@[ConstValues.A_OFFSET] = formatNumber(transformTimeline.offset);
 		}
 		
 		private function formatNumber(num:Number, retain:uint = 100):Number
@@ -583,29 +584,24 @@ package model
 			return Math.round(num * retain) / retain;
 		}
 		
-		private function getAnimationsXML(animationName:String):XML
+		private static function formatXML(xml:XML):XML
 		{
-			return getAnimationsXMLList(_xml).(@[ConstValues.A_NAME] == animationName)[0];
-		}
-		
-		private static function getArmatureXMLList(xml:XML):XMLList
-		{
-			return xml[ConstValues.ARMATURES][ConstValues.ARMATURE];
-		}
-		
-		private static function getAnimationsXMLList(xml:XML):XMLList
-		{
-			return xml[ConstValues.ANIMATIONS][ConstValues.ANIMATION];
-		}
-		
-		private static function getDisplayXMLList(xml:XML):XMLList
-		{
-			return xml[ConstValues.ARMATURES][ConstValues.ARMATURE][ConstValues.BONE][ConstValues.DISPLAY];
-		}
-		
-		private static function getSubTextureXMLList(textureAtlasXML:XML):XMLList
-		{
-			return textureAtlasXML[ConstValues.SUB_TEXTURE];
+			var version:String = xml.@[ConstValues.A_VERSION];
+			switch(version)
+			{
+				case "1.4":
+				case "1.5":
+				case "2.0":
+				case "2.1":
+				case "2.1.1":
+				case "2.1.2":
+				case "2.2":
+					return formatDataToCurrentVersion(xml);
+				default:
+					break;
+			}
+			
+			return xml;
 		}
 	}
 }

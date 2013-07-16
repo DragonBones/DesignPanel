@@ -101,9 +101,6 @@
 			_textureBytes = textureBytes;
 			this.isExportedSource = isExportedSource;
 			
-			//1.4
-			_xmlDataProxy.moveTexturePivotToData();
-			
 			_data = XMLDataParser.parseSkeletonData(_xmlDataProxy.xml);
 			_textureAtlas = new NativeTextureAtlas(textureData, _xmlDataProxy.textureAtlasXML)
 			_textureAtlas.movieClipToBitmapData();
