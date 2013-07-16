@@ -131,7 +131,7 @@ package control
 									xmlToObject(_xmlDataProxy.textureAtlasXML, GlobalConstValues.XML_LIST_NAMES), 
 									dataBytes
 								), 
-								_importDataProxy.data.name + GlobalConstValues.OUTPUT_SUFFIX + GlobalConstValues.SWF_SUFFIX
+								_importDataProxy.data.name + GlobalConstValues.SWF_SUFFIX
 							);
 							return;
 						}
@@ -153,7 +153,7 @@ package control
 									xmlToObject(_xmlDataProxy.textureAtlasXML, GlobalConstValues.XML_LIST_NAMES), 
 									dataBytes
 								), 
-								_importDataProxy.data.name + GlobalConstValues.OUTPUT_SUFFIX + GlobalConstValues.PNG_SUFFIX
+								_importDataProxy.data.name + GlobalConstValues.PNG_SUFFIX
 							);
 							return;
 						}
@@ -215,7 +215,7 @@ package control
 							}
 							exportSave(
 								zip.encode(), 
-								_importDataProxy.data.name + GlobalConstValues.OUTPUT_SUFFIX + GlobalConstValues.ZIP_SUFFIX
+								_importDataProxy.data.name + GlobalConstValues.ZIP_SUFFIX
 							);
 							zip.clear();
 							return;
@@ -283,7 +283,7 @@ package control
 						
 						exportSave(
 							zip.encode(), 
-							_importDataProxy.data.name + GlobalConstValues.OUTPUT_SUFFIX + GlobalConstValues.ZIP_SUFFIX
+							_importDataProxy.data.name + GlobalConstValues.ZIP_SUFFIX
 						);
 						zip.clear();
 						return;

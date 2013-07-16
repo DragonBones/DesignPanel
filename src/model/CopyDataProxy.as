@@ -175,7 +175,7 @@ package model
 			//拷贝动画前先拷贝骨架
 			//executeBoneCopy();
 			
-			/*var copyAnimationData:AnimationData = XMLDataParser.parseAnimationData(
+			var copyAnimationData:AnimationData = XMLDataParser.parseAnimationData(
 				_xmlDataProxy.getAnimationXMLList(sourceArmatureProxy.armatureName, sourceArmatureProxy.selectedAnimationName)[0],
 				sourceArmatureProxy.armatureData,
 				sourceArmatureProxy.selecteAnimationData.frameRate
@@ -196,7 +196,7 @@ package model
 			_copyAnimationVOList.push(copyAnimationVO);
 			
 			dataChanged = true;
-			*/
+			
 			updateAnimationCopyAble();
 		}
 		

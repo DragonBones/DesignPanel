@@ -3,11 +3,11 @@ package model
 	import flash.errors.IllegalOperationError;
 	import flash.net.SharedObject;
 	
-	import mx.collections.ArrayCollection;
-	import mx.resources.ResourceManager;
-	
 	import message.Message;
 	import message.MessageDispatcher;
+	
+	import mx.collections.ArrayCollection;
+	import mx.resources.ResourceManager;
 	
 	[Bindable]
 	public class SettingDataProxy

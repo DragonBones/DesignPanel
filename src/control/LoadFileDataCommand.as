@@ -6,6 +6,7 @@ package control
 	import dragonBones.objects.DecompressedData;
 	import dragonBones.utils.BytesType;
 	import dragonBones.utils.ConstValues;
+	import dragonBones.utils.checkBytesTailisXML;
 	
 	import flash.display.BitmapData;
 	import flash.display.Loader;
@@ -172,7 +173,7 @@ package control
 									zipFile.name == GlobalConstValues.DRAGON_BONES_DATA_NAME + GlobalConstValues.JSON_SUFFIX
 								)
 								{
-									if(zipFile.data[zipFile.data.length - 1] != ">".charCodeAt(0))
+									if(checkBytesTailisXML(zipFile.data))
 									{
 										object = com.adobe.serialization.json.JSON.decode(zipFile.data.toString());
 										_xmlDataProxy.xml = objectToXML(object, ConstValues.DRAGON_BONES);
@@ -187,7 +188,7 @@ package control
 									zipFile.name == GlobalConstValues.TEXTURE_ATLAS_DATA_NAME + GlobalConstValues.JSON_SUFFIX
 								)
 								{
-									if(zipFile.data[zipFile.data.length - 1] != ">".charCodeAt(0))
+									if(checkBytesTailisXML(zipFile.data))
 									{
 										object = com.adobe.serialization.json.JSON.decode(zipFile.data.toString());
 										_xmlDataProxy.textureAtlasXML = objectToXML(object, ConstValues.TEXTURE_ATLAS);
