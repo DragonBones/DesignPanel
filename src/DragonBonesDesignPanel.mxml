@@ -238,7 +238,7 @@
 							if(!_importDataProxy.isExportedSource)
 							{
 								var animationXMLCopy:XML = _importDataProxy.xmlDataProxy.getAnimationXMLList(armatureName, animationName)[0].copy();
-								delete animationXMLCopy[ConstValues.BONE].*;
+								delete animationXMLCopy[ConstValues.TIMELINE].*;
 								delete animationXMLCopy[ConstValues.FRAME];
 								JSFLProxy.getInstance().changeMovement(armatureName, animationName, animationXMLCopy);
 							}

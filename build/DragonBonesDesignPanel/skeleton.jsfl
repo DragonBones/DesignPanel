@@ -457,7 +457,8 @@ function getAnimationXML(armatureXML, name, item, duration)
 					tweenEasing = Number(animationXMLInItem.@[A_TWEEN_EASING]);
 				}
 			}
-			else if(animationsXML[OLD_ANIMATION].length() > 0)
+			
+			if(!animationXMLInItem && animationsXML[OLD_ANIMATION].length() > 0)
 			{
 				animationXMLInItem = animationsXML[OLD_ANIMATION].(@name == name)[0];
 				if(animationXMLInItem)
@@ -527,7 +528,8 @@ function getTimelineXML(animationXML, name, item)
 					}
 				}
 			}
-			else if(animationsXML[OLD_ANIMATION].length() > 0)
+			
+			if(!animationXMLInItem && animationsXML[OLD_ANIMATION].length() > 0)
 			{
 				animationXMLInItem = animationsXML[OLD_ANIMATION].(@name == animationName)[0];
 				if(animationXMLInItem)
@@ -1264,6 +1266,10 @@ dragonBones.changeMovement = function(armatureName, animationName, data)
 	{
 		animationsXML.appendChild(data);
 	}
+	
+	trace(animationsXML);
+	
+	
 	item.addData(ANIMATION_DATA, STRING, animationsXML.toXMLString());
 	//Jsfl api Or Flash pro bug
 	item.symbolType = GRAPHIC;
