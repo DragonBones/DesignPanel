@@ -1267,9 +1267,6 @@ dragonBones.changeMovement = function(armatureName, animationName, data)
 		animationsXML.appendChild(data);
 	}
 	
-	trace(animationsXML);
-	
-	
 	item.addData(ANIMATION_DATA, STRING, animationsXML.toXMLString());
 	//Jsfl api Or Flash pro bug
 	item.symbolType = GRAPHIC;
