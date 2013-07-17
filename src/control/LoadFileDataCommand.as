@@ -156,8 +156,8 @@ package control
 						break;
 					}
 				case BytesType.ZIP:
-					//try
-					//{
+					try
+					{
 						var object:Object;
 						var images:Object;
 						var zip:Zip = new Zip();
@@ -231,11 +231,11 @@ package control
 							return;
 						}
 						break;
-					//}
-					//catch(_e:Error)
-					//{
-						//break;
-					//}
+					}
+					catch(_e:Error)
+					{
+						break;
+					}
 				default:
 					break;
 			}
