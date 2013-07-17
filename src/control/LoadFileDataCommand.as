@@ -37,7 +37,7 @@ package control
 	{
 		public static const instance:LoadFileDataCommand = new LoadFileDataCommand();
 		
-		private static const FILE_FILTER_ARRAY:Array = [new FileFilter("Exported data", "*." + String(["swf", "png", "zip"]).replace(/\,/g, ";*."))];
+		private static const FILE_FILTER_ARRAY:Array = [new FileFilter("Exported data", "*." + String(["swf", "dbswf", "png", "zip"]).replace(/\,/g, ";*."))];
 	
 		private var _fileREF:FileReference;
 		private var _urlLoader:URLLoader;
@@ -156,8 +156,8 @@ package control
 						break;
 					}
 				case BytesType.ZIP:
-					try
-					{
+					//try
+					//{
 						var object:Object;
 						var images:Object;
 						var zip:Zip = new Zip();
@@ -175,12 +175,12 @@ package control
 								{
 									if(checkBytesTailisXML(zipFile.data))
 									{
-										object = com.adobe.serialization.json.JSON.decode(zipFile.data.toString());
-										_xmlDataProxy.xml = objectToXML(object, ConstValues.DRAGON_BONES);
+										_xmlDataProxy.xml = XML(zipFile.data);
 									}
 									else
 									{
-										_xmlDataProxy.xml = XML(zipFile.data);
+										object = com.adobe.serialization.json.JSON.decode(zipFile.data.toString());
+										_xmlDataProxy.xml = objectToXML(object, ConstValues.DRAGON_BONES);
 									}
 								}
 								else if(
@@ -190,12 +190,12 @@ package control
 								{
 									if(checkBytesTailisXML(zipFile.data))
 									{
-										object = com.adobe.serialization.json.JSON.decode(zipFile.data.toString());
-										_xmlDataProxy.textureAtlasXML = objectToXML(object, ConstValues.TEXTURE_ATLAS);
+										_xmlDataProxy.textureAtlasXML = XML(zipFile.data);
 									}
 									else
 									{
-										_xmlDataProxy.textureAtlasXML = XML(zipFile.data);
+										object = com.adobe.serialization.json.JSON.decode(zipFile.data.toString());
+										_xmlDataProxy.textureAtlasXML = objectToXML(object, ConstValues.TEXTURE_ATLAS);
 									}
 								}
 								else if(zipFile.name.indexOf(GlobalConstValues.TEXTURE_NAME) == 0)
@@ -231,11 +231,11 @@ package control
 							return;
 						}
 						break;
-					}
-					catch(_e:Error)
-					{
-						break;
-					}
+					//}
+					//catch(_e:Error)
+					//{
+						//break;
+					//}
 				default:
 					break;
 			}

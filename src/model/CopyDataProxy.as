@@ -204,19 +204,18 @@ package model
 		{
 			if(dataChanged)
 			{
-				
-				MessageDispatcher.dispatchEvent(
-					MessageDispatcher.COPY_BONE_AND_ANIMATION,
-					_copyBoneVOList.concat(),
-					_copyAnimationVOList.concat()
-				);
-				
 				MessageDispatcher.dispatchEvent(
 					MessageDispatcher.IMPORT_COMPLETE, 
 					_xmlDataProxy, 
 					ImportDataProxy.getInstance().textureBytes, 
 					ImportDataProxy.getInstance().textureAtlas.movieClip || ImportDataProxy.getInstance().textureAtlas.bitmapData.clone(), 
 					ImportDataProxy.getInstance().isExportedSource
+				);
+				
+				MessageDispatcher.dispatchEvent(
+					MessageDispatcher.COPY_BONE_AND_ANIMATION,
+					_copyBoneVOList.concat(),
+					_copyAnimationVOList.concat()
 				);
 			}
 			

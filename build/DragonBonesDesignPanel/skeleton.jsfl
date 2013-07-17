@@ -1271,7 +1271,7 @@ dragonBones.changeMovement = function(armatureName, animationName, data)
 	return true;
 }
 
-dragonBones.copyMovement = function(targetArmatureName, sourceArmatureName, sourceMovementName, sourceMovementXML)
+dragonBones.copyMovement = function(targetArmatureName, sourceArmatureName, sourceAnimationName, sourceAnimationXML)
 {
 	if(errorDOM())
 	{
@@ -1293,7 +1293,7 @@ dragonBones.copyMovement = function(targetArmatureName, sourceArmatureName, sour
 	var targetMainFrameList = getMainFrameList(targetMainLayer.frames);
 	for each(var mainFrame in targetMainFrameList)
 	{
-		if(mainFrame.frame.name == sourceMovementName)
+		if(mainFrame.frame.name == sourceAnimationName)
 		{
 			//拥有同名动画
 			return false;
@@ -1332,16 +1332,16 @@ dragonBones.copyMovement = function(targetArmatureName, sourceArmatureName, sour
 	
 	for each(var mainFrame in sourceMainFrameList)
 	{
-		if(mainFrame.frame.name == sourceMovementName)
+		if(mainFrame.frame.name == sourceAnimationName)
 		{
 			break;
 		}
 	}
 	
-	sourceMovementXML = XML(sourceMovementXML).toXMLString();
-	sourceMovementXML = replaceString(sourceMovementXML, "&lt;", "<");
-	sourceMovementXML = replaceString(sourceMovementXML, "&gt;", ">");
-	sourceMovementXML = XML(sourceMovementXML);
+	sourceAnimationXML = XML(sourceAnimationXML).toXMLString();
+	sourceAnimationXML = replaceString(sourceAnimationXML, "&lt;", "<");
+	sourceAnimationXML = replaceString(sourceAnimationXML, "&gt;", ">");
+	sourceAnimationXML = XML(sourceAnimationXML);
 	
 	var sourceStartFrame = mainFrame.frame.startFrame;
 	var sourceDuration = mainFrame.duration;
@@ -1376,7 +1376,7 @@ dragonBones.copyMovement = function(targetArmatureName, sourceArmatureName, sour
 		
 		if(boneName)
 		{
-			var timelineXML = sourceMovementXML[BONE].(@name == boneName)[0];
+			var timelineXML = sourceAnimationXML[TIMELINE].(@name == boneName)[0];
 			if(!timelineXML)
 			{
 				continue;
@@ -1422,8 +1422,8 @@ dragonBones.copyMovement = function(targetArmatureName, sourceArmatureName, sour
 				_helpTransform.scaleY = Number(frameXML.@[A_SCALE_Y]);
 				_helpTransform.skewX = Number(frameXML.@[A_SKEW_X]) / 180 * Math.PI;
 				_helpTransform.skewY = Number(frameXML.@[A_SKEW_Y]) / 180 * Math.PI;
-				_helpTransform.pivotX = Number(frameXML.@[A_PIVOT_X]);
-				_helpTransform.pivotY = Number(frameXML.@[A_PIVOT_Y]);
+				_helpTransform.pivotX = - Number(frameXML.@[A_PIVOT_X]);
+				_helpTransform.pivotY = - Number(frameXML.@[A_PIVOT_Y]);
 				
 				var matrix = boneSymbol.matrix;
 				matrix.a = _helpTransform.scaleX * Math.cos(_helpTransform.skewY)
