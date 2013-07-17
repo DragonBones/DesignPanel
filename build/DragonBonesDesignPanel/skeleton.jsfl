@@ -476,7 +476,6 @@ function getAnimationXML(armatureXML, name, item, duration)
 					scale = Number(animationXMLInItem.@[OLD_DURATION_TWEEN]) / duration;
 					tweenEasing = Number(animationXMLInItem.@[OLD_TWEEN_EASING][0]);
 				}
-				//dragonBones.changeMovement
 				//delete old data
 			}
 		}
@@ -1229,7 +1228,7 @@ dragonBones.changeArmatureConnection = function(armatureName, data)
 	return true;
 }
 
-dragonBones.changeMovement = function(armatureName, animationName, data)
+dragonBones.changeAnimation = function(armatureName, animationName, data)
 {
 	if(errorDOM())
 	{
@@ -1246,7 +1245,8 @@ dragonBones.changeMovement = function(armatureName, animationName, data)
 	data = replaceString(data, "&lt;", "<");
 	data = replaceString(data, "&gt;", ">");
 	data = XML(data);
-	delete data[BONE].*;
+	delete data[TIMELINE].*;
+	delete data[FRAME];
 	
 	var animationsXML;
 	if(item.hasData(ANIMATION_DATA))
@@ -1260,12 +1260,10 @@ dragonBones.changeMovement = function(armatureName, animationName, data)
 	var animationXML = animationsXML[ANIMATION].(@name == animationName)[0];
 	if(animationXML)
 	{
-		animationsXML[ANIMATION][animationXML.childIndex()] = data;
+		var childIndex = animationXML.childIndex();
+		delete animationsXML.elements()[childIndex];
 	}
-	else
-	{
-		animationsXML.appendChild(data);
-	}
+	animationsXML.appendChild(data);
 	
 	item.addData(ANIMATION_DATA, STRING, animationsXML.toXMLString());
 	//Jsfl api Or Flash pro bug
@@ -1274,7 +1272,7 @@ dragonBones.changeMovement = function(armatureName, animationName, data)
 	return true;
 }
 
-dragonBones.copyMovement = function(targetArmatureName, sourceArmatureName, sourceAnimationName, sourceAnimationXML)
+dragonBones.copyAnimation = function(targetArmatureName, sourceArmatureName, sourceAnimationName, sourceAnimationXML)
 {
 	if(errorDOM())
 	{

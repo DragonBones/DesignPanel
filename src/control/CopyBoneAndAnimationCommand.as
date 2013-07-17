@@ -39,7 +39,7 @@ package control
 			if(_copyAnimationTotal > 0)
 			{
 				MessageDispatcher.dispatchEvent(MessageDispatcher.SAVE_ANIMATION_START);
-				MessageDispatcher.addEventListener(JSFLProxy.COPY_MOVEMENT, copyAnimationHandler);
+				MessageDispatcher.addEventListener(JSFLProxy.COPY_ANIMATION, copyAnimationHandler);
 				copyAnimationHandler(null);
 			}
 		}
@@ -52,7 +52,7 @@ package control
 				
 				var copyAnimationVO:CopyAnimationVO = _copyAnimationVOList.pop();
 				
-				JSFLProxy.getInstance().copyMovement(
+				JSFLProxy.getInstance().copyAnimation(
 					copyAnimationVO.armatureName,
 					copyAnimationVO.sourceArmatureName, 
 					copyAnimationVO.animationName, 
@@ -61,7 +61,7 @@ package control
 			}
 			else
 			{
-				MessageDispatcher.removeEventListener(JSFLProxy.COPY_MOVEMENT, copyAnimationHandler);
+				MessageDispatcher.removeEventListener(JSFLProxy.COPY_ANIMATION, copyAnimationHandler);
 				MessageDispatcher.dispatchEvent(MessageDispatcher.SAVE_ANIMATION_COMPLETE);
 				_isCopying = false;
 			}

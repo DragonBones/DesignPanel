@@ -23,7 +23,7 @@
 		public static const CLEAR_TEXTURE_SWFITEM:String = "clearTextureSWFItem";
 		public static const ADD_TEXTURE_TO_SWFITEM:String = "addTextureToSWFItem";
 		public static const EXPORT_SWF:String = "exportSWF";
-		public static const COPY_MOVEMENT:String = "copyArmatureFrom";
+		public static const COPY_ANIMATION:String = "copyArmatureFrom";
 		
 		private static const LOCAL_CONNECTION_NAME:String = "_DragonBonesDesignPanelLocalConnection";
 		private static const CONNECTION_METHOD_NAME:String = "connectionMethodName";
@@ -398,19 +398,19 @@
 		}
 		
 		/**
-		 * Update movement data from XML data to fla file
+		 * Update animation data from XML data to fla file
 		 */
-		public function changeMovement(armatureName:String, movementName:String, movementXML:XML):void
+		public function changeAnimation(armatureName:String, animationName:String, animationXML:XML):void
 		{
-			runJSFLMethod(null, "dragonBones.changeMovement", armatureName, movementName, movementXML);
+			runJSFLMethod(null, "dragonBones.changeAnimation", armatureName, animationName, animationXML);
 		}
 		
 		/**
-		 * Update movement data from XML data to fla file
+		 * Update animation data from XML data to fla file
 		 */
-		public function copyMovement(targetArmatureName:String, sourceArmatureName:String, sourceMovementName:String, sourceMovementXML:XML):void
+		public function copyAnimation(targetArmatureName:String, sourceArmatureName:String, sourceAnimationName:String, sourceAnimationXML:XML):void
 		{
-			runJSFLMethod(COPY_MOVEMENT, "dragonBones.copyMovement", targetArmatureName, sourceArmatureName, sourceMovementName, sourceMovementXML);
+			runJSFLMethod(COPY_ANIMATION, "dragonBones.copyAnimation", targetArmatureName, sourceArmatureName, sourceAnimationName, sourceAnimationXML);
 		}
 	}
 }

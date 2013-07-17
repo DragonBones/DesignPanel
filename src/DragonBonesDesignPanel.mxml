@@ -226,7 +226,7 @@
 							if(!_importDataProxy.isExportedSource)
 							{
 								var animationXML:XML = _importDataProxy.xmlDataProxy.getAnimationXMLList(armatureName, animationName)[0];
-								JSFLProxy.getInstance().changeMovement(armatureName, animationName, animationXML);
+								JSFLProxy.getInstance().changeAnimation(armatureName, animationName, animationXML);
 							}
 						}
 						break;
@@ -240,7 +240,7 @@
 								var animationXMLCopy:XML = _importDataProxy.xmlDataProxy.getAnimationXMLList(armatureName, animationName)[0].copy();
 								delete animationXMLCopy[ConstValues.TIMELINE].*;
 								delete animationXMLCopy[ConstValues.FRAME];
-								JSFLProxy.getInstance().changeMovement(armatureName, animationName, animationXMLCopy);
+								JSFLProxy.getInstance().changeAnimation(armatureName, animationName, animationXMLCopy);
 							}
 						}
 						break;
