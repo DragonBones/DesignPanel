@@ -38,6 +38,10 @@ package cloud
 		
 		public function testNetwork():void
 		{
+			if(command != null)
+			{
+				return;
+			}
 			command = new DBNC_LoadLatestVersion();
 			command.addEventListener(DBNetworkCommandEvent.FINISHED, command_onFinished);
 			command.execute();
@@ -47,6 +51,7 @@ package cloud
 		{
 			command.removeEventListener(DBNetworkCommandEvent.FINISHED, command_onFinished);
 			var newValue:Boolean = command.outputData != null;
+			command = null;
 			if(_isNetworkAvailable != newValue)
 			{
 				_isNetworkAvailable = newValue;

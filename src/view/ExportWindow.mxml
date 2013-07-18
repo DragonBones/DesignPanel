@@ -25,7 +25,7 @@
 			
 			private function exportData():void
 			{
-				DBGATrackerManager.tracker.trackEvent("ExportWindow:ExportData", "ExportWindow:ExportData:"+String(SettingDataProxy.getInstance().dataExportArrayCollection[SettingDataProxy.getInstance().dataExportID]));
+				DBGATrackerManager.trackEvent("ExportWindow:ExportData", "ExportWindow:ExportData:"+String(SettingDataProxy.importArrayCollectionSource[SettingDataProxy.getInstance().dataExportID]));
 				
 				if(!ImportDataProxy.getInstance().xmlDataProxy)
 				{
@@ -49,14 +49,14 @@
 			
 			private function closeWindow():void
 			{
-				DBGATrackerManager.tracker.trackPageview("/");
+				DBGATrackerManager.trackPageview("/");
 				MessageDispatcher.removeEventListener(MessageDispatcher.EXPORT, commandHandler);
 				PopUpManager.removePopUp(this);
 			}
 			
 			private function closeBtn_onClick(event:MouseEvent):void
 			{
-				DBGATrackerManager.tracker.trackEvent("ExportWindow:Close", "ExportWindow:Close");
+				DBGATrackerManager.trackEvent("ExportWindow:Close", "ExportWindow:Close");
 				closeWindow();
 			}
 			

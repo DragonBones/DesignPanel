@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:SkinnableContainer xmlns:fx="http://ns.adobe.com/mxml/2009"
+					  xmlns:s="library://ns.adobe.com/flex/spark"
+					  xmlns:mx="library://ns.adobe.com/flex/mx"
+					  xmlns:components="view.components.*"
+					  xmlns:view="view.*"
+					  width="100%" height="100%" backgroundAlpha="0.5" backgroundColor="#CCCCCC"
+					  creationComplete="this_creationCompleteHandler(event)"
+					  show="showHandler(event)">
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	<fx:Script>
+		<![CDATA[
+			import cloud.DBCloud;
+			import cloud.events.DBCloudEvent;
+			
+			import dragonBones.core.DragonBones;
+			import dragonBones.utils.ConstValues;
+			
+			import mx.events.FlexEvent;
+			
+			[Bindable]
+			private var _onlineHelp:String = "";
+			
+			[Bindable]
+			private var _about:String = "";
+			
+			[Bindable]
+			private var _contactUs:String = 
+				"If you have any questions, suggestions or bug reports, please contact us <font color='#03E2EA'><a href='http://dragonbones.github.io/contact_us.html'>HERE</a></font>";
+			
+			[Bindable]
+			private var _helpUs:String = "";
+			
+			protected function this_creationCompleteHandler(event:FlexEvent):void
+			{
+				DBCloud.instance.addEventListener(DBCloudEvent.LOAD_ONLINEHELP_SUCCESS, cloud_onLoadOnlineHelpSuccess);
+				DBCloud.instance.addEventListener(DBCloudEvent.LOAD_ABOUT_SUCCESS, cloud_onLoadAboutSuccess);
+				DBCloud.instance.addEventListener(DBCloudEvent.LOAD_HELPUS_SUCCESS, cloud_onLoadHelpUsSuccess);
+				DBCloud.instance.loadOnlineHelp();
+				DBCloud.instance.loadAbout();
+				DBCloud.instance.loadHelpUs();
+			}
+			
+			private function cloud_onLoadOnlineHelpSuccess(event:DBCloudEvent):void
+			{
+				DBCloud.instance.removeEventListener(DBCloudEvent.LOAD_ONLINEHELP_SUCCESS, cloud_onLoadOnlineHelpSuccess);
+				_onlineHelp = String(event.data.outputData);
+			}
+			
+			private function cloud_onLoadAboutSuccess(event:DBCloudEvent):void
+			{
+				DBCloud.instance.removeEventListener(DBCloudEvent.LOAD_ABOUT_SUCCESS, cloud_onLoadAboutSuccess);
+				_about = String(event.data.outputData);
+			}
+			
+			private function cloud_onLoadHelpUsSuccess(event:DBCloudEvent):void
+			{
+				DBCloud.instance.removeEventListener(DBCloudEvent.LOAD_ABOUT_SUCCESS, cloud_onLoadHelpUsSuccess);
+				_helpUs = String(event.data.outputData);
+			}
+			
+			private function showHandler(event:Event):void
+			{
+				if(_onlineHelp == "")
+				{
+					DBCloud.instance.loadOnlineHelp();
+				}
+				if(_about == "")
+				{
+					DBCloud.instance.loadAbout();
+				}
+				if(_helpUs == "")
+				{
+					DBCloud.instance.loadHelpUs();
+				}
+			}
+			
+			private function closeHandler(event:Event):void
+			{
+				this.visible = false;
+				DBGATrackerManager.trackEvent("AboutWindow:Close", "AboutWindow:Close");
+				DBGATrackerManager.trackPageview("/");
+			}
+			
+			protected function contactUsBtn_onClick(event:MouseEvent):void
+			{
+				navigateToURL(new URLRequest("http://dragonbones.github.io/contact_us.html"));
+			}
+			
+		]]>
+	</fx:Script>
+	<s:TitleWindow left="20" right="20" top="20" bottom="20" title="{resourceManager.getString('resources','help')}" close="closeHandler(event)">
+		
+		<s:TabBar id="tabs" width="100%" dataProvider="{vs}"/>
+		<mx:ViewStack id="vs" width="100%" height="100%" top="24">
+			<s:NavigatorContent label="Online Help" width="100%" height="100%">
+				<mx:TextArea left="5" right="5" top="5" bottom="5" borderVisible="false"
+							 contentBackgroundAlpha="0.0" editable="false" fontSize="14"
+							 htmlText="{_onlineHelp}"/>
+			</s:NavigatorContent>
+			<s:NavigatorContent label="Contact Us" width="100%" height="100%">
+					<mx:TextArea left="5" right="5" top="5" bottom="5" borderVisible="false" 
+								 contentBackgroundAlpha="0.0" fontSize="14" editable="false"
+								 htmlText="{_contactUs}" />
+			</s:NavigatorContent>
+			<s:NavigatorContent label="About" width="100%" height="100%">
+				<s:VGroup left="10" right="10" top="10" bottom="10" >
+					<s:Label width="100%" fontSize="14" fontWeight="bold"
+								 text="DragonBones V{DragonBones.VERSION} ({DragonBones.VERSION_NUMBER})"/>
+					<mx:TextArea id="aboutText" width="100%" height="100%"
+								 contentBackgroundAlpha="0.0" borderVisible="false" editable="false"
+								 htmlText="{_about}" />
+					<s:Label width="100%" fontSize="14" fontWeight="bold"
+								 text="{resourceManager.getString('resources', 'copyright')}" />
+				</s:VGroup>
+			</s:NavigatorContent>
+			<s:NavigatorContent label="Help Us" width="100%" height="100%">
+				<mx:TextArea left="5" right="5" top="5" bottom="5" editable="false"
+							 contentBackgroundAlpha="0.0"  borderVisible="false" fontSize="14"
+							 htmlText="{_helpUs}"/>
+				
+			</s:NavigatorContent>
+		</mx:ViewStack>
+	</s:TitleWindow>
+</s:SkinnableContainer>

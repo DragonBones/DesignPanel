@@ -37,7 +37,7 @@ package cloud
 		
 		private function initLoaderList():void
 		{
-			for(var i:int = 0; i < 2; i++)
+			for(var i:int = 0; i < 5; i++)
 			{
 				_loaderList.push(createLoader());
 			}

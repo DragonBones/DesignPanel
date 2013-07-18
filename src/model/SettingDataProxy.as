@@ -12,6 +12,9 @@ package model
 	[Bindable]
 	public class SettingDataProxy
 	{
+		public static const importArrayCollectionSource:Array = new Array('allLibraryItems','selectedItems','exportedData');
+		public static const exportArrayCollectionSource:Array = new Array('swf','png','swf+xml','png+xml','pngs+xml','swf+json','png+json','pngs+json');
+		
 		public static const DATA_IMPORT_ID:String = "dataImportID";
 		public static const DATA_EXPORT_ID:String = "dataExportID";
 		public static const EXPORT_SCALE_ID:String = "exportScaleID";
@@ -21,7 +24,6 @@ package model
 		public static const BACKGROUND_COLOR:String = "backgoundColor";
 		
 		private static const SHARE_LOCAL:String = "DragonBones/SkeletonDesignPanel/V1";
-		
 		
 		private static var _instance:SettingDataProxy;
 		public static function getInstance():SettingDataProxy
@@ -56,7 +58,7 @@ package model
 			}
 			return int(textureMaxWidthArrayCollection.getItemAt(textureMaxWidthID));
 		}
-		public var textureMaxWidthArrayCollection:ArrayCollection = new ArrayCollection(["Auto size", 128, 256, 512, 1024, 2048, 4096]);
+		public var textureMaxWidthArrayCollection:ArrayCollection = new ArrayCollection(["AutoSize", 128, 256, 512, 1024, 2048, 4096]);
 		
 		public var texturePadding:int = 2;
 		
@@ -102,19 +104,19 @@ package model
 			ResourceManager.getInstance().localeChain = [languageArrayCollection[_languageID].value];
 			
 			dataImportArrayCollection.source.length = 0;
-			dataImportArrayCollection.source.push(ResourceManager.getInstance().getString('resources','allLibraryItems'));
-			dataImportArrayCollection.source.push(ResourceManager.getInstance().getString('resources','selectedItems'));
-			dataImportArrayCollection.source.push(ResourceManager.getInstance().getString('resources','exportedData'));
+			dataImportArrayCollection.source.push(ResourceManager.getInstance().getString('resources', String(importArrayCollectionSource[0])));
+			dataImportArrayCollection.source.push(ResourceManager.getInstance().getString('resources', String(importArrayCollectionSource[1])));
+			dataImportArrayCollection.source.push(ResourceManager.getInstance().getString('resources', String(importArrayCollectionSource[2])));
 			
 			dataExportArrayCollection.source.length = 0;
-			dataExportArrayCollection.source.push(ResourceManager.getInstance().getString('resources','SWFwithDBData'));
-			dataExportArrayCollection.source.push(ResourceManager.getInstance().getString('resources','PNGwithDBData'));
-			dataExportArrayCollection.source.push(ResourceManager.getInstance().getString('resources','ZIPwithXMLAndSWF'));
-			dataExportArrayCollection.source.push(ResourceManager.getInstance().getString('resources','ZIPwithXMLAndPNG'));
-			dataExportArrayCollection.source.push(ResourceManager.getInstance().getString('resources','ZIPwithXMLAndPNGs'));
-			dataExportArrayCollection.source.push(ResourceManager.getInstance().getString('resources','ZIPwithJSONAndSWF'));
-			dataExportArrayCollection.source.push(ResourceManager.getInstance().getString('resources','ZIPwithJSONAndPNG'));
-			dataExportArrayCollection.source.push(ResourceManager.getInstance().getString('resources','ZIPwithJSONAndPNGs'));
+			dataExportArrayCollection.source.push(ResourceManager.getInstance().getString('resources', String(exportArrayCollectionSource[0])));
+			dataExportArrayCollection.source.push(ResourceManager.getInstance().getString('resources', String(exportArrayCollectionSource[1])));
+			dataExportArrayCollection.source.push(ResourceManager.getInstance().getString('resources', String(exportArrayCollectionSource[2])));
+			dataExportArrayCollection.source.push(ResourceManager.getInstance().getString('resources', String(exportArrayCollectionSource[3])));
+			dataExportArrayCollection.source.push(ResourceManager.getInstance().getString('resources', String(exportArrayCollectionSource[4])));
+			dataExportArrayCollection.source.push(ResourceManager.getInstance().getString('resources', String(exportArrayCollectionSource[5])));
+			dataExportArrayCollection.source.push(ResourceManager.getInstance().getString('resources', String(exportArrayCollectionSource[6])));
+			dataExportArrayCollection.source.push(ResourceManager.getInstance().getString('resources', String(exportArrayCollectionSource[7])));
 			
 			setData(LANGUAGE_ID, _languageID);
 		}

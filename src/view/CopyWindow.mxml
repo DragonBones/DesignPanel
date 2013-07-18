@@ -57,32 +57,32 @@
 			
 			private function closeHandler(event:Event):void
 			{
-				DBGATrackerManager.tracker.trackEvent("CopyWindow:Close", "CopyWindow:Close");
+				DBGATrackerManager.trackEvent("CopyWindow:Close", "CopyWindow:Close");
 				closeCopySession();
 			}
 			
 			private function closeCopySession():void
 			{
-				DBGATrackerManager.tracker.trackPageview("/");
+				DBGATrackerManager.trackPageview("/");
 				this.visible = false;
 				CopyDataProxy.getInstance().closeCopySession();
 			}
 			
 			private function copyBone():void
 			{
-				DBGATrackerManager.tracker.trackEvent("CopyWindow:CopyBone", "CopyWindow:CopyBone");
+				DBGATrackerManager.trackEvent("CopyWindow:CopyBone", "CopyWindow:CopyBone");
 				CopyDataProxy.getInstance().executeBoneCopy();
 			}
 			
 			private function copyAnimation():void
 			{
-				DBGATrackerManager.tracker.trackEvent("CopyWindow:CopyBehavior", "CopyWindow:CopyBehavior");
+				DBGATrackerManager.trackEvent("CopyWindow:CopyBehavior", "CopyWindow:CopyBehavior");
 				CopyDataProxy.getInstance().executeAnimationCopy();
 			}
 			
 			private function save():void
 			{
-				DBGATrackerManager.tracker.trackEvent("CopyWindow:Save", "CopyWindow:Save");
+				DBGATrackerManager.trackEvent("CopyWindow:Save", "CopyWindow:Save");
 				CopyDataProxy.getInstance().save();
 				closeCopySession();
 			}

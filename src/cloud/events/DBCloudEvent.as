@@ -12,6 +12,12 @@ package cloud.events
 		public static const LOAD_ONLINEHELP_SUCCESS:String = "DBCloudEvent:LOAD_ONLINEHELP_SUCCESS";
 		public static const LOAD_ONLINEHELP_FAILED:String = "DBCloudEvent:LOAD_ONLINEHELP_FAILED";
 		
+		public static const LOAD_ABOUT_SUCCESS:String = "DBCloudEvent:LOAD_ABOUT_SUCCESS";
+		public static const LOAD_ABOUT_FAILED:String = "DBCloudEvent:LOAD_ABOUT_FAILED";
+		
+		public static const LOAD_HELPUS_SUCCESS:String = "DBCloudEvent:LOAD_HELPUS_SUCCESS";
+		public static const LOAD_HELPUS_FAILED:String = "DBCloudEvent:LOAD_HELPUS_FAILED";
+		
 		public var _data:Object;
 		
 		public function DBCloudEvent(type:String, data:Object=null, bubbles:Boolean=false, cancelable:Boolean=false)

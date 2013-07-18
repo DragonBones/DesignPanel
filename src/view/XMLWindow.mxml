@@ -27,7 +27,7 @@
 			
 			protected function closeHandler(event:Event):void
 			{
-				DBGATrackerManager.tracker.trackPageview("/");
+				DBGATrackerManager.trackPageview("/");
 				this.visible = false;
 			}
 			

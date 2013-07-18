@@ -4,7 +4,7 @@ package cloud
 	import cloud.events.DBCloudEvent;
 	import cloud.events.DBNetworkCommandEvent;
 	import cloud.events.DBNetworkEvent;
-
+	
 	import flash.events.EventDispatcher;
 	import flash.events.IEventDispatcher;
 	import flash.net.URLRequest;
@@ -16,6 +16,7 @@ package cloud
 		public static var instance:DBCloud = new DBCloud();
 		
 		public var initialized:Boolean = false;
+		public var ifNeedUpdate:int = 0;
 		
 		public function DBCloud(target:IEventDispatcher=null)
 		{
@@ -26,6 +27,11 @@ package cloud
 		{	
 			DBNetworkUtils.instance.addEventListener(DBNetworkEvent.INITED, network_onInit);
 			DBNetworkUtils.instance.init();
+		}
+		
+		public function checkOnlineStatus():void
+		{
+			DBNetworkUtils.instance.testNetwork();
 		}
 		
 		private function network_onInit(event:DBNetworkEvent = null):void
@@ -49,12 +55,25 @@ package cloud
 		
 		public function loadLatestVersion():void
 		{
-			new DBNC_LoadLatestVersion().execute();
+			if(ifNeedUpdate == 0)
+			{
+				new DBNC_LoadLatestVersion().execute();
+			}
 		}
 		
 		public function loadOnlineHelp():void
 		{
 			new DBNC_LoadOnlineHelp().execute();
+		}
+		
+		public function loadAbout():void
+		{
+			new DBNC_LoadAbout().execute();
+		}
+		
+		public function loadHelpUs():void
+		{
+			new DBNC_LoadHelpUs().execute();
 		}
 	}
 }

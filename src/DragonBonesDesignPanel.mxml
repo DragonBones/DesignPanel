@@ -14,7 +14,9 @@
 	<fx:Script>
 		<![CDATA[
 			import cloud.DBCloud;
+			import cloud.DBNetworkUtils;
 			import cloud.events.DBCloudEvent;
+			import cloud.events.DBNetworkEvent;
 			
 			import control.CopyBoneAndAnimationCommand;
 			import control.ImportCommand;
@@ -249,7 +251,7 @@
 			
 			private function importData():void
 			{
-				DBGATrackerManager.tracker.trackPageview("/importWindow");
+				DBGATrackerManager.trackPageview("/importWindow");
 				var window:ImportWindow = new ImportWindow();
 				PopUpManager.addPopUp(window, this, true);
 				PopUpManager.centerPopUp(window);
@@ -257,7 +259,7 @@
 			
 			private function exportData():void
 			{
-				DBGATrackerManager.tracker.trackPageview("/exportWindow");
+				DBGATrackerManager.trackPageview("/exportWindow");
 				var window:ExportWindow = new ExportWindow();
 				PopUpManager.addPopUp(window, this, true);
 				PopUpManager.centerPopUp(window);
@@ -265,25 +267,25 @@
 			
 			private function popUpCopyWindow():void
 			{
-				DBGATrackerManager.tracker.trackPageview("/copyWindow");
+				DBGATrackerManager.trackPageview("/copyWindow");
 				copyWindow.visible = true;
 			}
 			
 			private function popUpXMLWindow():void
 			{
-				DBGATrackerManager.tracker.trackPageview("/xmlWindow");
+				DBGATrackerManager.trackPageview("/xmlWindow");
 				xmlWindow.visible = true;
 			}
 			
 			private function popUpTextureAtlasWindow():void
 			{
-				DBGATrackerManager.tracker.trackPageview("/textureWindow");
+				DBGATrackerManager.trackPageview("/textureWindow");
 				textureAtlasWindow.visible = true;
 			}
 			
 			private function popUpAboutWindow():void
 			{
-				DBGATrackerManager.tracker.trackPageview("/aboutWindow");
+				DBGATrackerManager.trackPageview("/aboutWindow");
 				aboutWindow.visible = true;
 			}
 			
@@ -305,7 +307,7 @@
 			{
 				if(_importDataProxy.armatureProxy.armatureData)
 				{
-					DBGATrackerManager.tracker.trackEvent("/:UpdateArmature", "UpdateArmature");
+					DBGATrackerManager.trackEvent("/:UpdateArmature", "/:UpdateArmature");
 					var armatureNames:Vector.<String> = new Vector.<String>;
 					armatureNames.push(_importDataProxy.armatureProxy.armatureData.name);
 					ImportCommand.instance.importFLAData(true, false, armatureNames);
@@ -316,7 +318,7 @@
 			{
 				if(_importDataProxy.armatureProxy.armatureData)
 				{
-					DBGATrackerManager.tracker.trackEvent("/:RemoveArmature", "RemoveArmature");
+					DBGATrackerManager.trackEvent("/:RemoveArmature", "/:RemoveArmature");
 					RemoveArmatureCommand.instance.removeArmature(_importDataProxy.armatureProxy.armatureData.name);
 				}
 			}
@@ -324,31 +326,53 @@
 			private function applicationCompleteHandler():void
 			{
 				DBGATrackerManager.createDBGATracker(this);
-				DBGATrackerManager.tracker.trackPageview("/");
-				DBGATrackerManager.tracker.trackEvent("Version", "Version:" + String(DragonBones.VERSION));
-				DBGATrackerManager.tracker.trackEvent("Language", "Language:" + String(SettingDataProxy.getInstance().languageArrayCollection[language.selectedIndex].label));
+				DBGATrackerManager.trackPageview("/");
+				DBGATrackerManager.trackEvent("Version:" + String(DragonBones.VERSION), "Version:" + String(DragonBones.VERSION_NUMBER));
+				DBGATrackerManager.trackEvent("Language", "Language:" + String(SettingDataProxy.getInstance().languageArrayCollection[language.selectedIndex].value));
 				
-				DBCloud.instance.addEventListener(DBCloudEvent.INITED, Cloud_onInited);
+				DBCloud.instance.addEventListener(DBCloudEvent.INITED, cloud_onInited);
+				DBNetworkUtils.instance.addEventListener(DBNetworkEvent.STATUS_CHANGED, network_onStatusChanged);
 				DBCloud.instance.init();
 			}
 			
-			private function Cloud_onInited(event:DBCloudEvent):void
+			private function cloud_onInited(event:DBCloudEvent):void
 			{
-				DBCloud.instance.removeEventListener(DBCloudEvent.INITED, Cloud_onInited);
-				DBCloud.instance.addEventListener(DBCloudEvent.LOAD_LATESTVERSION_SUCCESS, cloud_onLoadLatestVersionSuccess);
-				DBCloud.instance.loadLatestVersion();
+				DBCloud.instance.removeEventListener(DBCloudEvent.INITED, cloud_onInited);
+			}
+			
+			private function network_onStatusChanged(event:DBNetworkEvent):void
+			{
+				trace("network_onStatusChanged");
+				onlineStatus.selectedIndex = DBNetworkUtils.instance.isNetworkAvailable ? 1 : 0;
+				if(DBNetworkUtils.instance.isNetworkAvailable)
+				{
+					DBCloud.instance.addEventListener(DBCloudEvent.LOAD_LATESTVERSION_SUCCESS, cloud_onLoadLatestVersionSuccess);
+					DBCloud.instance.loadLatestVersion();
+				}
 			}
 			
 			private function cloud_onLoadLatestVersionSuccess(event:DBCloudEvent):void
 			{
+				trace("cloud_onLoadLatestVersionSuccess");
 				var latestVersion:Number = Number(event.data.outputData);
 				if(latestVersion > DragonBones.VERSION_NUMBER)
 				{
-					updateBtn.visible = true;
+					DBCloud.instance.ifNeedUpdate = 1;
+					upgradeBtn.visible = true; 
+				}
+				else
+				{
+					DBCloud.instance.ifNeedUpdate = -1;
+					upgradeBtn.visible = false; 
 				}
 			}
 			
-			private function updateVersion():void
+			private function checkOnlineStatus():void
+			{
+				DBNetworkUtils.instance.testNetwork();
+			}
+			
+			private function downloadNewVersion():void
 			{
 				navigateToURL(new URLRequest("http://dragonbones.github.io/download.html"));
 			}
@@ -381,13 +405,22 @@
 					  click="popUpCopyWindow()"
 					  />
 			<s:Button width="68" height="24" cornerRadius="0"
-					  label="{resourceManager.getString('resources','about')}"
+					  label="{resourceManager.getString('resources','help')}"
 					  click="popUpAboutWindow()"
 					  />
 			<s:Spacer width="100%"/>
-			<s:Label id="updateBtn" visible="false" width="24" color="#03E2EA" rotation="90" text="&lt;&lt;" 
-					 verticalAlign="middle" textAlign="center" buttonMode="true" useHandCursor="true"
-					 click="updateVersion()"/>
+			<mx:ViewStack id="onlineStatus" height="100%">
+				<s:NavigatorContent height="100%">
+					<s:Label id="offlineLabel" height="100%" verticalAlign="middle" color="#999999" text="offline" 
+							 buttonMode="true" useHandCursor="true" toolTip="click to check internet again"
+							 click="checkOnlineStatus()"/>
+				</s:NavigatorContent>
+				<s:NavigatorContent>
+					<s:Label id="upgradeBtn" width="24" color="#03E2EA"  text="&lt;&lt;" rotation="90" visible="false"
+							 verticalAlign="middle" textAlign="center" buttonMode="true" useHandCursor="true" toolTip="new version detected"
+							 click="downloadNewVersion()"/>
+				</s:NavigatorContent>
+			</mx:ViewStack>
 			<s:DropDownList id="language" width="80" height="24" cornerRadius="0" textAlign="right"
 							dataProvider="{SettingDataProxy.getInstance().languageArrayCollection}"
 							selectedIndex="@{SettingDataProxy.getInstance().languageID}"
@@ -402,9 +435,9 @@
 								dataProvider="{ImportDataProxy.getInstance().armaturesAC}"
 								selectedItem ="@{ImportDataProxy.getInstance().armatureProxy.armatureData}"
 								/>
-				<s:Button icon="@Embed(source='./assets/update_icon.png')" width="21" height="21"
+				<s:Button icon="@Embed(source='./assets/update_icon.png')" width="21" height="21" toolTip="Sync change of selected skeleton from Flash Pro"
 						  click="updateCurrentArmature()"/>
-				<s:Button icon="@Embed(source='./assets/remove_icon.png')" width="21" height="21"
+				<s:Button icon="@Embed(source='./assets/remove_icon.png')" width="21" height="21" toolTip="Remove selected skeleton from list"
 						  click="removeCurrentArmature()"/>
 			</s:HGroup>
 			<mx:HDividedBox width="100%" height="100%">
@@ -413,9 +446,8 @@
 			</mx:HDividedBox>
 		</s:VGroup>
 	</s:VGroup>
-	
 	<view:CopyWindow id="copyWindow" visible="false"/>
 	<view:XMLWindow id="xmlWindow" visible="false"/>
 	<view:TextureAtlasWindow id="textureAtlasWindow" visible="false"/>
-	<view:AboutWindow id="aboutWindow" visible="false"/>
+	<view:HelpWindow id="aboutWindow" visible="false"/>
 </s:Application>
