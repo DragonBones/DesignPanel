@@ -42,7 +42,7 @@
 					case MessageDispatcher.SELECT_ANIMATION:
 					case MessageDispatcher.CHANGE_ANIMATION_DATA:
 						var fadeTime:Number = _importDataProxy.armatureProxy.fadeInTime;
-						var durationScaled:Number = _importDataProxy.armatureProxy.durationScaled;
+						var animationScale:Number = _importDataProxy.armatureProxy.animationScale;
 						var loop:int = _importDataProxy.armatureProxy.loop;
 						var tweenEasing:Number = _importDataProxy.armatureProxy.tweenEasing;
 						if(fadeTime < 0)
@@ -57,7 +57,7 @@
 							sliderFadeInTime.value = fadeTime;
 							sliderFadeInTime.enabled = true;
 						}
-						if(durationScaled < 0)
+						if(animationScale < 0)
 						{
 							numAnimationScale.enabled = false;
 							sliderAnimationScale.enabled = false;
@@ -66,9 +66,9 @@
 						}
 						else
 						{
-							numAnimationScale.value = durationScaled;
+							numAnimationScale.value = animationScale;
 							numAnimationScale.enabled = true;
-							sliderAnimationScale.value = durationScaled;
+							sliderAnimationScale.value = animationScale;
 							sliderAnimationScale.enabled = true;
 							numLoop.enabled = true;
 							numLoop.value = loop
