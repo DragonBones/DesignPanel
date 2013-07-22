@@ -154,16 +154,26 @@ package model
 			{
 				return -1;
 			}
-			return _selectAnimationData.scale * _selectAnimationData.duration;
+			return Math.round(_selectAnimationData.scale * _selectAnimationData.duration * 100) / 100;
 		}
-		public function set durationScaled(value:Number):void
+		private function set durationScaled(value:Number):void
+		{
+		}
+		
+		public function get animationScale():Number
+		{
+			return _selectAnimationData?_selectAnimationData.scale:-1;
+		}
+		public function set animationScale(value:Number):void
 		{
 			if(_selectAnimationData)
 			{
-				_selectAnimationData.scale = value / _selectAnimationData.duration;
+				_selectAnimationData.scale = value;
 				updateAnimation();
 			}
+			durationScaled = 0;
 		}
+		
 		
 		public function get loop():int
 		{

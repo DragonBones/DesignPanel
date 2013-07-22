@@ -19,10 +19,9 @@
 				sliderFadeInTime.addEventListener(Event.CHANGE, valueChangeHandler);
 				numFadeInTime.addEventListener(Event.CHANGE, valueChangeHandler);
 				
-				sliderDurationScaled.addEventListener(Event.CHANGE, valueChangeHandler);
-				numDurationScaled.addEventListener(Event.CHANGE, valueChangeHandler);
+				sliderAnimationScale.addEventListener(Event.CHANGE, valueChangeHandler);
+				numAnimationScale.addEventListener(Event.CHANGE, valueChangeHandler);
 				
-				sliderLoop.addEventListener(Event.CHANGE, valueChangeHandler);
 				numLoop.addEventListener(Event.CHANGE, valueChangeHandler);
 				
 				sliderTweenEasing.addEventListener(Event.CHANGE, valueChangeHandler);
@@ -60,21 +59,18 @@
 						}
 						if(durationScaled < 0)
 						{
-							numDurationScaled.enabled = false;
-							sliderDurationScaled.enabled = false;
-							sliderLoop.enabled = false;
+							numAnimationScale.enabled = false;
+							sliderAnimationScale.enabled = false;
 							numLoop.enabled = false;
 							sliderTweenEasing.enabled = false;
 						}
 						else
 						{
-							numDurationScaled.value = durationScaled;
-							numDurationScaled.enabled = true;
-							sliderDurationScaled.value = durationScaled;
-							sliderDurationScaled.enabled = true;
-							sliderLoop.enabled = true;
+							numAnimationScale.value = durationScaled;
+							numAnimationScale.enabled = true;
+							sliderAnimationScale.value = durationScaled;
+							sliderAnimationScale.enabled = true;
 							numLoop.enabled = true;
-							sliderLoop.value = loop;
 							numLoop.value = loop
 							
 							if(isNaN(tweenEasing))
@@ -106,21 +102,17 @@
 						_importDataProxy.armatureProxy.fadeInTime = numFadeInTime.value;
 						sliderFadeInTime.value = numFadeInTime.value = _importDataProxy.armatureProxy.fadeInTime;
 						break;
-					case sliderDurationScaled:
-						_importDataProxy.armatureProxy.durationScaled = sliderDurationScaled.value;
-						sliderDurationScaled.value = numDurationScaled.value = _importDataProxy.armatureProxy.durationScaled;
+					case sliderAnimationScale:
+						_importDataProxy.armatureProxy.animationScale = sliderAnimationScale.value;
+						sliderAnimationScale.value = numAnimationScale.value = _importDataProxy.armatureProxy.animationScale;
 						break;
-					case numDurationScaled:
-						_importDataProxy.armatureProxy.durationScaled = numDurationScaled.value;
-						sliderDurationScaled.value = numDurationScaled.value = _importDataProxy.armatureProxy.durationScaled;
-						break;
-					case sliderLoop:
-						_importDataProxy.armatureProxy.loop = sliderLoop.value;
-						sliderLoop.value = numLoop.value = _importDataProxy.armatureProxy.loop;
+					case numAnimationScale:
+						_importDataProxy.armatureProxy.animationScale = numAnimationScale.value;
+						sliderAnimationScale.value = numAnimationScale.value = _importDataProxy.armatureProxy.animationScale;
 						break;
 					case numLoop:
 						_importDataProxy.armatureProxy.loop = numLoop.value;
-						sliderLoop.value = numLoop.value = _importDataProxy.armatureProxy.loop;
+						numLoop.value = _importDataProxy.armatureProxy.loop;
 						break;
 					case sliderTweenEasing:
 						_importDataProxy.armatureProxy.tweenEasing = sliderTweenEasing.value;
@@ -146,19 +138,27 @@
 	</s:Rect>
 	<s:Scroller width="100%" height="100%" horizontalScrollPolicy="off">
 		<s:VGroup width="100%" gap="0" paddingLeft="6" paddingRight="6">
-			<s:Label width="100%" height="24" verticalAlign="bottom"
+			<s:HGroup width="100%" verticalAlign="middle">
+				<s:Label width="100%" height="24" verticalAlign="middle"
+						 text="{resourceManager.getString('resources','totalTime')}"
+						 />
+				<s:TextInput width="40" height="24" editable="false" selectable="false"
+							 text="{ImportDataProxy.getInstance().armatureProxy.durationScaled}"
+							 />
+			</s:HGroup>
+			<s:Label width="100%" height="24" verticalAlign="middle"
 					 text="{resourceManager.getString('resources','totalTime')}"
 					 />
 			<s:HGroup width="100%" verticalAlign="middle">
-				<s:HSlider id="sliderDurationScaled" width="100%"
+				<s:HSlider id="sliderAnimationScale" width="100%"
 						   minimum="0" maximum="10" snapInterval="0.01"
 						   />
-				<s:NumericStepper id="numDurationScaled" width="60" height="24" cornerRadius="0" textAlign="right"
-								  maximum="3000" minimum="0" snapInterval="0.01"
+				<s:NumericStepper id="numAnimationScale" width="60" height="24" cornerRadius="0" textAlign="right"
+								  maximum="100" minimum="0" snapInterval="0.01"
 								  />
 			</s:HGroup>
 			
-			<s:Label width="100%" height="24" verticalAlign="bottom"
+			<s:Label width="100%" height="24" verticalAlign="middle"
 					 text="{resourceManager.getString('resources','blendingTime')}"
 					 />
 			<s:HGroup width="100%" verticalAlign="middle">
@@ -170,26 +170,23 @@
 								  />
 			</s:HGroup>
 			
-			<s:Label width="100%" height="24" verticalAlign="bottom"
-					 text="{resourceManager.getString('resources','loop')}"
-					 />
-			<s:HGroup width="100%" verticalAlign="middle">
-				<s:HSlider id="sliderLoop" width="100%"
-						   minimum="-20" maximum="20" snapInterval="1"
-						   />
-				<s:NumericStepper id="numLoop" width="60" height="24" cornerRadius="0" textAlign="right"
-								  maximum="100" minimum="-100" snapInterval="1"
-								  />
-			</s:HGroup>
-			
-			<s:Label width="100%" height="24" verticalAlign="bottom"
+			<s:Label width="100%" height="24" verticalAlign="middle"
 					 text="{resourceManager.getString('resources','keyFrameEase')}"
 					 />
-			<s:HGroup width="100%" verticalAlign="middle">
+			<s:HGroup width="100%" verticalAlign="middle" height="24">
 				<s:HSlider id="sliderTweenEasing" width="100%"
 						   minimum="-1" maximum="2" snapInterval="0.05"
 						   />
 				<s:CheckBox id="checkTweenEasing" width="15" label=""/>
+			</s:HGroup>
+			
+			<s:HGroup width="100%" verticalAlign="middle">
+				<s:Label width="100%" height="24" verticalAlign="middle"
+						 text="{resourceManager.getString('resources','loop')}"
+						 />
+				<s:NumericStepper id="numLoop" width="60" height="24" cornerRadius="0" textAlign="right"
+								  maximum="100" minimum="-100" snapInterval="1"
+								  />
 			</s:HGroup>
 			
 		</s:VGroup>
