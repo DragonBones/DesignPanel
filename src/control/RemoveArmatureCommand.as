@@ -47,7 +47,7 @@ package control
 				loadTextureBytes(
 					tirm(
 						ImportDataProxy.getInstance().textureBytes, 
-						_xmlDataProxy.modifySubTextureSize(null)
+						_xmlDataProxy.getTextureAtlasXMLWithPivot()
 					)
 				);
 			}
@@ -55,10 +55,10 @@ package control
 			{
 				var subBitmapDataDic:Object = BitmapDataUtil.getSubBitmapDataDic(
 					ImportDataProxy.getInstance().textureAtlas.bitmapData, 
-					rawXMLDataProxy.getSubTextureRectDic()
+					rawXMLDataProxy.getSubTextureRectMap()
 				);
 				
-				var rectDic:Object = _xmlDataProxy.getSubTextureRectDic();
+				var rectDic:Object = _xmlDataProxy.getSubTextureRectMap();
 				
 				for(var subTextureName:String in subBitmapDataDic)
 				{

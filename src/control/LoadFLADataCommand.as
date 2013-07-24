@@ -6,7 +6,6 @@
 	import message.MessageDispatcher;
 	
 	import model.JSFLProxy;
-	import model.SettingDataProxy;
 	import model.XMLDataProxy;
 	
 	public class LoadFLADataCommand
@@ -17,7 +16,8 @@
 		
 		private var _xmlDataProxy:XMLDataProxy;
 		
-		private var _displayList:Vector.<String>;
+		private var _subTextureList:Vector.<String>;
+		private var _subTextureListSuccess:Vector.<String>;
 		private var _armatureXMLList:XMLList;
 		private var _totalCount:int;
 		private var _loadIndex:int;
@@ -74,51 +74,23 @@
 		
 		private function readNextArmature():void
 		{
-			var armatureXML:XML = _armatureXMLList[_loadIndex];
-			var armatureName:String = armatureXML.@[ConstValues.A_NAME];
-			
-			MessageDispatcher.dispatchEvent(MessageDispatcher.LOAD_ARMATURE_DATA, armatureName, _totalCount - _loadIndex, _totalCount);
-			
-			delete _armatureXMLList[_loadIndex --];
-			if(_xmlDataProxy.xml && _xmlDataProxy.getArmatureXMLList(armatureName)[0])
-			{
-				readNextArmatureHandler(null);
-			}
-			else
-			{
-				MessageDispatcher.addEventListener(JSFLProxy.GENERATE_ARMATURE, readNextArmatureHandler);
-				_jsflProxy.generateArmature(armatureName);
-			}
-			
-		}
-		
-		private function readNextArmatureHandler(e:Message):void
-		{
-			MessageDispatcher.removeEventListener(JSFLProxy.GENERATE_ARMATURE, readNextArmatureHandler);
-			if(e)
-			{
-				var result:String = e.parameters[0];
-				var xml:XML = result != "false"?XML(result):null;
-				if(xml)
-				{
-					if(_xmlDataProxy.xml)
-					{
-						for each(var armatureXML:XML in xml[ConstValues.ARMATURE])
-						{
-							_xmlDataProxy.addArmatureXML(armatureXML);
-							
-						}
-					}
-					else
-					{
-						_xmlDataProxy.xml = xml;
-					}
-				}
-			}
-			
 			if(_loadIndex >= 0)
 			{
-				readNextArmature();
+				var armatureXML:XML = _armatureXMLList[_loadIndex];
+				var armatureName:String = armatureXML.@[ConstValues.A_NAME];
+				
+				MessageDispatcher.dispatchEvent(MessageDispatcher.LOAD_ARMATURE_DATA, armatureName, _totalCount - _loadIndex, _totalCount);
+				
+				delete _armatureXMLList[_loadIndex --];
+				if(_xmlDataProxy.xml && _xmlDataProxy.getArmatureXMLList(armatureName)[0])
+				{
+					readNextArmature();
+				}
+				else
+				{
+					MessageDispatcher.addEventListener(JSFLProxy.GENERATE_ARMATURE, readNextArmatureHandler);
+					_jsflProxy.generateArmature(armatureName);
+				}
 			}
 			else
 			{
@@ -129,19 +101,37 @@
 			}
 		}
 		
+		private function readNextArmatureHandler(e:Message):void
+		{
+			MessageDispatcher.removeEventListener(JSFLProxy.GENERATE_ARMATURE, readNextArmatureHandler);
+			
+			var result:String = e.parameters[0];
+			var xml:XML = result != "false"?XML(result):null;
+			if(xml)
+			{
+				if(_xmlDataProxy.xml)
+				{
+					for each(var armatureXML:XML in xml[ConstValues.ARMATURE])
+					{
+						_xmlDataProxy.addArmatureXML(armatureXML);
+						
+					}
+				}
+				else
+				{
+					_xmlDataProxy.xml = xml;
+				}
+			}
+			
+			readNextArmature();
+		}
+		
 		private function clearTextureAtlasSWFHandler(e:Message):void
 		{
 			MessageDispatcher.removeEventListener(JSFLProxy.CLEAR_TEXTURE_SWFITEM, clearTextureAtlasSWFHandler);
-			
-			var result:String = e.parameters[0];
-			var textureAtlasXML:XML = result != "false"?XML(result):null;
-			if(textureAtlasXML)
-			{
-				_xmlDataProxy.textureAtlasXML = textureAtlasXML;
-			}
-			
-			_displayList = _xmlDataProxy.getDisplayList();
-			_totalCount = _displayList.length;
+			_subTextureListSuccess = new Vector.<String>;
+			_subTextureList = _xmlDataProxy.getSubTextureListFromDisplayList();
+			_totalCount = _subTextureList.length;
 			
 			if(_totalCount == 0)
 			{
@@ -156,13 +146,13 @@
 		
 		private function readNextSubTexture():void
 		{
-			var subTextureName:String = _displayList[_loadIndex];
+			var subTextureName:String = _subTextureList[_loadIndex];
 			MessageDispatcher.dispatchEvent(MessageDispatcher.LOAD_TEXTURE_DATA, subTextureName, _totalCount - _loadIndex, _totalCount);
 			
 			MessageDispatcher.addEventListener(JSFLProxy.ADD_TEXTURE_TO_SWFITEM, readNextSubTextureHandler);
 			_jsflProxy.addTextureToSWFItem(subTextureName, _loadIndex == 0);
 			
-			_displayList.splice(_loadIndex --, 1);
+			_subTextureList.splice(_loadIndex --, 1);
 		}
 		
 		private function readNextSubTextureHandler(e:Message):void
@@ -170,10 +160,9 @@
 			MessageDispatcher.removeEventListener(JSFLProxy.ADD_TEXTURE_TO_SWFITEM, readNextSubTextureHandler);
 			
 			var result:String = e.parameters[0];
-			var subTextureXML:XML = result != "false"?XML(result):null;
-			if(subTextureXML)
+			if(result != "true")
 			{
-				_xmlDataProxy.addSubTextureXML(subTextureXML);
+				_subTextureListSuccess.push(result);
 			}
 			
 			if(_loadIndex >= 0)
@@ -183,7 +172,7 @@
 			else
 			{
 				MessageDispatcher.addEventListener(MessageDispatcher.FLA_TEXTURE_ATLAS_SWF_LOADED, flaExportSWFHandler);
-				FLAExportSWFCommand.instance.exportSWF(_xmlDataProxy);
+				FLAExportSWFCommand.instance.exportSWF(_xmlDataProxy, _subTextureListSuccess);
 			}
 		}
 		

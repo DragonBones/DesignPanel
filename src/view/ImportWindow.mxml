@@ -26,7 +26,6 @@
 				switch(SettingDataProxy.getInstance().dataImportID)
 				{
 					case 0:
-						
 						ImportCommand.instance.importFLAData(false, false);
 						break;
 					case 1:

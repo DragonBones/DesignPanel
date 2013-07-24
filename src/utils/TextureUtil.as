@@ -1,139 +1,186 @@
-﻿package utils{
-	import dragonBones.utils.ConstValues;
-	
+﻿package utils
+{
 	import flash.geom.Rectangle;
 	
 	/**
 	 * For place texture
 	 */
-	public final class TextureUtil{
+	public final class TextureUtil
+	{
+		private static const HIGHEST:uint = 0xFFFFFFFF;
 		
 		/**
 		 * Place textures by textureAtlasXML data
 		 */
-		public static function packTextures(_widthDefault:uint, _padding:uint, _textureAtlasXML:XML, _verticalSide:Boolean = false):void{
-			var _subTextureXMLList:XMLList = _textureAtlasXML[ConstValues.SUB_TEXTURE];
-			if (_subTextureXMLList.length() == 0) {
-				return;
+		public static function packTextures(widthDefault:uint, padding:uint, rectMap:Object, verticalSide:Boolean = false):Rectangle
+		{
+			for each(var rect:Rectangle in rectMap)
+			{
+				break;
 			}
-			var _dimensions:uint = 0;
-			var _subTextureList:Array = [];
-			for each(var _subTextureXML:XML in _subTextureXMLList){
-				_dimensions += int(_subTextureXML.@[ConstValues.A_WIDTH]) * int(_subTextureXML.@[ConstValues.A_HEIGHT]);
-				_subTextureList.push(_subTextureXML);
+			if(!rect)
+			{
+				return null;
+			}
+			
+			var dimensions:uint = 0;
+			var rectList:Vector.<Rectangle> = new Vector.<Rectangle>;
+			for each(rect in rectMap)
+			{
+				dimensions += rect.width * rect.height;
+				rectList.push(rect);
 			}
 			//sort texture by size
-			_subTextureList.sort(sortTextureList);
+			rectList.sort(sortRectList);
 			
-			if(_widthDefault == 0){
+			if(widthDefault == 0)
+			{
 				//calculate width for Auto size
-				_widthDefault = Math.sqrt(_dimensions);
+				widthDefault = Math.sqrt(dimensions);
 			}
 			
-			_widthDefault = getNearest2N(Math.max(int(_subTextureList[0].@[ConstValues.A_WIDTH]) + _padding, _widthDefault));
+			widthDefault = getNearest2N(Math.max(int(rectList[0].width) + padding, widthDefault));
 			
-			var _heightMax:uint = 40960;
-			var _remainRectList:Vector.<Rectangle> = new Vector.<Rectangle>;
-			_remainRectList.push(new Rectangle(0, 0, _widthDefault, _heightMax));
+			var heightMax:uint = HIGHEST;
+			var remainAreaList:Vector.<Rectangle> = new Vector.<Rectangle>;
+			remainAreaList.push(new Rectangle(0, 0, widthDefault, heightMax));
 			
-			var _isFit:Boolean;
-			var _width:int;
-			var _height:int;
-			var _pivotX:Number;
-			var _pivotY:Number;
+			var isFit:Boolean;
+			var width:int;
+			var height:int;
 			
-			var _rect:Rectangle;
-			var _rectPrev:Rectangle;
-			var _rectNext:Rectangle;
-			var _rectID:int;
-			
-			do {
+			var area:Rectangle;
+			var areaPrev:Rectangle;
+			var areaNext:Rectangle;
+			var areaID:int;
+			var rectID:int;
+			do 
+			{
 				//Find highest blank area
-				_rect = getHighestRect(_remainRectList);
-				_rectID = _remainRectList.indexOf(_rect);
-				_isFit = false;
-				for(var _iT:String in _subTextureList) {
-					//check if the texture is fit
-					_subTextureXML = _subTextureList[_iT];
-					_width = int(_subTextureXML.@[ConstValues.A_WIDTH]) + _padding;
-					_height = int(_subTextureXML.@[ConstValues.A_HEIGHT]) + _padding;
-					if (_rect.width >= _width && _rect.height >= _height) {
+				area = getHighestArea(remainAreaList);
+				areaID = remainAreaList.indexOf(area);
+				isFit = false;
+				rectID = 0;
+				for each(rect in rectList) 
+				{
+					//check if the area is fit
+					width = int(rect.width) + padding;
+					height = int(rect.height) + padding;
+					if (area.width >= width && area.height >= height) 
+					{
 						//place portrait texture
-						if (_verticalSide?(_height > _width * 4?(_rectID > 0?(_rect.height - _height >= _remainRectList[_rectID - 1].height):true):true):true){
-							_isFit = true;
+						if(
+							verticalSide?
+							(
+								height > width * 4?
+								(
+									areaID > 0?
+									(area.height - height >= remainAreaList[areaID - 1].height):
+									true
+								):
+								true
+							):
+							true
+						)
+						{
+							isFit = true;
 							break;
 						}
 					}
+					rectID ++;
 				}
-				if(_isFit){
+				
+				if(isFit)
+				{
 					//place texture if size is fit
-					_subTextureXML.@[ConstValues.A_X] = _rect.x;
-					_subTextureXML.@[ConstValues.A_Y] = _rect.y;
-					_subTextureList.splice(int(_iT), 1);
-					_remainRectList.splice(_rectID + 1, 0, new Rectangle(_rect.x + _width, _rect.y, _rect.width - _width, _rect.height));
-					_rect.y += _height;
-					_rect.width = _width;
-					_rect.height -= _height;
-				}else{
-					//not fit, don't place it, merge blank area to others toghther
-					if(_rectID == 0){
-						_rectNext = _remainRectList[_rectID + 1];
-					}else if(_rectID == _remainRectList.length - 1){
-						_rectNext = _remainRectList[_rectID - 1];
-					}else{
-						_rectPrev = _remainRectList[_rectID - 1];
-						_rectNext = _remainRectList[_rectID + 1];
-						_rectNext = _rectPrev.height <= _rectNext.height?_rectNext:_rectPrev;
-					}
-					if(_rect.x < _rectNext.x){
-						_rectNext.x = _rect.x;
-					}
-					_rectNext.width = _rect.width + _rectNext.width;
-					_remainRectList.splice(_rectID, 1);
+					rect.x = area.x;
+					rect.y = area.y;
+					rectList.splice(rectID, 1);
+					remainAreaList.splice(
+						areaID + 1,
+						0, 
+						new Rectangle(area.x + width, area.y, area.width - width, area.height)
+					);
+					area.y += height;
+					area.width = width;
+					area.height -= height;
 				}
-			}while (_subTextureList.length > 0);
-			
-			//calculate heightMax
-			_heightMax = getNearest2N(_heightMax - getLowestRect(_remainRectList).height);
-			_textureAtlasXML.@[ConstValues.A_WIDTH] = _widthDefault;
-			_textureAtlasXML.@[ConstValues.A_HEIGHT] = _heightMax;
-		}
-		
-		private static function sortTextureList(_subTextureXML1:XML, _subTextureXML2:XML):int{
-			var _v1:uint = int(_subTextureXML1.@[ConstValues.A_WIDTH]) + int(_subTextureXML1.@[ConstValues.A_HEIGHT]);
-			var _v2:uint = int(_subTextureXML2.@[ConstValues.A_WIDTH]) + int(_subTextureXML2.@[ConstValues.A_HEIGHT]);
-			if (_v1 == _v2) {
-				return int(_subTextureXML1.@[ConstValues.A_WIDTH]) > int(_subTextureXML2.@[ConstValues.A_WIDTH])?-1:1;
+				else
+				{
+					//not fit, don't place it, merge blank area to others toghther
+					if(areaID == 0)
+					{
+						areaNext = remainAreaList[areaID + 1];
+					}
+					else if(areaID == remainAreaList.length - 1)
+					{
+						areaNext = remainAreaList[areaID - 1];
+					}
+					else
+					{
+						areaPrev = remainAreaList[areaID - 1];
+						areaNext = remainAreaList[areaID + 1];
+						areaNext = areaPrev.height <= areaNext.height?areaNext:areaPrev;
+					}
+					if(area.x < areaNext.x)
+					{
+						areaNext.x = area.x;
+					}
+					areaNext.width = area.width + areaNext.width;
+					remainAreaList.splice(areaID, 1);
+				}
 			}
-			return _v1 > _v2?-1:1;
+			while (rectList.length > 0);
+			
+			heightMax = getNearest2N(heightMax - getLowestArea(remainAreaList).height);
+			
+			return new Rectangle(0, 0, widthDefault, heightMax);
 		}
 		
-		private static function getNearest2N(_n:uint):uint{
+		private static function sortRectList(rect1:Rectangle, rect2:Rectangle):int
+		{
+			var v1:uint = rect1.width + rect1.height;
+			var v2:uint = rect2.width + rect2.height;
+			if (v1 == v2) 
+			{
+				return rect1.width > rect2.width?-1:1;
+			}
+			return v1 > v2?-1:1;
+		}
+		
+		private static function getNearest2N(_n:uint):uint
+		{
 			return _n & _n - 1?1 << _n.toString(2).length:_n;
 		}
 		
-		private static function getHighestRect(_rectList:Vector.<Rectangle>):Rectangle{
-			var _height:uint = 0;
-			var _rectHighest:Rectangle;
-			for each(var _rect:Rectangle in _rectList) {
-				if (_rect.height > _height) {
-					_height = _rect.height;
-					_rectHighest = _rect;
+		private static function getHighestArea(areaList:Vector.<Rectangle>):Rectangle
+		{
+			var height:uint = 0;
+			var areaHighest:Rectangle;
+			for each(var area:Rectangle in areaList) 
+			{
+				if (area.height > height) 
+				{
+					height = area.height;
+					areaHighest = area;
 				}
 			}
-			return _rectHighest;
+			return areaHighest;
 		}
 		
-		private static function getLowestRect(_rectList:Vector.<Rectangle>):Rectangle{
-			var _height:uint = 40960;
-			var _rectLowest:Rectangle;
-			for each(var _rect:Rectangle in _rectList) {
-				if (_rect.height < _height) {
-					_height = _rect.height;
-					_rectLowest = _rect;
+		private static function getLowestArea(areaList:Vector.<Rectangle>):Rectangle
+		{
+			var height:uint = HIGHEST;
+			var areaLowest:Rectangle;
+			for each(var area:Rectangle in areaList) 
+			{
+				if (area.height < height) 
+				{
+					height = area.height;
+					areaLowest = area;
 				}
 			}
-			return _rectLowest;
+			return areaLowest;
 		}
 	}
 }

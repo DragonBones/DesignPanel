@@ -23,9 +23,6 @@ var FRAME = "frame";
 var TRANSFORM = "transform";
 var COLOR_TRANSFORM = "colorTransform";
 
-var TEXTURE_ATLAS = "TextureAtlas";
-var SUB_TEXTURE = "SubTexture";
-
 var A_FRAME_RATE = "frameRate";
 var A_NAME = "name";
 var A_START = "start";
@@ -1105,12 +1102,12 @@ dragonBones.clearTextureSWFItem = function()
 	timeline.removeFrames(0, timeline.frameCount);
 	timeline.insertBlankKeyframe(0);
 	timeline.insertBlankKeyframe(1);
-	return <{TEXTURE_ATLAS} {A_NAME}={_currentDomName}/>.toXMLString();
+	return true;
 }
 
-dragonBones.addTextureToSWFItem = function(_textureName, isLast)
+dragonBones.addTextureToSWFItem = function(textureName, isLast)
 {
-	var item = _currentDom.library.items[_currentDom.library.findItemIndex(_textureName)];
+	var item = _currentDom.library.items[_currentDom.library.findItemIndex(textureName)];
 	if(!item)
 	{
 		return false;
@@ -1125,7 +1122,7 @@ dragonBones.addTextureToSWFItem = function(_textureName, isLast)
 	_currentDom.selectNone();
 	do
 	{
-		putSuccess = _currentDom.library.addItemToDocument(_helpTransform, _textureName);
+		putSuccess = _currentDom.library.addItemToDocument(_helpTransform, textureName);
 		symbol = _currentDom.selection[0]
 		tryTimes ++;
 	}
@@ -1150,8 +1147,6 @@ dragonBones.addTextureToSWFItem = function(_textureName, isLast)
 			break;
 	}
 	
-	var subTextureXML = <{SUB_TEXTURE} {A_NAME}={_textureName}/>;
-	
 	if(isLast)
 	{
 		timeline.removeFrames(1, 1);
@@ -1166,7 +1161,7 @@ dragonBones.addTextureToSWFItem = function(_textureName, isLast)
 	{
 		timeline.currentFrame = 1;
 	}
-	return subTextureXML.toXMLString();
+	return textureName;
 }
 
 dragonBones.exportSWF = function()

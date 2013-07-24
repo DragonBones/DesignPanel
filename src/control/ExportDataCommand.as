@@ -88,7 +88,7 @@ package control
 				if(movieClip && movieClip.totalFrames >= 3)
 				{
 					subBitmapDataDic = {};
-					for each (var displayName:String in _xmlDataProxy.getDisplayList())
+					for each (var displayName:String in _xmlDataProxy.getSubTextureListFromDisplayList())
 					{
 						movieClip.gotoAndStop(movieClip.totalFrames);
 						movieClip.gotoAndStop(displayName);
@@ -99,7 +99,7 @@ package control
 				{
 					subBitmapDataDic = BitmapDataUtil.getSubBitmapDataDic(
 						_bitmapData,
-						_xmlDataProxy.getSubTextureRectDic()
+						_xmlDataProxy.getSubTextureRectMap()
 					);
 				}
 				
@@ -107,7 +107,7 @@ package control
 					
 				_bitmapData = BitmapDataUtil.getMergeBitmapData(
 					subBitmapDataDic,
-					_xmlDataProxy.getSubTextureRectDic(),
+					_xmlDataProxy.getSubTextureRectMap(),
 					_xmlDataProxy.textureAtlasWidth,
 					_xmlDataProxy.textureAtlasHeight,
 					_exportScale
@@ -242,7 +242,7 @@ package control
 						
 						subBitmapDataDic = BitmapDataUtil.getSubBitmapDataDic(
 							_bitmapData, 
-							_xmlDataProxy.getSubTextureRectDic()
+							_xmlDataProxy.getSubTextureRectMap()
 						);
 						for(var subTextureName:String in subBitmapDataDic)
 						{

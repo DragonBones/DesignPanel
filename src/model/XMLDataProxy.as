@@ -45,16 +45,20 @@ package model
 		public function set textureAtlasXML(value:XML):void
 		{
 			_textureAtlasXML = value;
+			//
+			delete _textureAtlasXML.@[ConstValues.A_WIDTH];
+			delete _textureAtlasXML.@[ConstValues.A_HEIGHT];
 		}
-		
+		private var _width:uint;
 		public function get textureAtlasWidth():uint
 		{
-			return int(_textureAtlasXML.@[ConstValues.A_WIDTH]);
+			return _width;
 		}
 		
+		private var _height:uint;
 		public function get textureAtlasHeight():uint
 		{
-			return int(_textureAtlasXML.@[ConstValues.A_HEIGHT]);
+			return _height;
 		}
 		
 		public function XMLDataProxy()
@@ -174,7 +178,7 @@ package model
 			return _textureAtlasXML[ConstValues.SUB_TEXTURE];
 		}
 		
-		public function getDisplayList():Vector.<String>
+		public function getSubTextureListFromDisplayList():Vector.<String>
 		{
 			var displayList:Vector.<String> = new Vector.<String>;
 			
@@ -192,24 +196,6 @@ package model
 			return displayList;
 		}
 		
-		public function getSubTextureRectDic():Object
-		{
-			var subTextureRectDic:Object = {};
-			var subTextureXMLList:XMLList = getSubTextureXMLList();
-			for each(var subTextureXML:XML in subTextureXMLList)
-			{
-				var rect:Rectangle = new Rectangle(
-					int(subTextureXML.@[ConstValues.A_X]),
-					int(subTextureXML.@[ConstValues.A_Y]),
-					int(subTextureXML.@[ConstValues.A_WIDTH]),
-					int(subTextureXML.@[ConstValues.A_HEIGHT])
-				);
-				var subTextureName:String = subTextureXML.@[ConstValues.A_NAME];
-				subTextureRectDic[subTextureName] = rect;
-			}
-			return subTextureRectDic;
-		}
-		
 		public function scaleData(scale:Number):void
 		{
 			var boneTransformXMLList:XMLList = getBoneXMLList()[ConstValues.TRANSFORM];
@@ -224,7 +210,7 @@ package model
 			var subTextureTransformXMLList:XMLList = getSubTextureXMLList();
 			scaleXMLList(subTextureTransformXMLList, scale);
 			
-			packTextures(SettingDataProxy.getInstance().textureMaxWidth, SettingDataProxy.getInstance().texturePadding);
+			updateTextureAtlas(getSubTextureRectMap());
 		}
 		
 		private function scaleXMLList(xmlList:XMLList, scale:Number):void
@@ -275,23 +261,38 @@ package model
 			}
 		}
 		
-		public function packTextures(width:uint, padding:uint):void
-		{
-			TextureUtil.packTextures(
-				width, 
-				padding, 
-				_textureAtlasXML
-			);
-		}
-		
 		public function addArmatureXML(armatureXML:XML):void
 		{
-			var oldArmatureXML:XML = getArmatureXMLList(armatureXML.@[ConstValues.A_NAME])[0];
+			var armatureName:String = armatureXML.@[ConstValues.A_NAME];
+			var oldArmatureXML:XML = getArmatureXMLList(armatureName)[0];
 			if(oldArmatureXML)
 			{
 				delete getArmatureXMLList()[oldArmatureXML.childIndex()];
 			}
+			
+			var displayXMLList:XMLList = getDisplayXMLList();
+			
 			_xml.appendChild(armatureXML);
+			
+			var armatureDisplayMap:Object = {};
+			var displayName:String;
+			for each(var displayXML:XML in getDisplayXMLList(armatureName))
+			{
+				displayName = displayXML.@[ConstValues.A_NAME];
+				armatureDisplayMap[displayName] = [displayXML];
+			}
+			
+			for each(var exDisplayXML:XML in displayXMLList)
+			{
+				displayName = exDisplayXML.@[ConstValues.A_NAME];
+				displayXML = armatureDisplayMap[displayName];
+				if(displayXML)
+				{
+					exDisplayXML.@[ConstValues.A_TYPE] = displayXML.@[ConstValues.A_TYPE];
+					exDisplayXML[ConstValues.TRANSFORM][0].@[ConstValues.A_PIVOT_X] = displayXML[ConstValues.TRANSFORM][0].@[ConstValues.A_PIVOT_X];
+					exDisplayXML[ConstValues.TRANSFORM][0].@[ConstValues.A_PIVOT_Y] = displayXML[ConstValues.TRANSFORM][0].@[ConstValues.A_PIVOT_Y];
+				}
+			}
 		}
 		
 		public function addSubTextureXML(subTextureXML:XML):void
@@ -307,11 +308,12 @@ package model
 		
 		public function removeArmature(armatureName:String):Boolean
 		{
-			if(getDisplayXMLList(null, null, null, armatureName)[0])
+			var armatureXMLList:XMLList = getArmatureXMLList();
+			if(armatureXMLList.length() <= 1)
 			{
 				return false;
 			}
-			if(getArmatureXMLList().length() <= 1)
+			if(getDisplayXMLList(null, null, null, armatureName)[0])
 			{
 				return false;
 			}
@@ -319,7 +321,7 @@ package model
 			var armatureXML:XML = getArmatureXMLList(armatureName)[0];
 			if(armatureXML)
 			{
-				delete getArmatureXMLList()[armatureXML.childIndex()];
+				delete armatureXMLList[armatureXML.childIndex()];
 				
 				var deleteDisplayList:XMLList = getDisplayXMLList(armatureName);
 				for each(var displayXML:XML in deleteDisplayList)
@@ -327,7 +329,8 @@ package model
 					if(displayXML.@[ConstValues.A_TYPE] == DisplayData.ARMATURE)
 					{
 						var childArmatureName:String = displayXML.@[ConstValues.A_NAME];
-						if(!getDisplayXMLList(armatureName, null, null, childArmatureName)[0])
+						//
+						if(!getDisplayXMLList(null, null, null, childArmatureName)[0])
 						{
 							removeArmature(childArmatureName);
 						}
@@ -335,7 +338,8 @@ package model
 				}
 				
 				var subTextureXMLLisst:XMLList = getSubTextureXMLList();
-				for(var i:int = subTextureXMLLisst.length() - 1;i >= 0;i --)
+				var i:int = subTextureXMLLisst.length(); 
+				while(i --)
 				{
 					var subTextureXML:XML = subTextureXMLLisst[i];
 					var subTextureName:String = subTextureXML.@[ConstValues.A_NAME];
@@ -345,7 +349,7 @@ package model
 					}
 				}
 				
-				packTextures(SettingDataProxy.getInstance().textureMaxWidth, SettingDataProxy.getInstance().texturePadding);
+				updateTextureAtlas(getSubTextureRectMap());
 				return true;
 			}
 			return false;
@@ -363,7 +367,7 @@ package model
 				addSubTextureXML(subTextureXML);
 			}
 			
-			packTextures(SettingDataProxy.getInstance().textureMaxWidth, SettingDataProxy.getInstance().texturePadding);
+			updateTextureAtlas(getSubTextureRectMap());
 		}
 		
 		public function clone():XMLDataProxy
@@ -374,34 +378,94 @@ package model
 			return proxy;
 		}
 		
-		public function modifySubTextureSize(rectList:Vector.<Rectangle>):XML
+		public function createTextureAtlas(rectMap:Object, subTextureList:Vector.<String> = null):void
 		{
-			var rectDic:Object = {};
-			var subTextureXMLDic:Object = {};
-			var subTextureXMLList:XMLList = getSubTextureXMLList();
-			for(var i:int = subTextureXMLList.length() - 1;i >= 0;i --)
+			_textureAtlasXML = <{ConstValues.TEXTURE_ATLAS} {ConstValues.A_NAME}={_xml.@[ConstValues.A_NAME]}/>;
+			
+			var subTextureName:String;
+			var subTextureXML:XML;
+			if(subTextureList)
 			{
-				var subTextureXML:XML = subTextureXMLList[i];
-				var subTextureName:String = subTextureXML.@[ConstValues.A_NAME];
-				subTextureXMLDic[subTextureName] = subTextureXML;
-				if(rectList)
+				for each(subTextureName in subTextureList)
 				{
-					var rect:Rectangle = rectList[i];
-					rectDic[subTextureName] = rect;
-					subTextureXML.@[ConstValues.A_WIDTH] = Math.ceil(rect.width);
-					subTextureXML.@[ConstValues.A_HEIGHT] = Math.ceil(rect.height);
+					subTextureXML = <{ConstValues.SUB_TEXTURE} {ConstValues.A_NAME}={subTextureName}/>;
+					_textureAtlasXML.appendChild(subTextureXML);
+				}
+			}
+			else
+			{
+				for(subTextureName in rectMap)
+				{
+					subTextureXML = <{ConstValues.SUB_TEXTURE} {ConstValues.A_NAME}={subTextureName}/>;
+					_textureAtlasXML.appendChild(subTextureXML);
 				}
 			}
 			
+			updateTextureAtlas(rectMap);
+		}
+		
+		public function updateDisplayPivot(rectMap:Object):void
+		{
 			for each(var displayXML:XML in getDisplayXMLList())
 			{
-				subTextureName = displayXML.@[ConstValues.A_NAME];
-				rect = rectDic[subTextureName];
+				var displayName:String = displayXML.@[ConstValues.A_NAME];
+				var rect:Rectangle = rectMap[displayName];
 				if(rect)
 				{
 					displayXML[ConstValues.TRANSFORM][0].@[ConstValues.A_PIVOT_X] = -rect.x;
 					displayXML[ConstValues.TRANSFORM][0].@[ConstValues.A_PIVOT_Y] = -rect.y;
 				}
+			}
+		}
+		
+		public function updateTextureAtlas(rectMap:Object):void
+		{
+			var area:Rectangle = TextureUtil.packTextures(
+				SettingDataProxy.getInstance().textureMaxWidth,
+				SettingDataProxy.getInstance().texturePadding,
+				rectMap
+			);
+			
+			var subTextureXMLList:XMLList = getSubTextureXMLList();
+			var subTextureXML:XML;
+			var subTextureName:String;
+			var rect:Rectangle;
+			var i:int = subTextureXMLList.length();
+			while(i --)
+			{
+				subTextureXML = subTextureXMLList[i];
+				subTextureName = subTextureXML.@[ConstValues.A_NAME];
+				rect = rectMap[subTextureName];
+				if(rect)
+				{
+					subTextureXML.@[ConstValues.A_X] = rect.x;
+					subTextureXML.@[ConstValues.A_Y] = rect.y;
+					subTextureXML.@[ConstValues.A_WIDTH] = Math.ceil(rect.width);
+					subTextureXML.@[ConstValues.A_HEIGHT] = Math.ceil(rect.height);
+				}
+				else
+				{
+					delete subTextureXMLList[i];
+				}
+			}
+			
+			_width = area.width;
+			_height = area.height;
+		}
+		
+		public function getTextureAtlasXMLWithPivot():XML
+		{
+			var textureAtlasXMLCopy:XML = _textureAtlasXML.copy();
+			var subTextureXMLDic:Object = {};
+			for each(var subTextureXML:XML in textureAtlasXMLCopy[ConstValues.SUB_TEXTURE])
+			{
+				var subTextureName:String = subTextureXML.@[ConstValues.A_NAME];
+				subTextureXMLDic[subTextureName] = subTextureXML;
+			}
+			
+			for each(var displayXML:XML in getDisplayXMLList())
+			{
+				subTextureName = displayXML.@[ConstValues.A_NAME];
 				subTextureXML = subTextureXMLDic[subTextureName];
 				if(subTextureXML)
 				{
@@ -410,16 +474,25 @@ package model
 				}
 			}
 			
-			if(rectList)
-			{
-				packTextures(SettingDataProxy.getInstance().textureMaxWidth, SettingDataProxy.getInstance().texturePadding);
-			}
-			
-			var textureAtlasXMLCopy:XML = _textureAtlasXML.copy();
-			delete subTextureXMLList.@[ConstValues.A_PIVOT_X];
-			delete subTextureXMLList.@[ConstValues.A_PIVOT_Y];
-			
 			return textureAtlasXMLCopy;
+		}
+		
+		public function getSubTextureRectMap():Object
+		{
+			var subTextureRectDic:Object = {};
+			var subTextureXMLList:XMLList = getSubTextureXMLList();
+			for each(var subTextureXML:XML in subTextureXMLList)
+			{
+				var rect:Rectangle = new Rectangle(
+					int(subTextureXML.@[ConstValues.A_X]),
+					int(subTextureXML.@[ConstValues.A_Y]),
+					int(subTextureXML.@[ConstValues.A_WIDTH]),
+					int(subTextureXML.@[ConstValues.A_HEIGHT])
+				);
+				var subTextureName:String = subTextureXML.@[ConstValues.A_NAME];
+				subTextureRectDic[subTextureName] = rect;
+			}
+			return subTextureRectDic;
 		}
 		
 		public function changeBoneParent(armatureName:String, boneName:String, parentName:String):void

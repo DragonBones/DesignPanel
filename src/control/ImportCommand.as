@@ -79,10 +79,11 @@ package control
 								ImportDataProxy.getInstance().xmlDataProxy.merge(_xmlDataProxy);
 								
 								_xmlDataProxy = ImportDataProxy.getInstance().xmlDataProxy;
+								
 								textureBytes = combine(
 									ImportDataProxy.getInstance().textureBytes, 
 									textureBytes,
-									_xmlDataProxy.modifySubTextureSize(null)
+									_xmlDataProxy.getTextureAtlasXMLWithPivot()
 								);
 								loadTextureBytes(textureBytes);
 								break;
@@ -110,6 +111,8 @@ package control
 		{
 			e.target.removeEventListener(Event.COMPLETE, addLoaderCompleteHandler);
 			
+			var bitmapData:BitmapData = e.target.content as BitmapData;
+			/*
 			var bitmapData:BitmapData = new BitmapData(
 				_xmlDataProxy.textureAtlasWidth,
 				_xmlDataProxy.textureAtlasHeight,
@@ -117,6 +120,7 @@ package control
 				0xFF00FF
 			);
 			bitmapData.draw(e.target.content);
+			*/
 			
 			var mergedBitmapData:BitmapData = mergeBitmapData(
 				ImportDataProxy.getInstance().textureAtlas.bitmapData,
@@ -125,7 +129,7 @@ package control
 				_xmlDataProxy
 			);
 			
-			bitmapData.dispose();
+			//bitmapData.dispose();
 			
 			MessageDispatcher.dispatchEvent(
 				MessageDispatcher.IMPORT_COMPLETE, 
@@ -140,11 +144,11 @@ package control
 		{
 			var rawSubBitmapDataDic:Object = BitmapDataUtil.getSubBitmapDataDic(
 				rawBitmapData, 
-				rawProxy.getSubTextureRectDic()
+				rawProxy.getSubTextureRectMap()
 			);
 			var addSubBitmapDataDic:Object = BitmapDataUtil.getSubBitmapDataDic(
 				addBitmapData, 
-				addProxy.getSubTextureRectDic()
+				addProxy.getSubTextureRectMap()
 			);
 			
 			for(var subTextureName:String in addSubBitmapDataDic)
@@ -161,7 +165,7 @@ package control
 			
 			return BitmapDataUtil.getMergeBitmapData(
 				rawSubBitmapDataDic,
-				rawProxy.getSubTextureRectDic(),
+				rawProxy.getSubTextureRectMap(),
 				rawProxy.textureAtlasWidth,
 				rawProxy.textureAtlasHeight
 			);

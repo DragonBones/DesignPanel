@@ -13,6 +13,7 @@ package control
 	import flash.events.Event;
 	import flash.events.IOErrorEvent;
 	import flash.events.ProgressEvent;
+	import flash.geom.Rectangle;
 	import flash.net.FileFilter;
 	import flash.net.FileReference;
 	import flash.net.URLLoader;
@@ -226,8 +227,7 @@ package control
 						}
 						else if(images)
 						{
-							_images = images;
-							spliceBitmapDataStep(null);
+							BitmapDataUtil.byteArrayMapToBitmapDataMap(images, bitmapDataMapComplete);
 							return;
 						}
 						break;
@@ -242,47 +242,29 @@ package control
 			MessageDispatcher.dispatchEvent(MessageDispatcher.LOAD_FILEDATA_ERROR);
 		}
 		
-		private var _images:Object;
-		private var _imageName:String;
-		
-		private function spliceBitmapDataStep(e:Event):void
+		private function bitmapDataMapComplete(bitmapDataMap:Object):void
 		{
-			if(e)
+			var rectMap:Object = {};
+			for(var name:String in bitmapDataMap)
 			{
-				e.target.removeEventListener(Event.COMPLETE, spliceBitmapDataStep);
-				_images[_imageName] = e.target.content.bitmapData;
+				var bitmapData:BitmapData = bitmapDataMap[name];
+				var rect:Rectangle = new Rectangle(0, 0, bitmapData.width, bitmapData.height);
+				rectMap[name] = rect;
 			}
-			for (var name:String in _images)
-			{
-				var imageBytes:ByteArray = _images[name] as ByteArray;
-				if(imageBytes)
-				{
-					_imageName = name;
-					break;
-				}
-			}
-			if(imageBytes)
-			{
-				var loader:Loader = new Loader();
-				loader.contentLoaderInfo.addEventListener(Event.COMPLETE, spliceBitmapDataStep);
-				loader.loadBytes(imageBytes, _loaderContext);
-			}
-			else
-			{
+			_xmlDataProxy.createTextureAtlas(rectMap);
 				
-				MessageDispatcher.dispatchEvent(
-					MessageDispatcher.LOAD_FILEDATA_COMPLETE, 
-					_xmlDataProxy, 
-					PNGEncoder.encode(
-						BitmapDataUtil.getMergeBitmapData(
-							_images,
-							_xmlDataProxy.getSubTextureRectDic(),
-							_xmlDataProxy.textureAtlasWidth,
-							_xmlDataProxy.textureAtlasHeight
-						)
+			MessageDispatcher.dispatchEvent(
+				MessageDispatcher.LOAD_FILEDATA_COMPLETE, 
+				_xmlDataProxy, 
+				PNGEncoder.encode(
+					BitmapDataUtil.getMergeBitmapData(
+						bitmapDataMap,
+						_xmlDataProxy.getSubTextureRectMap(),
+						_xmlDataProxy.textureAtlasWidth,
+						_xmlDataProxy.textureAtlasHeight
 					)
-				);
-			}
+				)
+			);
 		}
 	}
 }

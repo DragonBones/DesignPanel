@@ -71,7 +71,7 @@
 							sliderAnimationScale.value = animationScale;
 							sliderAnimationScale.enabled = true;
 							numLoop.enabled = true;
-							numLoop.value = loop
+							numLoop.value = loop;
 							
 							if(isNaN(tweenEasing))
 							{
