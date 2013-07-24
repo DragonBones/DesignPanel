@@ -279,7 +279,7 @@ package model
 			for each(var displayXML:XML in getDisplayXMLList(armatureName))
 			{
 				displayName = displayXML.@[ConstValues.A_NAME];
-				armatureDisplayMap[displayName] = [displayXML];
+				armatureDisplayMap[displayName] = displayXML;
 			}
 			
 			for each(var exDisplayXML:XML in displayXMLList)

@@ -119,6 +119,8 @@ package model
 			
 			_selectAnimationData = value;
 			
+			durationScaled = 0;
+			
 			if(_armature && _selectAnimationData)
 			{
 				_armature.animation.gotoAndPlay(_selectAnimationData.name);
@@ -152,7 +154,7 @@ package model
 		{
 			if(_selectAnimationData?(_selectAnimationData.duration * _selectAnimationData.frameRate < 2):true)
 			{
-				return -1;
+				return 0;
 			}
 			return Math.round(_selectAnimationData.scale * _selectAnimationData.duration * 100) / 100;
 		}
