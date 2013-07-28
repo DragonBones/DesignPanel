@@ -27,6 +27,8 @@ package model
 	[Bindable]
 	public class CopyDataProxy extends EventDispatcher
 	{
+		private static const DATA_NAME:String = "copyData";
+		
 		private static var _instance:CopyDataProxy;
 		public static function getInstance():CopyDataProxy
 		{
@@ -74,7 +76,7 @@ package model
 		{
 			if(_data)
 			{
-				_factory.removeSkeletonData(_data.name);
+				_factory.removeSkeletonData(DATA_NAME);
 				_data.dispose();
 			}
 			
@@ -85,8 +87,8 @@ package model
 				
 				armaturesAC.source = getArmatureList();
 				
-				_factory.addSkeletonData(_data);
-				_factory.addTextureAtlas(ImportDataProxy.getInstance().textureAtlas);
+				_factory.addSkeletonData(_data, DATA_NAME);
+				_factory.addTextureAtlas(ImportDataProxy.getInstance().textureAtlas, DATA_NAME);
 				
 				sourceArmatureProxy.armatureData = ImportDataProxy.getInstance().armatureProxy.armatureData;
 				targetArmatureProxy.armatureData = null;

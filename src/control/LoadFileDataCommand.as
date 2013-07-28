@@ -29,6 +29,7 @@ package control
 	import utils.BitmapDataUtil;
 	import utils.GlobalConstValues;
 	import utils.PNGEncoder;
+	import utils.formatSpineData;
 	import utils.objectToXML;
 	
 	import zero.zip.Zip;
@@ -159,12 +160,14 @@ package control
 				case BytesType.ZIP:
 					try
 					{
-						var object:Object;
-						var images:Object;
 						var zip:Zip = new Zip();
 						zip.decode(fileData);
 						_xmlDataProxy = new XMLDataProxy();
 						
+						var images:Object;
+						var object:Object;
+						var spineArmatures:Object;
+						var name:String;
 						for each(var zipFile:ZipFile in zip.fileV)
 						{
 							if(!zipFile.isDirectory)
@@ -199,12 +202,12 @@ package control
 										_xmlDataProxy.textureAtlasXML = objectToXML(object, ConstValues.TEXTURE_ATLAS);
 									}
 								}
-								else if(zipFile.name.indexOf(GlobalConstValues.TEXTURE_NAME) == 0)
+								else if(zipFile.name.indexOf(GlobalConstValues.TEXTURE_ATLAS_DATA_NAME) == 0)
 								{
 									if(zipFile.name.indexOf("/") > 0)
 									{
-										var name:String = zipFile.name.replace(/\.\w+$/,"");
-										name = name.split("/").pop();
+										name = zipFile.name.replace(/\.\w+$/,"");
+										name = name.substr(GlobalConstValues.TEXTURE_ATLAS_DATA_NAME.length + 1);
 										if(!images)
 										{
 											images = {};
@@ -216,9 +219,26 @@ package control
 										var textureBytes:ByteArray = zipFile.data;
 									}
 								}
+								else if(zipFile.name.indexOf(GlobalConstValues.SPINE_FOLDER) == 0)
+								{
+									if(!spineArmatures)
+									{
+										spineArmatures = {};
+									}
+									name = zipFile.name.replace(/\.\w+$/,"");
+									name = name.substr(GlobalConstValues.SPINE_FOLDER.length + 1);
+									object = com.adobe.serialization.json.JSON.decode(zipFile.data.toString());
+									spineArmatures[name] = object;
+								}
 							}
 						}
 						zip.clear();
+						
+						if(spineArmatures)
+						{
+							_xmlDataProxy.xml = formatSpineData(spineArmatures, null);
+						}
+						
 						if(textureBytes)
 						{
 							//_textureBytes

@@ -127,8 +127,6 @@ function formatBone(boneXML:XML):XML
 				{ConstValues.A_SKEW_Y}={boneXML.@[A_SKEW_Y]}
 				{ConstValues.A_SCALE_X}={boneXML.@[A_SCALE_X]}
 				{ConstValues.A_SCALE_Y}={boneXML.@[A_SCALE_Y]}
-				{ConstValues.A_PIVOT_X}={- Number(boneXML.@[A_PIVOT_X])}
-				{ConstValues.A_PIVOT_Y}={- Number(boneXML.@[A_PIVOT_Y])}
 			/>
 		</{ConstValues.BONE}>;
 	var parent:String = boneXML.@[A_PARENT];
@@ -146,6 +144,7 @@ function formatSlot(boneXML:XML):XML
 		<{ConstValues.SLOT}
 			{ConstValues.A_NAME}={boneXML.@[A_NAME]}
 			{ConstValues.A_PARENT}={boneXML.@[A_NAME]}
+			{ConstValues.A_Z_ORDER}={boneXML.@[A_Z_ORDER]}
 		/>;
 	
 	var newDisplayXML:XML;
@@ -164,7 +163,6 @@ function formatDisplay(displayXML:XML, boneXML:XML):XML
 		<{ConstValues.DISPLAY}
 			{ConstValues.A_NAME}={displayXML.@[A_NAME]}
 			{ConstValues.A_TYPE}={displayType}
-			{ConstValues.A_Z_ORDER}={boneXML.@[A_Z_ORDER]}
 		>
 			<{ConstValues.TRANSFORM}
 				{ConstValues.A_X}={- Number(boneXML.@[A_PIVOT_X])}
@@ -197,7 +195,7 @@ function formatAnimation(animationXML:XML, frameRate:uint):XML
 	var newMainFrameXML:XML;
 	for each(var frameXML:XML in animationXML[FRAME])
 	{
-		newMainFrameXML = formatMainFrameXML(frameXML, frameRate);
+		newMainFrameXML = formatMainFrame(frameXML, frameRate);
 		newAnimationXML.appendChild(newMainFrameXML);
 	}
 	
@@ -211,7 +209,7 @@ function formatAnimation(animationXML:XML, frameRate:uint):XML
 	return newAnimationXML;
 }
 
-function formatMainFrameXML(frameXML:XML, frameRate:uint):XML
+function formatMainFrame(frameXML:XML, frameRate:uint):XML
 {
 	var newMainFrameXML:XML =
 		<{ConstValues.FRAME}
@@ -249,14 +247,14 @@ function formatTimeline(timelineXML:XML, frameRate:uint):XML
 	var newFrameXML:XML;
 	for each(var frameXML:XML in timelineXML[FRAME])
 	{
-		newFrameXML = formatFrameXML(frameXML, frameRate);
+		newFrameXML = formatFrame(frameXML, frameRate);
 		newTimelineXML.appendChild(newFrameXML);
 	}
 			
 	return newTimelineXML;
 }
 
-function formatFrameXML(frameXML:XML, frameRate:uint):XML
+function formatFrame(frameXML:XML, frameRate:uint):XML
 {
 	var newFrameXML:XML =
 		<{ConstValues.FRAME}

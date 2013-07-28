@@ -9,7 +9,7 @@
 		public static const JSON_SUFFIX:String = ".json";
 		public static const DRAGON_BONES_DATA_NAME:String = "skeleton";
 		public static const TEXTURE_ATLAS_DATA_NAME:String = "texture";
-		public static const TEXTURE_NAME:String = "texture";
+		public static const SPINE_FOLDER:String = "spine";
 		
 		public static const XML_LIST_NAMES:Vector.<String> = 
 			new <String>[

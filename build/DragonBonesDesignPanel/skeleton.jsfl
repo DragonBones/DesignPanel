@@ -558,7 +558,7 @@ function getBoneXML(armatureXML, name, item, frameXML)
 	var xml = armatureXML[BONE].(@name == name)[0];
 	if(!xml)
 	{
-		var transformXML = frameXML[TRANSFORM];
+		var transformXML = frameXML[TRANSFORM][0];
 		xml = 
 			<{BONE}
 				{A_NAME}={name}
@@ -570,8 +570,6 @@ function getBoneXML(armatureXML, name, item, frameXML)
 					{A_SKEW_Y}={transformXML.@[A_SKEW_Y]}
 					{A_SCALE_X}={transformXML.@[A_SCALE_X]}
 					{A_SCALE_Y}={transformXML.@[A_SCALE_Y]}
-					{A_PIVOT_X}={transformXML.@[A_PIVOT_X]}
-					{A_PIVOT_Y}={transformXML.@[A_PIVOT_Y]}
 				/>
 			</{BONE}>;
 		
@@ -621,7 +619,7 @@ function getDisplayXML(slotXML, name, item, frameXML, isArmature)
 	var xml = slotXML[DISPLAY].(@name == name)[0];
 	if(!xml)
 	{
-		var transformXML = frameXML[TRANSFORM];
+		var transformXML = frameXML[TRANSFORM][0];
 		xml = 
 			<{DISPLAY} 
 				{A_NAME}={name}
@@ -871,6 +869,10 @@ function generateFrame(item, frame, boneName, symbol, zOrder, noAutoEasing, arma
 	var isArmature = isArmatureItem(imageItem, isChildArmature);
 	
 	var displayXML = getDisplayXML(slotXML, imageName, item, frameXML, isArmature);
+	
+	var transformXML = frameXML[TRANSFORM][0];
+	transformXML.@[A_PIVOT_X] = formatNumber(Number(transformXML.@[A_PIVOT_X]) - Number(displayXML[TRANSFORM][0].@[A_X]));
+	transformXML.@[A_PIVOT_Y] = formatNumber(Number(transformXML.@[A_PIVOT_Y]) - Number(displayXML[TRANSFORM][0].@[A_Y]));
 	
 	if(symbol.visible === false)
 	{
@@ -1418,6 +1420,7 @@ dragonBones.copyAnimation = function(targetArmatureName, sourceArmatureName, sou
 				_helpTransform.scaleY = Number(frameXML.@[A_SCALE_Y]);
 				_helpTransform.skewX = Number(frameXML.@[A_SKEW_X]) / 180 * Math.PI;
 				_helpTransform.skewY = Number(frameXML.@[A_SKEW_Y]) / 180 * Math.PI;
+				//
 				_helpTransform.pivotX = - Number(frameXML.@[A_PIVOT_X]);
 				_helpTransform.pivotY = - Number(frameXML.@[A_PIVOT_Y]);
 				

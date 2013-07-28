@@ -184,7 +184,7 @@ package control
 							zip = new Zip();
 							zip.add(
 								dataBytes, 
-								GlobalConstValues.TEXTURE_NAME + (isSWF?GlobalConstValues.SWF_SUFFIX:GlobalConstValues.PNG_SUFFIX),
+								GlobalConstValues.TEXTURE_ATLAS_DATA_NAME + (isSWF?GlobalConstValues.SWF_SUFFIX:GlobalConstValues.PNG_SUFFIX),
 								date
 							);
 							if(isXML)
@@ -249,7 +249,7 @@ package control
 							var subBitmapData:BitmapData = subBitmapDataDic[subTextureName];
 							zip.add(
 								PNGEncoder.encode(subBitmapData), 
-								GlobalConstValues.TEXTURE_NAME + "/" + subTextureName + GlobalConstValues.PNG_SUFFIX, 
+								GlobalConstValues.TEXTURE_ATLAS_DATA_NAME + "/" + subTextureName + GlobalConstValues.PNG_SUFFIX, 
 								date
 							);
 							subBitmapData.dispose();

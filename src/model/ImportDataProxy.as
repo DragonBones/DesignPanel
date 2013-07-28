@@ -22,6 +22,8 @@
 	 */
 	public class ImportDataProxy
 	{
+		private static const DATA_NAME:String = "importName";
+		
 		private static var _instance:ImportDataProxy
 		public static function getInstance():ImportDataProxy
 		{
@@ -87,13 +89,13 @@
 		{
 			if(_data)
 			{
-				_factory.removeSkeletonData(_data.name);
+				_factory.removeSkeletonData(DATA_NAME);
 				_data.dispose();
 			}
 			
 			if(_textureAtlas)
 			{
-				_factory.removeTextureAtlas(_textureAtlas.name);
+				_factory.removeTextureAtlas(DATA_NAME);
 				_textureAtlas.dispose();
 			}
 			
@@ -104,8 +106,8 @@
 			_data = XMLDataParser.parseSkeletonData(_xmlDataProxy.xml);
 			_textureAtlas = new NativeTextureAtlas(textureData, _xmlDataProxy.textureAtlasXML)
 			_textureAtlas.movieClipToBitmapData();
-			_factory.addSkeletonData(_data);
-			_factory.addTextureAtlas(_textureAtlas);
+			_factory.addSkeletonData(_data, DATA_NAME);
+			_factory.addTextureAtlas(_textureAtlas, DATA_NAME);
 			
 			armaturesAC.source = getArmatureList();
 			

@@ -591,8 +591,8 @@ package model
 						frame.global.skewY = targetBoneData.transform.skewY + transformTimeline.originTransform.skewY + frame.transform.skewY;
 						frame.global.scaleX = targetBoneData.transform.scaleX + transformTimeline.originTransform.scaleX + frame.transform.scaleX;
 						frame.global.scaleY = targetBoneData.transform.scaleY + transformTimeline.originTransform.scaleY + frame.transform.scaleY;
-						pivotX = targetBoneData.pivot.x + transformTimeline.originPivot.x + frame.pivot.x;
-						pivotY = targetBoneData.pivot.y + transformTimeline.originPivot.y + frame.pivot.y;
+						pivotX = frame.pivot.x;
+						pivotY = frame.pivot.y;
 						
 						if(parentTimeline)
 						{
