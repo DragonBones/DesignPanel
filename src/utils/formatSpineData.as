@@ -32,11 +32,12 @@ const ROTATE:String = "rotate";
 const TRANSLATE:String = "translate";
 const SCALE:String = "scale";
 const COMBINE:String = "combine";
+const ATTACHMENT:String = "attachment";
+const COLOR:String = "color";
 
 const A_NAME:String = "name";
 const A_PARENT:String = "parent";
 const A_BONE:String = "bone";
-const A_ATTACHMENT:String = "attachment";
 
 const A_TIME:String = "time";
 const A_CURVE:String = "curve";
@@ -76,9 +77,11 @@ function formatArmature(armatureObject:Object, armatureName:String, textureAtlas
 	var slotList:Array = armatureObject[SLOT];
 	
 	var skins:Object = armatureObject[SKIN];
+	var skinXML:XML;
 	for(var skinName:String in skins)
 	{
-		armatureXML.appendChild(formatSkin(skins[skinName], skinName, slotList, textureAtlasXML));
+		skinXML = formatSkin(skins[skinName], skinName, slotList, textureAtlasXML);
+		armatureXML.appendChild(skinXML);
 	}
 	
 	var animations:Object = armatureObject[ANIMATION];
@@ -86,8 +89,8 @@ function formatArmature(armatureObject:Object, armatureName:String, textureAtlas
 	for(var animationName:String in animations)
 	{
 		animationObject = animations[animationName];
-		transformAnimation(animationObject, boneListCopy, frameRate);
-		armatureXML.appendChild(formatAnimation(animationObject, animationName, slotList));
+		transformAnimation(animationObject, boneListCopy, slotList, frameRate, skinXML);
+		armatureXML.appendChild(formatAnimation(animationObject, animationName));
 	}
 	
 	return armatureXML;
@@ -136,12 +139,11 @@ function formatSkin(skinObject:Object, skinName:String, slotList:Array, textureA
 			if(slotObjectInList[A_NAME] == slotName)
 			{
 				parentName = slotObjectInList[A_BONE];
-				firstAttachment = slotObjectInList[A_ATTACHMENT];
+				firstAttachment = slotObjectInList[ATTACHMENT];
 				break;
 			}
 			zOrder ++;
 		}
-		
 		skinXML.appendChild(formatSlot(skinObject[slotName], slotName, parentName, firstAttachment, zOrder, textureAtlasXML));
 	}
 			
@@ -223,7 +225,7 @@ function formatDisplay(displayObject:Object, displayName:String, textureAtlasXML
 	return displayXML;
 }
 
-function formatAnimation(animationObject:Object, animationName:String, slotList:Array):XML
+function formatAnimation(animationObject:Object, animationName:String):XML
 {
 	var animationXML:XML = 
 		<{ConstValues.ANIMATION}
@@ -236,25 +238,15 @@ function formatAnimation(animationObject:Object, animationName:String, slotList:
 		/>;
 	
 	var timelines:Object = animationObject[BONE];
-	var zOrder:int;
 	for(var timelineName:String in timelines)
 	{
-		zOrder = 0;
-		for each(var slotObject:Object in slotList)
-		{
-			if(slotObject[A_BONE] == timelineName)
-			{
-				break;
-			}
-			zOrder ++;
-		}
-		animationXML.appendChild(formatTimeline(timelines[timelineName], timelineName, zOrder));
+		animationXML.appendChild(formatTimeline(timelines[timelineName], timelineName));
 	}
 	
 	return animationXML;
 }
 
-function formatTimeline(timelineObject:Object, timelineName:String, zOrder:int):XML
+function formatTimeline(timelineObject:Object, timelineName:String):XML
 {
 	var timelineXML:XML =
 		<{ConstValues.TIMELINE}
@@ -267,19 +259,18 @@ function formatTimeline(timelineObject:Object, timelineName:String, zOrder:int):
 	{
 		if(frameObject)
 		{
-			timelineXML.appendChild(formatFrame(frameObject, zOrder));
+			timelineXML.appendChild(formatFrame(frameObject));
 		}
 	}
 	
 	return timelineXML;
 }
 
-function formatFrame(frameObject:Object, zOrder:int):XML
+function formatFrame(frameObject:Object):XML
 {
 	var frameXML:XML = 
 		<{ConstValues.FRAME} 
 			{ConstValues.A_DURATION}={frameObject[A_DURATION]}
-			{ConstValues.A_Z_ORDER}={zOrder}
 		>
 			<{ConstValues.TRANSFORM}
 				{ConstValues.A_X}={formatNumber(frameObject[A_X])}
@@ -292,7 +283,11 @@ function formatFrame(frameObject:Object, zOrder:int):XML
 				{ConstValues.A_PIVOT_Y}={0}
 			/>
 		</{ConstValues.FRAME}>;
-				
+	
+	if(frameObject[ConstValues.A_DISPLAY_INDEX] >= 0)
+	{
+		frameXML.@[ConstValues.A_DISPLAY_INDEX] = frameObject[ConstValues.A_DISPLAY_INDEX];
+	}
 	return frameXML;
 }
 
@@ -356,15 +351,20 @@ function tansformBoneList(boneList:Array):Array
 	return listCopy;
 }
 
-function transformAnimation(animationObject:Object, boneListCopy:Array, frameRate:uint):void
+function transformAnimation(animationObject:Object, boneListCopy:Array, slotList:Array, frameRate:uint, skinXML:XML):void
 {
 	var boneTimelines:Object = animationObject[BONE];
-	
+	var slotTimelines:Object = animationObject[SLOT];
 	var maxTime:Number = 0;
+	
+	var boneTimeline:Object;
+	var slotTimeline:Object;
+	
 	var transform:Object;
 	var boneName:String;
+	var slotName:String;
 	var parentName:String;
-	var boneTimeline:Object;
+	var displayName:String;
 	var parentTimeline:Object;
 	var frameList:Array;
 	var frameListCombined:Array;
@@ -373,80 +373,144 @@ function transformAnimation(animationObject:Object, boneListCopy:Array, frameRat
 	var frameID:uint;
 	var time:Number;
 	var i:int;
+	
+	var noTransformFrame:Object;
+	var lasfFrames:Array = [];
+	
+	var slotXML:XML;
+	var displayXML:XML;
+	
 	for each(var boneObject:Object in boneListCopy)
 	{
 		boneName = boneObject[A_NAME];
 		parentName = boneObject[A_PARENT];
 		boneTimeline = boneTimelines[boneName];
 		parentTimeline = boneTimelines[parentName];
-		if(boneTimeline)
+		
+		//spine中没有动画的骨骼，默认每个动作添加一个静止帧
+		if(!boneTimeline)
 		{
-			frameListCombined = [];
-			for(var type:String in boneTimeline)
+			noTransformFrame = {};
+			noTransformFrame[A_TIME] = 0;
+			boneTimelines[boneName] = boneTimeline = {};
+			boneTimeline[TRANSLATE] = [noTransformFrame];
+		}
+		
+		slotTimeline = null;
+		slotName = null;
+		slotXML = null;
+		if(skinXML)
+		{
+			if(slotTimelines)
 			{
-				frameList = boneTimeline[type];
-				for each(var frame:Object in frameList)
+				for each(var slotObject:Object in slotList)
 				{
-					time = frame[A_TIME] = Number(frame[A_TIME]) || 0;
-					formatTransform(frame, 0);
-					setFrameCurve(frame[A_CURVE] as Array);
-					frameID = Math.round(time * frameRate);
-					frameCombined = frameListCombined[frameID];
-					if(!frameCombined)
+					if(slotObject[A_BONE] == boneName)
 					{
-						frameCombined = frameListCombined[frameID] = {};
-						frameCombined[A_TIME] = time;
+						slotName = slotObject[A_NAME];
+						slotTimeline = slotTimelines[slotName];
+						if(slotTimeline)
+						{
+							for(var slotTimelineType:String in slotTimeline)
+							{
+								boneTimeline[slotTimelineType] = slotTimeline[slotTimelineType];
+							}
+							break;
+						}
 					}
 				}
 			}
 			
-			prevFrameCombined = null;
-			i = frameListCombined.length;
-			while(i --)
+			if(slotName)
 			{
-				frameCombined = frameListCombined[i];
-				if(frameCombined)
+				slotXML = skinXML[ConstValues.SLOT].(@[ConstValues.A_NAME] == slotName)[0];
+			}
+		}
+		
+		frameListCombined = [];
+		for(var boneTimelineType:String in boneTimeline)
+		{
+			frameList = boneTimeline[boneTimelineType];
+			for each(var frame:Object in frameList)
+			{
+				time = frame[A_TIME] = Number(frame[A_TIME]) || 0;
+				formatTransform(frame, 0);
+				setFrameCurve(frame[A_CURVE] as Array);
+				frameID = Math.round(time * frameRate);
+				frameCombined = frameListCombined[frameID];
+				if(!frameCombined)
 				{
-					formatTransform(frameCombined, 0);
-					time = frameCombined[A_TIME];
-					combineFrameFromTimeline(boneTimeline, time, frameCombined);
-					
-					frameCombined[A_X] += boneObject[A_X];
-					frameCombined[A_Y] += boneObject[A_Y];
-					frameCombined[A_ROTATION] += boneObject[A_ROTATION];
-					frameCombined[A_SCALE_X] += boneObject[A_SCALE_X];
-					frameCombined[A_SCALE_Y] += boneObject[A_SCALE_Y];
-					if(parentTimeline)
+					frameCombined = frameListCombined[frameID] = {};
+					frameCombined[A_TIME] = time;
+				}
+			}
+		}
+		
+		prevFrameCombined = null;
+		i = frameListCombined.length;
+		while(i --)
+		{
+			frameCombined = frameListCombined[i];
+			if(frameCombined)
+			{
+				formatTransform(frameCombined, 0);
+				time = frameCombined[A_TIME];
+				combineFrameFromTimeline(boneTimeline, time, frameCombined);
+				
+				displayName = frameCombined[A_NAME];
+				if(displayName)
+				{
+					displayXML = slotXML[ConstValues.DISPLAY].(@[ConstValues.A_NAME] == displayName)[0];
+					if(displayXML)
 					{
-						transform = {};
-						formatTransform(transform, 0);
-						getTransformFromFrameList(parentTimeline[COMBINE], time, transform);
-						transformToGlobal(frameCombined, transform);
+						frameCombined[ConstValues.A_DISPLAY_INDEX] = displayXML.childIndex();
 					}
-					
-					if(prevFrameCombined)
-					{
-						frameCombined[A_DURATION] = Math.round((prevFrameCombined[A_TIME] - time) * frameRate);
-					}
-					else
-					{
-						//
-						frameCombined[A_DURATION] = 1;
-						maxTime = Math.max(maxTime, time);
-					}
-					prevFrameCombined = frameCombined;
+				}
+				
+				frameCombined[A_X] += boneObject[A_X];
+				frameCombined[A_Y] += boneObject[A_Y];
+				frameCombined[A_ROTATION] += boneObject[A_ROTATION];
+				frameCombined[A_SCALE_X] += boneObject[A_SCALE_X];
+				frameCombined[A_SCALE_Y] += boneObject[A_SCALE_Y];
+				if(parentTimeline)
+				{
+					transform = {};
+					formatTransform(transform, 0);
+					getTransformFromFrameList(parentTimeline[COMBINE], time, transform);
+					transformToGlobal(frameCombined, transform);
+				}
+				
+				if(prevFrameCombined)
+				{
+					frameCombined[A_DURATION] = Math.round((prevFrameCombined[A_TIME] - time) * frameRate);
 				}
 				else
 				{
-					frameListCombined.splice(i, 1);
+					//
+					frameCombined[A_DURATION] = 1;
+					lasfFrames.push(frameCombined);
+					maxTime = Math.max(maxTime, time);
+					
 				}
+				prevFrameCombined = frameCombined;
 			}
-			
-			boneTimeline[COMBINE] = frameListCombined;
+			else
+			{
+				frameListCombined.splice(i, 1);
+			}
 		}
+		
+		boneTimeline[COMBINE] = frameListCombined;
 	}
+	
+	var totalDuration:Number = Math.round(maxTime * frameRate) + 1;
 	//
-	animationObject[A_DURATION] = Math.round(maxTime * frameRate) + 1;
+	animationObject[A_DURATION] = totalDuration;
+	
+	for each(var lastFrame:Object in lasfFrames)
+	{
+		lastFrame[A_DURATION] = totalDuration - Math.round(lastFrame[A_TIME] * frameRate);
+	}
 }
 
 function getBoneFromList(boneList:Array, boneName:String):Object
@@ -476,17 +540,24 @@ function combineFrameFromTimeline(timeline:Object, time:Number, resultTransform:
 		frameList = timeline[type];
 		currentFrame = null;
 		i = 0;
-		for each(var nextFrame:Object in frameList)
+		if(frameList.length > 1)
 		{
-			if(nextFrame[A_TIME] > time)
+			for each(var nextFrame:Object in frameList)
 			{
-				break;
+				if(nextFrame[A_TIME] > time)
+				{
+					break;
+				}
+				if(i != frameList.length - 1)
+				{
+					currentFrame = nextFrame;
+				}
+				i ++;
 			}
-			if(i != frameList.length - 1)
-			{
-				currentFrame = nextFrame;
-			}
-			i ++;
+		}
+		else
+		{
+			nextFrame = frameList[0];
 		}
 		
 		if(currentFrame)
@@ -514,6 +585,9 @@ function combineFrameFromTimeline(timeline:Object, time:Number, resultTransform:
 				resultTransform[A_SCALE_X] = currentFrame[A_SCALE_X] + percent * (nextFrame[A_SCALE_X] - currentFrame[A_SCALE_X]);
 				resultTransform[A_SCALE_Y] = currentFrame[A_SCALE_Y] + percent * (nextFrame[A_SCALE_Y] - currentFrame[A_SCALE_Y]);
 				break;
+			case ATTACHMENT:
+				resultTransform[A_NAME] = currentFrame[A_NAME];
+				break;
 		}
 	}
 }
@@ -521,7 +595,6 @@ function combineFrameFromTimeline(timeline:Object, time:Number, resultTransform:
 function getTransformFromFrameList(frameList:Array, time:Number, resultTransform:Object):void
 {
 	var currentFrame:Object;
-	
 	var i:int = 0;
 	for each(var nextFrame:Object in frameList)
 	{
@@ -546,7 +619,6 @@ function getTransformFromFrameList(frameList:Array, time:Number, resultTransform
 		percent = 0;
 		currentFrame = nextFrame;
 	}
-	
 	
 	resultTransform[A_X] = currentFrame[A_X] + percent * (nextFrame[A_X] - currentFrame[A_X]);
 	resultTransform[A_Y] = currentFrame[A_Y] + percent * (nextFrame[A_Y] - currentFrame[A_Y]);

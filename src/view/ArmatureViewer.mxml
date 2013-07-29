@@ -9,6 +9,7 @@
 		<![CDATA[
 			import dragonBones.Armature;
 			import dragonBones.Bone;
+			import dragonBones.Slot;
 			import dragonBones.events.AnimationEvent;
 			import dragonBones.factorys.NativeFactory;
 			import dragonBones.objects.BoneData;
@@ -44,8 +45,10 @@
 			private var _bgShape:Shape;
 			private var _originLineX:Shape;
 			private var _originlineY:Shape;
-			private var _boneDisplaySelected:Object;
-			private var _boneDisplayRollOver:Object;
+			
+			private var _boneSelected:Bone;
+			private var _boneRollOver:Bone;
+			
 			private var _boneHighlightFilter:GlowFilter;
 			private var _boneRolloverFilter:GlowFilter;
 			
@@ -170,10 +173,10 @@
 				{
 					case SettingDataProxy.BONE_HIGHLIGHT_COLOR:
 						_boneRolloverFilter.color = _boneHighlightFilter.color = value as uint;
-						if(_boneHighlightFilter.color && _boneDisplaySelected)
+						if(_boneHighlightFilter.color && _boneSelected)
 						{
-							_boneDisplaySelected.filters = null;
-							_boneDisplaySelected.filters = [_boneHighlightFilter];
+							updateBoneHighlight(_boneSelected, null);
+							updateBoneHighlight(_boneSelected, _boneHighlightFilter);
 						}
 						break;
 					case SettingDataProxy.LANGUAGE_ID:
@@ -276,6 +279,7 @@
 					return;
 				}
 				var mouseTarget:DisplayObject;
+				var currentBone:Bone;
 				switch(e.type)
 				{
 					case MouseEvent.ROLL_OVER:
@@ -285,6 +289,8 @@
 						_isMouseIn = false;
 						break;
 					case MouseEvent.MOUSE_DOWN:
+						this.stage.focus = null;
+						
 						mouseTarget = updateOverAndOut();
 						_isMouseDown = true;
 						Mouse.cursor = MouseCursor.HAND;
@@ -299,7 +305,8 @@
 							stage.addEventListener(MouseEvent.MOUSE_UP, containerMouseHandler);
 						}
 						
-						if(mouseTarget && mouseTarget == _boneDisplaySelected)
+						currentBone = _armature.getBoneByDisplay(mouseTarget);
+						if(currentBone && currentBone == _boneSelected)
 						{
 							_armatureContainer.addEventListener(MouseEvent.MOUSE_MOVE, containerMouseHandler);
 						}
@@ -318,32 +325,19 @@
 						_isMouseDown = false;
 						Mouse.cursor = MouseCursor.AUTO;
 						
+						currentBone = _armature.getBoneByDisplay(mouseTarget);
 						if(_boneSymbol.visible)
 						{
 							_boneSymbol.visible = false;
-							if(_boneDisplaySelected && _boneDisplayRollOver && mouseTarget == _boneDisplayRollOver)
+							if(_boneSelected && _boneRollOver && currentBone == _boneRollOver)
 							{
-								var bone:Bone = _armature.getBoneByDisplay(_boneDisplayRollOver);
-								if(bone)
-								{
-									var boneName:String = bone.name;
-								}
-								bone = _armature.getBoneByDisplay(_boneDisplaySelected);
-								if(bone)
-								{
-									var boneParentName:String = bone.name;
-								}
-								this.dispatchEvent(new Message(VIEW_CHANGE_BONE_PARENT, boneName, boneParentName));
+								this.dispatchEvent(new Message(VIEW_CHANGE_BONE_PARENT, _boneRollOver.name, _boneSelected.name));
 							}
 						}
-						else if(mouseTarget)
+						else if(currentBone)
 						{
-							bone = _armature.getBoneByDisplay(mouseTarget);
-							if(bone)
-							{
-								updateBone(bone.name);
-								this.dispatchEvent(new Message(VIEW_SELECT_BONE, bone.name));
-							}
+							updateBone(currentBone.name);
+							this.dispatchEvent(new Message(VIEW_SELECT_BONE, currentBone.name));
 						}
 						break;
 					case MouseEvent.DOUBLE_CLICK:
@@ -405,8 +399,8 @@
 			{
 				_isDragedArmature = false;
 				_armatreArea = null;
-				_boneDisplayRollOver = null;
-				_boneDisplaySelected = null;
+				_boneRollOver = null;
+				_boneSelected = null;
 				
 				//_armatureContainer.removeChildren();
 				var length:uint = _armatureContainer.numChildren;
@@ -452,28 +446,42 @@
 				if(_armature)
 				{
 					var bone:Bone = _armature.getBone(boneName);
-					if(bone)
+					if(bone && bone != _boneSelected)
 					{
-						var boneDisplaySelected:DisplayObject = bone.display as DisplayObject;
-						if(boneDisplaySelected == _boneDisplaySelected)
+						if(_boneSelected)
 						{
-							return;
+							updateBoneHighlight(_boneSelected, null);
+							_boneSelected = null;
 						}
 						
-						if(_boneDisplaySelected)
-						{
-							_boneDisplaySelected.filters = null;
-							_boneDisplaySelected = null;
-						}
-						
-						_boneDisplaySelected = boneDisplaySelected;
-						if(_boneDisplaySelected)
+						_boneSelected = bone;
+						if(_boneSelected)
 						{
 							if(_boneHighlightFilter.color)
 							{
-								_boneDisplaySelected.filters = [_boneHighlightFilter];
+								updateBoneHighlight(_boneSelected, _boneHighlightFilter);
 							}
-							_boneDisplayRollOver = null;
+							//
+							_boneRollOver = null;
+						}
+					}
+				}
+			}
+			
+			private function updateBoneHighlight(bone:Bone, filter:Object):void
+			{
+				for each(var slot:Slot in bone.getSlots())
+				{
+					var display:DisplayObject = slot.display as DisplayObject;
+					if(display)
+					{
+						if(filter)
+						{
+							display.filters = [filter];
+						}
+						else
+						{
+							display.filters = null;
 						}
 					}
 				}
@@ -505,48 +513,47 @@
 						childDisplay.filters = filtersBackup[i];
 					}
 					
-					if(mouseTarget != _boneDisplayRollOver)
+					var currentBone:Bone = _armature.getBoneByDisplay(mouseTarget);
+					
+					if(currentBone && currentBone != _boneRollOver)
 					{
-						if(_boneDisplayRollOver && _boneDisplayRollOver != _boneDisplaySelected)
+						if(_boneRollOver && _boneRollOver != _boneSelected)
 						{
-							_boneDisplayRollOver.filters = null;
-							_boneDisplayRollOver = null;
+							updateBoneHighlight(_boneRollOver, null);
 						}
 						
-						if(mouseTarget && mouseTarget != _boneDisplaySelected)
+						if(currentBone != _boneSelected)
 						{
-							if(_boneDisplaySelected && _isMouseDown)
+							if(_boneSelected && _isMouseDown)
 							{
-								if(!checkBoneParent(mouseTarget, _boneDisplaySelected))
+								if(currentBone.contains(_boneSelected))
 								{
 									return null;
 								}
 							}
 							
-							_boneDisplayRollOver = mouseTarget;
+							_boneRollOver = currentBone;
 							if(_boneRolloverFilter.color)
 							{
-								_boneDisplayRollOver.filters = [_boneRolloverFilter];
+								updateBoneHighlight(_boneRollOver, _boneRolloverFilter);
 							}
 						}
 					}
 				}
-				else if(_boneDisplayRollOver && _boneDisplayRollOver != _boneDisplaySelected)
+				else if(_boneRollOver && _boneRollOver != _boneSelected)
 				{
-					_boneDisplayRollOver.filters = null;
-					_boneDisplayRollOver = null;
+					updateBoneHighlight(_boneRollOver, null);
+					_boneRollOver = null;
 				}
 				return mouseTarget;
 			}
 			
 			private function updateBoneBinder():void
 			{
-				if(_boneSymbol.visible)
+				if(_boneSymbol.visible && _boneSelected)
 				{
-					var bone:Bone = _armature.getBoneByDisplay(_boneDisplaySelected);
-					
-					_pointHelp.x = bone.global.x;
-					_pointHelp.y = bone.global.y;
+					_pointHelp.x = _boneSelected.global.x;
+					_pointHelp.y = _boneSelected.global.y;
 					_pointHelp = _armatureDisplay.localToGlobal(_pointHelp);
 					_pointHelp = _armatureContainer.globalToLocal(_pointHelp);
 					_boneSymbol.x = _pointHelp.x;
@@ -560,13 +567,6 @@
 					_boneSymbol.rotation = radian * 180 / Math.PI;
 					_boneSymbol.line.width = radius;
 				}
-			}
-			
-			private function checkBoneParent(display:Object, parentDisplay:Object):Boolean
-			{
-				var bone:Bone = _armature.getBoneByDisplay(display);
-				var parent:Bone = _armature.getBoneByDisplay(parentDisplay);
-				return !bone.contains(parent);
 			}
 			
 			private function updatePlayAndPauseBtn():void

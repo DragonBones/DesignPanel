@@ -8,6 +8,7 @@ package model
 	import dragonBones.objects.AnimationData;
 	import dragonBones.objects.ArmatureData;
 	import dragonBones.objects.BoneData;
+	import dragonBones.objects.SkinData;
 	import dragonBones.objects.Timeline;
 	import dragonBones.objects.TransformTimeline;
 	import dragonBones.utils.DBDataUtil;
@@ -19,6 +20,8 @@ package model
 	import mx.collections.ArrayCollection;
 	import mx.collections.XMLListCollection;
 	
+	import spark.components.supportClasses.Skin;
+	
 	[Bindable]
 	/**
 	 * Manage armature data
@@ -26,6 +29,7 @@ package model
 	public class ArmatureProxy
 	{
 		public var bonesMC:XMLListCollection;
+		public var skinsAC:ArrayCollection;
 		public var animationsAC:ArrayCollection;
 		public var factory:NativeFactory;
 		
@@ -70,17 +74,18 @@ package model
 			bonesMC.source = getBoneList();
 			
 			animationsAC.source = getAnimationList();
-			
-			armature = factory.buildArmature(armatureName);
-			
-			MessageDispatcher.dispatchEvent(MessageDispatcher.SELECT_ARMATURE, this, armatureName);
+			skinsAC.source = getSkinList();
 			
 			//
 			var selectBoneName:String = this.selectedBoneName;
+			var selectSkinName:String = this.selectedSkinName;
 			var selectAnimationName:String = this.selectedAnimationName;
 			
 			_selectedBoneData = null;
-			_selectAnimationData = null;
+			_selectedSkinData = null;
+			_selectedAnimationData = null;
+			
+			selectedSkinData = _armatureData.getSkinData(selectSkinName) || _armatureData.getSkinData(null);
 			
 			if(_armatureData && _armatureData.boneDataList.length > 0)
 			{
@@ -101,30 +106,54 @@ package model
 			}
 		}
 		
-		public function get selectedAnimationName():String
+		public function get selectedSkinName():String
 		{
-			return _selectAnimationData?_selectAnimationData.name:null;
+			return _selectedSkinData?_selectedSkinData.name:null;
 		}
-		private var _selectAnimationData:AnimationData;
-		public function get selecteAnimationData():AnimationData
+		private var _selectedSkinData:SkinData;
+		public function get selectedSkinData():SkinData
 		{
-			return _selectAnimationData;
+			return _selectedSkinData;
 		}
-		public function set selecteAnimationData(value:AnimationData):void
+		public function set selectedSkinData(value:SkinData):void
 		{
-			if(_selectAnimationData == value)
+			if(_selectedSkinData == value)
 			{
 				return;
 			}
 			
-			_selectAnimationData = value;
+			_selectedSkinData = value;
+			
+			
+			updateArmature();
+			
+			MessageDispatcher.dispatchEvent(MessageDispatcher.SELECT_ARMATURE, this, armatureName);
+		}
+		
+		public function get selectedAnimationName():String
+		{
+			return _selectedAnimationData?_selectedAnimationData.name:null;
+		}
+		private var _selectedAnimationData:AnimationData;
+		public function get selecteAnimationData():AnimationData
+		{
+			return _selectedAnimationData;
+		}
+		public function set selecteAnimationData(value:AnimationData):void
+		{
+			if(_selectedAnimationData == value)
+			{
+				return;
+			}
+			
+			_selectedAnimationData = value;
 			isMultipleFrameAnimation = true;
 			durationScaled = 0;
 			
-			if(_armature && _selectAnimationData)
+			if(_armature && _selectedAnimationData)
 			{
-				_armature.animation.gotoAndPlay(_selectAnimationData.name);
-				MessageDispatcher.dispatchEvent(MessageDispatcher.SELECT_ANIMATION, this, _selectAnimationData.name);
+				_armature.animation.gotoAndPlay(_selectedAnimationData.name);
+				MessageDispatcher.dispatchEvent(MessageDispatcher.SELECT_ANIMATION, this, _selectedAnimationData.name);
 			}
 		}
 		
@@ -135,15 +164,15 @@ package model
 		
 		public function get isMultipleFrameAnimation():Boolean
 		{
-			if(_selectAnimationData)
+			if(_selectedAnimationData)
 			{
-				if(_selectAnimationData.frameList.length > 1)
+				if(_selectedAnimationData.frameList.length > 1)
 				{
 					return true;
 				}
 				else
 				{
-					for each(var timeline:Timeline in _selectAnimationData.timelines)
+					for each(var timeline:Timeline in _selectedAnimationData.timelines)
 					{
 						if(timeline.frameList.length > 1)
 						{
@@ -160,13 +189,13 @@ package model
 		
 		public function get fadeInTime():Number
 		{
-			return _selectAnimationData?_selectAnimationData.fadeInTime:0;
+			return _selectedAnimationData?_selectedAnimationData.fadeInTime:0;
 		}
 		public function set fadeInTime(value:Number):void
 		{
-			if(_selectAnimationData)
+			if(_selectedAnimationData)
 			{
-				_selectAnimationData.fadeInTime =  value;
+				_selectedAnimationData.fadeInTime =  value;
 				updateAnimation();
 			}
 		}
@@ -174,9 +203,9 @@ package model
 		public function get durationScaled():Number
 		{
 			//isMultipleFrameAnimation
-			if(_selectAnimationData)
+			if(_selectedAnimationData)
 			{
-				return Math.round(_selectAnimationData.scale * _selectAnimationData.duration * 100) / 100;
+				return Math.round(_selectedAnimationData.scale * _selectedAnimationData.duration * 100) / 100;
 			}
 			return 0;
 		}
@@ -186,13 +215,13 @@ package model
 		
 		public function get animationScale():Number
 		{
-			return _selectAnimationData?_selectAnimationData.scale:0;
+			return _selectedAnimationData?_selectedAnimationData.scale:0;
 		}
 		public function set animationScale(value:Number):void
 		{
-			if(_selectAnimationData)
+			if(_selectedAnimationData)
 			{
-				_selectAnimationData.scale = value;
+				_selectedAnimationData.scale = value;
 				updateAnimation();
 				durationScaled = 0;
 			}
@@ -200,32 +229,32 @@ package model
 		
 		public function get loop():int
 		{
-			return _selectAnimationData?_selectAnimationData.loop:0;
+			return _selectedAnimationData?_selectedAnimationData.loop:0;
 		}
 		public function set loop(value:int):void
 		{
-			if(_selectAnimationData)
+			if(_selectedAnimationData)
 			{ 
-				_selectAnimationData.loop = value;
+				_selectedAnimationData.loop = value;
 				updateAnimation();
 			}
 		}
 		
 		public function get tweenEasing():Number
 		{
-			return _selectAnimationData?_selectAnimationData.tweenEasing:NaN;
+			return _selectedAnimationData?_selectedAnimationData.tweenEasing:NaN;
 		}
 		public function set tweenEasing(value:Number):void
 		{
-			if(_selectAnimationData)
+			if(_selectedAnimationData)
 			{
 				if(value < -1)
 				{
-					_selectAnimationData.tweenEasing = NaN;
+					_selectedAnimationData.tweenEasing = NaN;
 				}
 				else
 				{
-					_selectAnimationData.tweenEasing = value;
+					_selectedAnimationData.tweenEasing = value;
 				}
 				updateAnimation();
 			}
@@ -233,9 +262,9 @@ package model
 		
 		public function get timelineScale():Number
 		{
-			if(_selectAnimationData && _selectedBoneData)
+			if(_selectedAnimationData && _selectedBoneData)
 			{
-				var timeline:TransformTimeline = _selectAnimationData.getTimeline(_selectedBoneData.name);
+				var timeline:TransformTimeline = _selectedAnimationData.getTimeline(_selectedBoneData.name);
 				if(timeline)
 				{
 					return timeline.scale * 100;
@@ -245,9 +274,9 @@ package model
 		}
 		public function set timelineScale(value:Number):void
 		{
-			if(_selectAnimationData && _selectedBoneData)
+			if(_selectedAnimationData && _selectedBoneData)
 			{
-				var timeline:TransformTimeline = _selectAnimationData.getTimeline(_selectedBoneData.name);
+				var timeline:TransformTimeline = _selectedAnimationData.getTimeline(_selectedBoneData.name);
 				if(timeline)
 				{
 					timeline.scale = value * 0.01;
@@ -258,9 +287,9 @@ package model
 		
 		public function get timelineOffset():Number
 		{
-			if(_selectAnimationData && _selectedBoneData)
+			if(_selectedAnimationData && _selectedBoneData)
 			{
-				var timeline:TransformTimeline = _selectAnimationData.getTimeline(_selectedBoneData.name);
+				var timeline:TransformTimeline = _selectedAnimationData.getTimeline(_selectedBoneData.name);
 				if(timeline)
 				{
 					return timeline.offset * 100;
@@ -270,9 +299,9 @@ package model
 		}
 		public function set timelineOffset(value:Number):void
 		{
-			if(_selectAnimationData && _selectedBoneData)
+			if(_selectedAnimationData && _selectedBoneData)
 			{
-				var timeline:TransformTimeline = _selectAnimationData.getTimeline(_selectedBoneData.name);
+				var timeline:TransformTimeline = _selectedAnimationData.getTimeline(_selectedBoneData.name);
 				if(timeline)
 				{
 					timeline.offset = value * 0.01;
@@ -285,6 +314,7 @@ package model
 		{
 			bonesMC = new XMLListCollection();
 			animationsAC = new ArrayCollection();
+			skinsAC = new ArrayCollection();
 		}
 		
 		public function selectBone(boneName:String):void
@@ -400,19 +430,6 @@ package model
 			return rootXML.children();
 		}
 		
-		private function getAnimationList():Array
-		{
-			var animationiList:Array = [];
-			if(_armatureData)
-			{
-				for each(var animationData:AnimationData in _armatureData.animationDataList)
-				{
-					animationiList.push(animationData);
-				}
-			}
-			return animationiList;
-		}
-		
 		private function updateAnimation():void
 		{
 			if(_armature)
@@ -429,7 +446,7 @@ package model
 		
 		private function updateArmature():void
 		{
-			var lastAnimationState:AnimationState = _armature.animation.lastAnimationState;
+			var lastAnimationState:AnimationState = _armature?_armature.animation.lastAnimationState:null;
 			
 			if(lastAnimationState)
 			{
@@ -438,7 +455,7 @@ package model
 				var animationName:String = lastAnimationState.name;
 				
 				//
-				armature = factory.buildArmature(armatureName);
+				armature = factory.buildArmature(armatureName, null, selectedSkinName);
 				
 				_armature.animation.gotoAndPlay(animationName, 0, -1);
 				lastAnimationState = _armature.animation.lastAnimationState;
@@ -453,8 +470,31 @@ package model
 			else
 			{
 				//
-				armature = factory.buildArmature(armatureName);
+				armature = factory.buildArmature(armatureName, null, selectedSkinName);
 			}
+		}
+		
+		private function getAnimationList():Array
+		{
+			var animationiList:Array = [];
+			if(_armatureData)
+			{
+				for each(var animationData:AnimationData in _armatureData.animationDataList)
+				{
+					animationiList.push(animationData);
+				}
+			}
+			return animationiList;
+		}
+		
+		private function getSkinList():Array
+		{
+			var skinList:Array = [];
+			for each(var skinData:SkinData in _armatureData.skinDataList)
+			{
+				skinList.push(skinData);
+			}
+			return skinList;
 		}
 	}
 }

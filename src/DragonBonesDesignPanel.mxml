@@ -430,10 +430,16 @@
 		<s:VGroup width="100%" height="100%">
 			<s:HGroup width="100%" verticalAlign="middle">
 				<s:Label text="{resourceManager.getString('resources','skeleton')}" fontWeight="bold"/>
-				<s:DropDownList width="100%"
+				<s:DropDownList width="100%" height="24"
 								labelField="name"
 								dataProvider="{ImportDataProxy.getInstance().armaturesAC}"
 								selectedItem ="@{ImportDataProxy.getInstance().armatureProxy.armatureData}"
+								/>
+				<s:Label text="{resourceManager.getString('resources','skin')}" fontWeight="bold"/>
+				<s:DropDownList width="100%" height="24"
+								labelField="name"
+								dataProvider="{ImportDataProxy.getInstance().armatureProxy.skinsAC}"
+								selectedItem ="@{ImportDataProxy.getInstance().armatureProxy.selectedSkinData}"
 								/>
 				<s:Button icon="@Embed(source='./assets/update_icon.png')" width="21" height="21" toolTip="Sync change of selected skeleton from Flash Pro"
 						  click="updateCurrentArmature()"/>
