@@ -47,6 +47,7 @@ package control
 		
 		private var _xmlDataProxy:XMLDataProxy;
 		private var _bitmapData:BitmapData;
+		private var _spineObject:Object;
 		
 		private var _isLoading:Boolean;
 		public function isLoading():Boolean
@@ -129,6 +130,7 @@ package control
 		
 		private function setData(fileData:ByteArray):void
 		{
+			_spineObject = null;
 			_isLoading = false;
 			var dataType:String = BytesType.getType(fileData);
 			switch(dataType)
@@ -166,7 +168,6 @@ package control
 						
 						var images:Object;
 						var object:Object;
-						var spineArmatures:Object;
 						var name:String;
 						for each(var zipFile:ZipFile in zip.fileV)
 						{
@@ -221,23 +222,18 @@ package control
 								}
 								else if(zipFile.name.indexOf(GlobalConstValues.SPINE_FOLDER) == 0)
 								{
-									if(!spineArmatures)
+									if(!_spineObject)
 									{
-										spineArmatures = {};
+										_spineObject = {};
 									}
 									name = zipFile.name.replace(/\.\w+$/,"");
 									name = name.substr(GlobalConstValues.SPINE_FOLDER.length + 1);
 									object = com.adobe.serialization.json.JSON.decode(zipFile.data.toString());
-									spineArmatures[name] = object;
+									_spineObject[name] = object;
 								}
 							}
 						}
 						zip.clear();
-						
-						if(spineArmatures)
-						{
-							_xmlDataProxy.xml = formatSpineData(spineArmatures, null);
-						}
 						
 						if(textureBytes)
 						{
@@ -271,8 +267,17 @@ package control
 				var rect:Rectangle = new Rectangle(0, 0, bitmapData.width, bitmapData.height);
 				rectMap[name] = rect;
 			}
-			_xmlDataProxy.createTextureAtlas(rectMap);
-				
+			
+			if(_spineObject)
+			{
+				_xmlDataProxy.createTextureAtlas(rectMap, null, "spine");
+				_xmlDataProxy.xml = formatSpineData(_spineObject, _xmlDataProxy.textureAtlasXML, "spine");
+			}
+			else
+			{
+				_xmlDataProxy.createTextureAtlas(rectMap);
+			}
+			
 			MessageDispatcher.dispatchEvent(
 				MessageDispatcher.LOAD_FILEDATA_COMPLETE, 
 				_xmlDataProxy, 

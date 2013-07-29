@@ -3,18 +3,18 @@ package utils
 	import dragonBones.core.DragonBones;
 	import dragonBones.utils.ConstValues;
 	
-	public function formatSpineData(rawData:Object, name:String, frameRate:uint = 60):XML
+	public function formatSpineData(rawData:Object, textureAtlasXML:XML, dataName:String, frameRate:uint = 60):XML
 	{
 		var xml:XML = 
 			<{ConstValues.DRAGON_BONES}
 				{ConstValues.A_VERSION}={DragonBones.DATA_VERSION}
-				{ConstValues.A_NAME}={name}
+				{ConstValues.A_NAME}={dataName}
 				{ConstValues.A_FRAME_RATE}={frameRate}
 			/>;
 		
 		for(var armatureName:String in rawData)
 		{
-			xml.appendChild(formatArmature(rawData[armatureName], armatureName, frameRate));
+			xml.appendChild(formatArmature(rawData[armatureName], armatureName, textureAtlasXML, frameRate));
 		}
 		
 		return xml;
@@ -58,7 +58,7 @@ const BEZIER_SEGMENTS:int = 10;
 
 const _helpArray:Array = [];
 
-function formatArmature(armatureObject:Object, armatureName:String, frameRate:uint):XML
+function formatArmature(armatureObject:Object, armatureName:String, textureAtlasXML:XML, frameRate:uint):XML
 {
 	var armatureXML:XML = 
 		<{ConstValues.ARMATURE}
@@ -78,7 +78,7 @@ function formatArmature(armatureObject:Object, armatureName:String, frameRate:ui
 	var skins:Object = armatureObject[SKIN];
 	for(var skinName:String in skins)
 	{
-		armatureXML.appendChild(formatSkin(skins[skinName], skinName, slotList));
+		armatureXML.appendChild(formatSkin(skins[skinName], skinName, slotList, textureAtlasXML));
 	}
 	
 	var animations:Object = armatureObject[ANIMATION];
@@ -106,8 +106,6 @@ function formatBone(boneObject:Object):XML
 				{ConstValues.A_SKEW_Y}={formatNumber(boneObject[A_ROTATION])}
 				{ConstValues.A_SCALE_X}={formatNumber(boneObject[A_SCALE_X])}
 				{ConstValues.A_SCALE_Y}={formatNumber(boneObject[A_SCALE_Y])}
-				{ConstValues.A_PIVOT_X}={0}
-				{ConstValues.A_PIVOT_Y}={0}
 			/>
 		</{ConstValues.BONE}>;
 	var parent:String = boneObject[A_PARENT];
@@ -119,7 +117,7 @@ function formatBone(boneObject:Object):XML
 	return boneXML;
 }
 
-function formatSkin(skinObject:Object, skinName:String, slotList:Array):XML
+function formatSkin(skinObject:Object, skinName:String, slotList:Array, textureAtlasXML:XML):XML
 {
 	var skinXML:XML = 
 		<{ConstValues.SKIN}
@@ -144,13 +142,13 @@ function formatSkin(skinObject:Object, skinName:String, slotList:Array):XML
 			zOrder ++;
 		}
 		
-		skinXML.appendChild(formatSlot(skinObject[slotName], slotName, parentName, firstAttachment, zOrder));
+		skinXML.appendChild(formatSlot(skinObject[slotName], slotName, parentName, firstAttachment, zOrder, textureAtlasXML));
 	}
 			
 	return skinXML;
 }
 
-function formatSlot(slotObject:Object, slotName:String, slotParent:String, firstAttachment:String, zOrder:int):XML
+function formatSlot(slotObject:Object, slotName:String, slotParent:String, firstAttachment:String, zOrder:int, textureAtlasXML:XML):XML
 {
 	var slotXML:XML =
 		<{ConstValues.SLOT}
@@ -162,7 +160,7 @@ function formatSlot(slotObject:Object, slotName:String, slotParent:String, first
 	var displayXML:XML;
 	for(var displayName:String in slotObject)
 	{
-		displayXML = formatDisplay(slotObject[displayName], displayName);
+		displayXML = formatDisplay(slotObject[displayName], displayName, textureAtlasXML);
 		if(displayName == firstAttachment)
 		{
 			slotXML.prependChild(displayXML);
@@ -176,16 +174,38 @@ function formatSlot(slotObject:Object, slotName:String, slotParent:String, first
 	return slotXML;
 }
 
-function formatDisplay(displayObject:Object, displayName:String):XML
+function formatDisplay(displayObject:Object, displayName:String, textureAtlasXML:XML):XML
 {
 	formatTransform(displayObject);
+	
+	displayName = displayObject[A_NAME] || displayName;
 	
 	var width:Number = Number(displayObject[A_WIDTH]) || 0;
 	var height:Number = Number(displayObject[A_HEIGHT]) || 0;
 	
+	var scaleX:Number = 1;
+	var scaleY:Number = 1;
+	
+	var subTextureXML:XML = textureAtlasXML[ConstValues.SUB_TEXTURE].(@[ConstValues.A_NAME] == displayName)[0];
+	
+	if(subTextureXML)
+	{
+		scaleX = width / Number(subTextureXML.@[ConstValues.A_WIDTH]);
+		scaleY = height / Number(subTextureXML.@[ConstValues.A_HEIGHT]);
+		
+		if(isNaN(scaleX))
+		{
+			scaleX = 1;
+		}
+		if(isNaN(scaleY))
+		{
+			scaleY = 1;
+		}
+	}
+	
 	var displayXML:XML = 
 		<{ConstValues.DISPLAY}
-			{ConstValues.A_NAME}={displayObject[A_NAME] || displayName}
+			{ConstValues.A_NAME}={displayName}
 			{ConstValues.A_TYPE}={DisplayData.IMAGE}
 		>
 			<{ConstValues.TRANSFORM}
@@ -193,10 +213,10 @@ function formatDisplay(displayObject:Object, displayName:String):XML
 				{ConstValues.A_Y}={formatNumber(displayObject[A_Y])}
 				{ConstValues.A_SKEW_X}={formatNumber(displayObject[A_ROTATION])}
 				{ConstValues.A_SKEW_Y}={formatNumber(displayObject[A_ROTATION])}
-				{ConstValues.A_SCALE_X}={1}
-				{ConstValues.A_SCALE_Y}={1}
-				{ConstValues.A_PIVOT_X}={width * 0.5}
-				{ConstValues.A_PIVOT_Y}={height * 0.5}
+				{ConstValues.A_SCALE_X}={formatNumber(scaleX)}
+				{ConstValues.A_SCALE_Y}={formatNumber(scaleY)}
+				{ConstValues.A_PIVOT_X}={formatNumber(width * 0.5)}
+				{ConstValues.A_PIVOT_Y}={formatNumber(height * 0.5)}
 			/>
 		</{ConstValues.DISPLAY}>;
 	

@@ -60,33 +60,29 @@
 			
 			private function updateScaleAndDelay():void
 			{
+				var isMultipleFrameAnimation:Boolean = _importDataProxy.armatureProxy.isMultipleFrameAnimation;
+				
 				var timelineScale:Number = _importDataProxy.armatureProxy.timelineScale;
 				var timelineOffset:Number = _importDataProxy.armatureProxy.timelineOffset;
 				
-				if(isNaN(timelineScale))
-				{
-					numScale.enabled = false;
-					sliderScale.enabled = false;
-				}
-				else
+				if(isMultipleFrameAnimation)
 				{
 					numScale.enabled = true;
 					sliderScale.enabled = true;
 					numScale.value = timelineScale;
 					sliderScale.value = timelineScale;
-				}
-				
-				if(isNaN(timelineOffset))
-				{
-					numOffset.enabled = false;
-					sliderOffset.enabled = false;
-				}
-				else
-				{
+					
 					numOffset.enabled = true;
 					sliderOffset.enabled = true;
 					numOffset.value = timelineOffset;
 					sliderOffset.value = timelineOffset;
+				}
+				else
+				{
+					numScale.enabled = false;
+					sliderScale.enabled = false;
+					numOffset.enabled = false;
+					sliderOffset.enabled = false;
 				}
 			}
 		]]>

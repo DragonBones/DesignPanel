@@ -41,30 +41,17 @@
 				{
 					case MessageDispatcher.SELECT_ANIMATION:
 					case MessageDispatcher.CHANGE_ANIMATION_DATA:
+						var isMultipleFrameAnimation:Boolean = _importDataProxy.armatureProxy.isMultipleFrameAnimation;
+						
 						var fadeTime:Number = _importDataProxy.armatureProxy.fadeInTime;
 						var animationScale:Number = _importDataProxy.armatureProxy.animationScale;
 						var loop:int = _importDataProxy.armatureProxy.loop;
 						var tweenEasing:Number = _importDataProxy.armatureProxy.tweenEasing;
-						if(fadeTime < 0)
-						{
-							numFadeInTime.enabled = false;
-							sliderFadeInTime.enabled = false;
-						}
-						else
-						{
-							numFadeInTime.value = fadeTime;
-							numFadeInTime.enabled = true;
-							sliderFadeInTime.value = fadeTime;
-							sliderFadeInTime.enabled = true;
-						}
-						if(animationScale < 0)
-						{
-							numAnimationScale.enabled = false;
-							sliderAnimationScale.enabled = false;
-							numLoop.enabled = false;
-							sliderTweenEasing.enabled = false;
-						}
-						else
+						
+						numFadeInTime.value = fadeTime;
+						sliderFadeInTime.value = fadeTime;
+						
+						if(isMultipleFrameAnimation)
 						{
 							numAnimationScale.value = animationScale;
 							numAnimationScale.enabled = true;
@@ -73,6 +60,7 @@
 							numLoop.enabled = true;
 							numLoop.value = loop;
 							
+							checkTweenEasing.enabled = true;
 							if(isNaN(tweenEasing))
 							{
 								checkTweenEasing.selected = false;
@@ -85,6 +73,14 @@
 								sliderTweenEasing.enabled = true;
 								sliderTweenEasing.value = tweenEasing;
 							}
+						}
+						else
+						{
+							numAnimationScale.enabled = false;
+							sliderAnimationScale.enabled = false;
+							numLoop.enabled = false;
+							checkTweenEasing.enabled = false;
+							sliderTweenEasing.enabled = false;
 						}
 						break;
 				}

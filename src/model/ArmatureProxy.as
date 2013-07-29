@@ -118,7 +118,7 @@ package model
 			}
 			
 			_selectAnimationData = value;
-			
+			isMultipleFrameAnimation = true;
 			durationScaled = 0;
 			
 			if(_armature && _selectAnimationData)
@@ -133,13 +133,34 @@ package model
 			return _selectedBoneData?_selectedBoneData.name:null;
 		}
 		
+		public function get isMultipleFrameAnimation():Boolean
+		{
+			if(_selectAnimationData)
+			{
+				if(_selectAnimationData.frameList.length > 1)
+				{
+					return true;
+				}
+				else
+				{
+					for each(var timeline:Timeline in _selectAnimationData.timelines)
+					{
+						if(timeline.frameList.length > 1)
+						{
+							return true;
+						}
+					}
+				}
+			}
+			return false;
+		}
+		private function set isMultipleFrameAnimation(value:Boolean):void
+		{
+		}
+		
 		public function get fadeInTime():Number
 		{
-			if(!_selectAnimationData)
-			{
-				return -1;
-			}
-			return _selectAnimationData.fadeInTime;
+			return _selectAnimationData?_selectAnimationData.fadeInTime:0;
 		}
 		public function set fadeInTime(value:Number):void
 		{
@@ -152,11 +173,12 @@ package model
 		
 		public function get durationScaled():Number
 		{
-			if(_selectAnimationData?(_selectAnimationData.duration * _selectAnimationData.frameRate < 2):true)
+			//isMultipleFrameAnimation
+			if(_selectAnimationData)
 			{
-				return 0;
+				return Math.round(_selectAnimationData.scale * _selectAnimationData.duration * 100) / 100;
 			}
-			return Math.round(_selectAnimationData.scale * _selectAnimationData.duration * 100) / 100;
+			return 0;
 		}
 		private function set durationScaled(value:Number):void
 		{
@@ -164,7 +186,7 @@ package model
 		
 		public function get animationScale():Number
 		{
-			return _selectAnimationData?_selectAnimationData.scale:-1;
+			return _selectAnimationData?_selectAnimationData.scale:0;
 		}
 		public function set animationScale(value:Number):void
 		{
@@ -172,10 +194,9 @@ package model
 			{
 				_selectAnimationData.scale = value;
 				updateAnimation();
+				durationScaled = 0;
 			}
-			durationScaled = 0;
 		}
-		
 		
 		public function get loop():int
 		{
@@ -192,7 +213,7 @@ package model
 		
 		public function get tweenEasing():Number
 		{
-			return _selectAnimationData?_selectAnimationData.tweenEasing:-1.1;
+			return _selectAnimationData?_selectAnimationData.tweenEasing:NaN;
 		}
 		public function set tweenEasing(value:Number):void
 		{
@@ -215,7 +236,7 @@ package model
 			if(_selectAnimationData && _selectedBoneData)
 			{
 				var timeline:TransformTimeline = _selectAnimationData.getTimeline(_selectedBoneData.name);
-				if(timeline && !(timeline.duration * _selectAnimationData.frameRate < 2))
+				if(timeline)
 				{
 					return timeline.scale * 100;
 				}
@@ -240,7 +261,7 @@ package model
 			if(_selectAnimationData && _selectedBoneData)
 			{
 				var timeline:TransformTimeline = _selectAnimationData.getTimeline(_selectedBoneData.name);
-				if(timeline && !(timeline.duration * _selectAnimationData.frameRate < 2))
+				if(timeline)
 				{
 					return timeline.offset * 100;
 				}

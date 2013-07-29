@@ -32,7 +32,7 @@ package utils
 			{
 				for each(var animationXML:XML in animationsXML[MOVEMENT])
 				{
-					newAnimationXML = formatAnimation(animationXML, frameRate);
+					newAnimationXML = formatAnimation(animationXML, newArmatureXML, frameRate);
 					newArmatureXML.appendChild(newAnimationXML);
 				}
 			}
@@ -98,6 +98,7 @@ function formatArmature(armatureXML:XML):XML
 			{ConstValues.A_NAME}={armatureXML.@[A_NAME]}
 		/>;
 	var skinXML:XML = <{ConstValues.SKIN} {ConstValues.A_NAME}=""/>;
+	newArmatureXML.appendChild(skinXML);
 	
 	var newBoneXML:XML;
 	var slotXML:XML;
@@ -108,8 +109,6 @@ function formatArmature(armatureXML:XML):XML
 		newArmatureXML.prependChild(newBoneXML);
 		skinXML.appendChild(slotXML);
 	}
-	
-	newArmatureXML.appendChild(skinXML);
 	
 	return newArmatureXML;
 }
@@ -165,8 +164,8 @@ function formatDisplay(displayXML:XML, boneXML:XML):XML
 			{ConstValues.A_TYPE}={displayType}
 		>
 			<{ConstValues.TRANSFORM}
-				{ConstValues.A_X}={- Number(boneXML.@[A_PIVOT_X])}
-				{ConstValues.A_Y}={- Number(boneXML.@[A_PIVOT_Y])}
+				{ConstValues.A_X}={NaN}
+				{ConstValues.A_Y}={NaN}
 				{ConstValues.A_SKEW_X}={0}
 				{ConstValues.A_SKEW_Y}={0}
 				{ConstValues.A_SCALE_X}={1}
@@ -179,7 +178,7 @@ function formatDisplay(displayXML:XML, boneXML:XML):XML
 	return newDisplayXML;
 }
 
-function formatAnimation(animationXML:XML, frameRate:uint):XML
+function formatAnimation(animationXML:XML, armatureXML:XML, frameRate:uint):XML
 {
 	var duration:uint = uint(animationXML.@[A_DURATION]);
 	var newAnimationXML:XML = 
@@ -199,11 +198,22 @@ function formatAnimation(animationXML:XML, frameRate:uint):XML
 		newAnimationXML.appendChild(newMainFrameXML);
 	}
 	
+	var skinXML:XML = armatureXML[ConstValues.SKIN][0];
+	var slotXML:XML;
+	var timelineName:String;
+	
 	var newTimelineXML:XML;
 	for each(var timelineXML:XML in animationXML[BONE])
 	{
 		newTimelineXML = formatTimeline(timelineXML, frameRate);
 		newAnimationXML.appendChild(newTimelineXML);
+		
+		if(skinXML)
+		{
+			timelineName = newTimelineXML.@[ConstValues.A_NAME];
+			slotXML = skinXML[ConstValues.SLOT].(@[ConstValues.A_NAME] == timelineName)[0];
+			formatDisplayTransformXYAndTimelinePivot(slotXML, newTimelineXML);
+		}
 	}
 	
 	return newAnimationXML;
@@ -334,6 +344,41 @@ function formatFrame(frameXML:XML, frameRate:uint):XML
 	}
 	
 	return newFrameXML;
+}
+
+function formatDisplayTransformXYAndTimelinePivot(slotXML:XML, timelineXML:XML):void
+{
+	if(!slotXML)
+	{
+		return;
+	}
+	
+	var displayIndex:int;
+	var displayXML:XML;
+	var pivotX:Number;
+	var pivotY:Number;
+	for each(var frameXML:XML in timelineXML[ConstValues.FRAME])
+	{
+		displayIndex = frameXML.@[ConstValues.A_DISPLAY_INDEX];
+		if(displayIndex >= 0)
+		{
+			displayXML = slotXML[ConstValues.DISPLAY][displayIndex];
+			if(displayXML && String(displayXML.@[ConstValues.A_TYPE]) == DisplayData.IMAGE)
+			{
+				pivotX = frameXML[ConstValues.TRANSFORM][0].@[ConstValues.A_PIVOT_X];
+				pivotY = frameXML[ConstValues.TRANSFORM][0].@[ConstValues.A_PIVOT_Y];
+				if(isNaN(displayXML[ConstValues.TRANSFORM][0].@[ConstValues.A_X]))
+				{
+					displayXML[ConstValues.TRANSFORM][0].@[ConstValues.A_X] = pivotX;
+					displayXML[ConstValues.TRANSFORM][0].@[ConstValues.A_Y] = pivotY;
+				}
+				pivotX -= Number(displayXML[ConstValues.TRANSFORM][0].@[ConstValues.A_X]);
+				pivotY -= Number(displayXML[ConstValues.TRANSFORM][0].@[ConstValues.A_Y]);
+				frameXML[ConstValues.TRANSFORM][0].@[ConstValues.A_PIVOT_X] = pivotX;
+				frameXML[ConstValues.TRANSFORM][0].@[ConstValues.A_PIVOT_Y] = pivotY;
+			}
+		}
+	}
 }
 
 function formatNumber(num:Number, retain:uint = 100):Number

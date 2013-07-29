@@ -734,8 +734,9 @@ function generateAnimation(item, mainFrame, layers, armatureXML)
 			{
 				break;
 			}
+			//zOrder
 			addFrameToTimeline(
-				generateFrame(item, frame, boneName, symbol, zOrder, noAutoEasing, armatureXML),
+				generateFrame(item, frame, boneName, symbol, i, noAutoEasing, armatureXML),
 				frameStart,
 				frameDuration, 
 				timelineXML

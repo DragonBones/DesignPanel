@@ -378,9 +378,9 @@ package model
 			return proxy;
 		}
 		
-		public function createTextureAtlas(rectMap:Object, subTextureList:Vector.<String> = null):void
+		public function createTextureAtlas(rectMap:Object, subTextureList:Vector.<String> = null, name:String = null):void
 		{
-			_textureAtlasXML = <{ConstValues.TEXTURE_ATLAS} {ConstValues.A_NAME}={_xml.@[ConstValues.A_NAME]}/>;
+			_textureAtlasXML = <{ConstValues.TEXTURE_ATLAS} {ConstValues.A_NAME}={_xml?_xml.@[ConstValues.A_NAME]:name}/>;
 			
 			var subTextureName:String;
 			var subTextureXML:XML;
