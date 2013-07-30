@@ -23,13 +23,39 @@
 			
 			public function closeCopySession():void
 			{
+				DBGATrackerManager.tracker.trackPageview("/");
+				
 				this.visible = false;
 				CopyDataProxy.getInstance().closeCopySession();
+			}
+			
+			private function cancelBtn_onClick(event:MouseEvent):void
+			{
+				DBGATrackerManager.tracker.trackEvent("copyWindow", "close");
+				closeCopySession();
 			}
 			
 			protected function this_showHandler(event:FlexEvent):void
 			{
 				CopyDataProxy.getInstance().openNewCopySession()
+			}
+			
+			protected function copyBone():void
+			{
+				DBGATrackerManager.tracker.trackEvent("copyWindow", "copyBone");
+				CopyDataProxy.getInstance().executeBoneCopy();
+			}
+			
+			protected function copyBehavior():void
+			{
+				DBGATrackerManager.tracker.trackEvent("copyWindow", "copyBehavior");
+				CopyDataProxy.getInstance().executeBehaviorCopy()
+			}
+			
+			protected function save():void
+			{
+				DBGATrackerManager.tracker.trackEvent("copyWindow", "save");
+				CopyDataProxy.getInstance().save();
 			}
 			
 		]]>
@@ -79,7 +105,7 @@
 								<s:Button icon="@Embed(source='./assets/copy_icon.png')" 
 										  width="24" height="24" horizontalCenter="0" verticalCenter="0"  
 										  enabled="{CopyDataProxy.getInstance().boneCopyable}" 
-										  click="CopyDataProxy.getInstance().executeBoneCopy()"/>
+										  click="copyBone()"/>
 							</s:Group>
 							<mx:Tree width="100%" height="100%"
 									 labelField="{ConstValues.AT + ConstValues.A_NAME}" textRollOverColor="#CCCCCC"
@@ -111,7 +137,7 @@
 								<s:Button icon="@Embed(source='./assets/copy_icon.png')" 
 										  width="24" height="24" horizontalCenter="0" verticalCenter="0"  
 										  enabled="{CopyDataProxy.getInstance().behaviorCopyable}" 
-										  click="CopyDataProxy.getInstance().executeBehaviorCopy()"/>
+										  click="copyBehavior()"/>
 							</s:Group>
 							<s:Group width="100%" height="100%">
 								<s:DataGrid width="100%" height="100%" sortableColumns="false" gridClick="CopyDataProxy.getInstance().playDestinationBehavior(event.item)" selectionMode="multipleRows" selectedItems="@{CopyDataProxy.getInstance().selectedMultipleDestinationBehaviors}">
@@ -140,7 +166,7 @@
 			
 			<s:HGroup width="100%" gap="0">
 				<s:Spacer width="800%"/>
-				<s:Button label="{resourceManager.getString('resources','save')}" click="CopyDataProxy.getInstance().save()"/>
+				<s:Button label="{resourceManager.getString('resources','save')}" click="save()"/>
 				<s:Spacer width="100%"/>
 				<s:Button label="{resourceManager.getString('resources','cancel')}" click="closeCopySession()"/>
 				<s:Spacer width="800%"/>

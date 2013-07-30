@@ -27,6 +27,7 @@
 			
 			protected function titlewindow_closeHandler(event:CloseEvent):void
 			{
+				DBGATrackerManager.tracker.trackPageview("/");
 				this.visible = false;
 			}
 			

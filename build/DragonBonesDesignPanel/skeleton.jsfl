@@ -85,7 +85,7 @@ var NO_EASING = "^";
 var DELIM_CHAR = "|";
 var UNDERLINE_CHAR = "_";
 
-var SKELETON_PANEL = "SkeletonAnimationDesignPanel";
+var SKELETON_PANEL = "DragonBonesDesignPanel";
 var ARMATURE_DATA = "armatureData";
 var ANIMATION_DATA = "animationData";
 
@@ -492,6 +492,7 @@ function generateMovement(_item, _mainFrame, _layers){
 					_zList[_i] = ++_z;
 				}
 			}
+			_z = _zList[_frameStart];
 			_boneList = _boneZDic[_boneName];
 			for(_i = _frameStart;_i < _frameStart + _frameDuration;_i ++){
 				if(!isNaN(_boneList[_i])){
