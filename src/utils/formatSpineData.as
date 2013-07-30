@@ -38,6 +38,7 @@ const COLOR:String = "color";
 const A_NAME:String = "name";
 const A_PARENT:String = "parent";
 const A_BONE:String = "bone";
+const A_LENGTH:String = "length";
 
 const A_TIME:String = "time";
 const A_CURVE:String = "curve";
@@ -67,6 +68,7 @@ function formatArmature(armatureObject:Object, armatureName:String, textureAtlas
 		/>;
 			
 	var boneList:Array = armatureObject[BONE];
+	//对动画进行坐标变换时，需要保留bone的local坐标到boneListCopy中
 	var boneListCopy:Array = tansformBoneList(boneList);
 	
 	for each(var boneObject:Object in boneList)
@@ -89,6 +91,10 @@ function formatArmature(armatureObject:Object, armatureName:String, textureAtlas
 	for(var animationName:String in animations)
 	{
 		animationObject = animations[animationName];
+		//对动画进行坐标变化
+		//boneListCopy提供遍历骨骼树由根到叶的顺序
+		//slotList提供bone和slot的映射
+		//skinXML提供slot和display的映射
 		transformAnimation(animationObject, boneListCopy, slotList, frameRate, skinXML);
 		armatureXML.appendChild(formatAnimation(animationObject, animationName));
 	}
@@ -101,6 +107,7 @@ function formatBone(boneObject:Object):XML
 	var boneXML:XML = 
 		<{ConstValues.BONE}
 			{ConstValues.A_NAME}={boneObject[A_NAME]}
+			{ConstValues.A_LENGTH}={boneObject[A_LENGTH]}
 		>
 			<{ConstValues.TRANSFORM}
 				{ConstValues.A_X}={formatNumber(boneObject[A_X])}
@@ -144,6 +151,7 @@ function formatSkin(skinObject:Object, skinName:String, slotList:Array, textureA
 			}
 			zOrder ++;
 		}
+		//默认的display标记出来，以便放到displayList的首位
 		skinXML.appendChild(formatSlot(skinObject[slotName], slotName, parentName, firstAttachment, zOrder, textureAtlasXML));
 	}
 			
@@ -165,6 +173,7 @@ function formatSlot(slotObject:Object, slotName:String, slotParent:String, first
 		displayXML = formatDisplay(slotObject[displayName], displayName, textureAtlasXML);
 		if(displayName == firstAttachment)
 		{
+			//默认的display
 			slotXML.prependChild(displayXML);
 		}
 		else
@@ -217,8 +226,8 @@ function formatDisplay(displayObject:Object, displayName:String, textureAtlasXML
 				{ConstValues.A_SKEW_Y}={formatNumber(displayObject[A_ROTATION])}
 				{ConstValues.A_SCALE_X}={formatNumber(scaleX)}
 				{ConstValues.A_SCALE_Y}={formatNumber(scaleY)}
-				{ConstValues.A_PIVOT_X}={formatNumber(width * 0.5)}
-				{ConstValues.A_PIVOT_Y}={formatNumber(height * 0.5)}
+				{ConstValues.A_PIVOT_X}={formatNumber(width * 0.5 / scaleX)}
+				{ConstValues.A_PIVOT_Y}={formatNumber(height * 0.5 / scaleY)}
 			/>
 		</{ConstValues.DISPLAY}>;
 	
@@ -284,7 +293,7 @@ function formatFrame(frameObject:Object):XML
 			/>
 		</{ConstValues.FRAME}>;
 	
-	if(frameObject[ConstValues.A_DISPLAY_INDEX] >= 0)
+	if(frameObject[ConstValues.A_DISPLAY_INDEX] > 0)
 	{
 		frameXML.@[ConstValues.A_DISPLAY_INDEX] = frameObject[ConstValues.A_DISPLAY_INDEX];
 	}
@@ -401,6 +410,7 @@ function transformAnimation(animationObject:Object, boneListCopy:Array, slotList
 		slotXML = null;
 		if(skinXML)
 		{
+			//将slotTimeline合并到boneTimeline中
 			if(slotTimelines)
 			{
 				for each(var slotObject:Object in slotList)
@@ -423,6 +433,7 @@ function transformAnimation(animationObject:Object, boneListCopy:Array, slotList
 			
 			if(slotName)
 			{
+				//找到该boneTimeline对应的slot，暂时只支持一个有效的slot动画
 				slotXML = skinXML[ConstValues.SLOT].(@[ConstValues.A_NAME] == slotName)[0];
 			}
 		}
@@ -455,10 +466,13 @@ function transformAnimation(animationObject:Object, boneListCopy:Array, slotList
 			{
 				formatTransform(frameCombined, 0);
 				time = frameCombined[A_TIME];
+				
+				//从原timeline中取得当前时间的合并关键帧
 				combineFrameFromTimeline(boneTimeline, time, frameCombined);
 				
+				//如果合并关键帧中包含A_NAME属性（在combineFrameFromTimeline中设置的），则为该为关键帧设置displayIndex动画
 				displayName = frameCombined[A_NAME];
-				if(displayName)
+				if(displayName && slotXML)
 				{
 					displayXML = slotXML[ConstValues.DISPLAY].(@[ConstValues.A_NAME] == displayName)[0];
 					if(displayXML)
@@ -467,11 +481,14 @@ function transformAnimation(animationObject:Object, boneListCopy:Array, slotList
 					}
 				}
 				
+				//动画本地坐标叠加bone本地坐标
 				frameCombined[A_X] += boneObject[A_X];
 				frameCombined[A_Y] += boneObject[A_Y];
 				frameCombined[A_ROTATION] += boneObject[A_ROTATION];
 				frameCombined[A_SCALE_X] += boneObject[A_SCALE_X];
 				frameCombined[A_SCALE_Y] += boneObject[A_SCALE_Y];
+				
+				//有父坐标系，则进行坐标变换
 				if(parentTimeline)
 				{
 					transform = {};
@@ -486,16 +503,18 @@ function transformAnimation(animationObject:Object, boneListCopy:Array, slotList
 				}
 				else
 				{
-					//
+					//最后一帧，添加一个帧长度
 					frameCombined[A_DURATION] = 1;
-					lasfFrames.push(frameCombined);
 					maxTime = Math.max(maxTime, time);
 					
+					//将每个timeline的最后一帧收集起来，最后统一处理帧长度
+					lasfFrames.push(frameCombined);
 				}
 				prevFrameCombined = frameCombined;
 			}
 			else
 			{
+				//去除无效的空帧
 				frameListCombined.splice(i, 1);
 			}
 		}
@@ -504,9 +523,9 @@ function transformAnimation(animationObject:Object, boneListCopy:Array, slotList
 	}
 	
 	var totalDuration:Number = Math.round(maxTime * frameRate) + 1;
-	//
 	animationObject[A_DURATION] = totalDuration;
 	
+	//处理每个timeline的最后一帧的帧长度
 	for each(var lastFrame:Object in lasfFrames)
 	{
 		lastFrame[A_DURATION] = totalDuration - Math.round(lastFrame[A_TIME] * frameRate);
@@ -533,44 +552,39 @@ function combineFrameFromTimeline(timeline:Object, time:Number, resultTransform:
 {
 	var frameList:Array;
 	var currentFrame:Object;
+	var nextFrame:Object;
+	var frameObject:Object;
+	var length:uint;
 	var percent:Number;
-	var i:int;
 	for(var type:String in timeline)
 	{
 		frameList = timeline[type];
+		length = frameList.length;
+		
 		currentFrame = null;
-		i = 0;
-		if(frameList.length > 1)
+		nextFrame = null;
+		for(var i:int = 0;i < length;i ++)
 		{
-			for each(var nextFrame:Object in frameList)
+			frameObject = frameList[i];
+			if(frameObject[A_TIME] > time)
 			{
-				if(nextFrame[A_TIME] > time)
-				{
-					break;
-				}
-				if(i != frameList.length - 1)
-				{
-					currentFrame = nextFrame;
-				}
-				i ++;
+				nextFrame = frameObject;
+				break;
 			}
-		}
-		else
-		{
-			nextFrame = frameList[0];
+			currentFrame = frameObject;
 		}
 		
-		if(currentFrame)
+		if(nextFrame && currentFrame)
 		{
 			percent = (time - currentFrame[A_TIME]) / (nextFrame[A_TIME] - currentFrame[A_TIME]);
 			percent = getFrameCurvePercent(currentFrame, percent);
 		}
 		else
 		{
-			currentFrame = nextFrame;
+			nextFrame = frameObject;
+			currentFrame = frameObject;
 			percent = 0;
 		}
-		
 		
 		switch(type)
 		{
@@ -595,29 +609,31 @@ function combineFrameFromTimeline(timeline:Object, time:Number, resultTransform:
 function getTransformFromFrameList(frameList:Array, time:Number, resultTransform:Object):void
 {
 	var currentFrame:Object;
-	var i:int = 0;
-	for each(var nextFrame:Object in frameList)
+	var nextFrame:Object;
+	var frameObject:Object;
+	var percent:Number;
+	var length:uint = frameList.length;
+	
+	for(var i:int = 0;i < length;i ++)
 	{
-		if(nextFrame[A_TIME] > time)
+		frameObject = frameList[i];
+		if(frameObject[A_TIME] > time)
 		{
+			nextFrame = frameObject;
 			break;
 		}
-		if(i != frameList.length - 1)
-		{
-			currentFrame = nextFrame;
-		}
-		i ++;
+		currentFrame = frameObject;
 	}
 	
-	var percent:Number;
-	if(currentFrame)
+	if(nextFrame && currentFrame)
 	{
 		percent = (time - currentFrame[A_TIME]) / (nextFrame[A_TIME] - currentFrame[A_TIME]);
 	}
 	else
 	{
+		nextFrame = frameObject;
+		currentFrame = frameObject;
 		percent = 0;
-		currentFrame = nextFrame;
 	}
 	
 	resultTransform[A_X] = currentFrame[A_X] + percent * (nextFrame[A_X] - currentFrame[A_X]);

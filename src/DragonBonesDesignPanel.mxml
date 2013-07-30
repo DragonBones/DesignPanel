@@ -206,7 +206,7 @@
 					case MessageDispatcher.SELECT_BONE:
 						if(e.parameters[0] == _importDataProxy.armatureProxy)
 						{
-							armatureViewer.updateBone(_importDataProxy.armatureProxy.selectedBoneName);
+							armatureViewer.updateSelectedBone(_importDataProxy.armatureProxy.selectedBoneName);
 						}
 						break;
 					case MessageDispatcher.CHANGE_BONE_PARENT:
