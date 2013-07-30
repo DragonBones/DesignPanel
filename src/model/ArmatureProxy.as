@@ -85,7 +85,14 @@ package model
 			_selectedSkinData = null;
 			_selectedAnimationData = null;
 			
-			selectedSkinData = _armatureData.getSkinData(selectSkinName) || _armatureData.getSkinData(null);
+			if(_armatureData)
+			{
+				selectedSkinData = _armatureData.getSkinData(selectSkinName) || _armatureData.getSkinData(null);
+			}
+			else
+			{
+				selectedSkinData = null;
+			}
 			
 			if(_armatureData && _armatureData.boneDataList.length > 0)
 			{

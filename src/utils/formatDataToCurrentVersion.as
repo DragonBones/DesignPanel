@@ -363,7 +363,7 @@ function formatDisplayTransformXYAndTimelinePivot(slotXML:XML, timelineXML:XML):
 		if(displayIndex >= 0)
 		{
 			displayXML = slotXML[ConstValues.DISPLAY][displayIndex];
-			if(displayXML && String(displayXML.@[ConstValues.A_TYPE]) == DisplayData.IMAGE)
+			if(displayXML)
 			{
 				pivotX = frameXML[ConstValues.TRANSFORM][0].@[ConstValues.A_PIVOT_X];
 				pivotY = frameXML[ConstValues.TRANSFORM][0].@[ConstValues.A_PIVOT_Y];
