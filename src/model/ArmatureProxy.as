@@ -104,6 +104,8 @@ package model
 			{
 				selecteAnimationData = null;
 			}
+			
+			MessageDispatcher.dispatchEvent(MessageDispatcher.SELECT_ARMATURE, this, armatureName);
 		}
 		
 		public function get selectedSkinName():String
@@ -126,8 +128,6 @@ package model
 			
 			
 			updateArmature();
-			
-			MessageDispatcher.dispatchEvent(MessageDispatcher.SELECT_ARMATURE, this, armatureName);
 		}
 		
 		public function get selectedAnimationName():String
@@ -459,12 +459,15 @@ package model
 				
 				_armature.animation.gotoAndPlay(animationName, 0, -1);
 				lastAnimationState = _armature.animation.lastAnimationState;
-				lastAnimationState.currentTime = currentTime;
-				if(!isPlaying)
+				if(lastAnimationState)
 				{
-					_armature.animation.advanceTime(0);
-					_armature.animation.advanceTime(0);
-					_armature.animation.stop();
+					lastAnimationState.currentTime = currentTime;
+					if(!isPlaying)
+					{
+						_armature.animation.advanceTime(0);
+						_armature.animation.advanceTime(0);
+						_armature.animation.stop();
+					}
 				}
 			}
 			else
@@ -490,9 +493,12 @@ package model
 		private function getSkinList():Array
 		{
 			var skinList:Array = [];
-			for each(var skinData:SkinData in _armatureData.skinDataList)
+			if(_armatureData)
 			{
-				skinList.push(skinData);
+				for each(var skinData:SkinData in _armatureData.skinDataList)
+				{
+					skinList.push(skinData);
+				}
 			}
 			return skinList;
 		}
