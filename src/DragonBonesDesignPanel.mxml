@@ -209,6 +209,7 @@
 							skinDropDownList.visible = false;
 							skinDropDownList.width = 0;
 						}
+						skinDropDownList.selectedItem = _importDataProxy.armatureProxy.selectedSkinData;
 						break;
 					case MessageDispatcher.SELECT_BONE:
 						if(e.parameters[0] == _importDataProxy.armatureProxy)
