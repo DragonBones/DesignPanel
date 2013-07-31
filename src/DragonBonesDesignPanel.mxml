@@ -341,7 +341,7 @@
 			{
 				DBGATrackerManager.createDBGATracker(this);
 				DBGATrackerManager.trackPageview("/");
-				DBGATrackerManager.trackEvent("Version:" + String(DragonBones.VERSION), "Version:" + String(DragonBones.VERSION_NUMBER));
+				DBGATrackerManager.trackEvent("Version", "Version:" + String(DragonBones.VERSION_NUMBER));
 				DBGATrackerManager.trackEvent("Language", "Language:" + String(SettingDataProxy.getInstance().languageArrayCollection[language.selectedIndex].value));
 				
 				DBCloud.instance.addEventListener(DBCloudEvent.INITED, cloud_onInited);
@@ -383,11 +383,13 @@
 			
 			private function checkOnlineStatus():void
 			{
+				DBGATrackerManager.trackEvent("/:CheckOnlineStatus", "/:CheckOnlineStatus");
 				DBNetworkUtils.instance.testNetwork();
 			}
 			
 			private function downloadNewVersion():void
 			{
+				DBGATrackerManager.trackEvent("/:DownloadNewVersion", "/:DownloadNewVersion. CurrentVersion:" + String(DragonBones.VERSION));
 				navigateToURL(new URLRequest("http://dragonbones.github.io/download.html"));
 			}
 		]]>
@@ -429,8 +431,8 @@
 							 buttonMode="true" useHandCursor="true" toolTip="click to check internet again"
 							 click="checkOnlineStatus()"/>
 				</s:NavigatorContent>
-				<s:NavigatorContent>
-					<s:Label id="upgradeBtn" width="24" color="#03E2EA"  text="&lt;&lt;" rotation="90" visible="false"
+				<s:NavigatorContent height="100%">
+					<s:Label id="upgradeBtn" width="24" right="0" color="#03E2EA"  text="&lt;&lt;" rotation="90" visible="false"
 							 verticalAlign="middle" textAlign="center" buttonMode="true" useHandCursor="true" toolTip="new version detected"
 							 click="downloadNewVersion()"/>
 				</s:NavigatorContent>

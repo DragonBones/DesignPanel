@@ -136,14 +136,12 @@
 		<s:VGroup width="100%" gap="0" paddingLeft="6" paddingRight="6">
 			<s:HGroup width="100%" verticalAlign="middle">
 				<s:Label width="100%" height="24" verticalAlign="middle"
-						 text="{resourceManager.getString('resources','totalTime')}"
+						 text="{resourceManager.getString('resources','totalTimeSec')}"
 						 />
-				<s:TextInput width="40" height="24" editable="false" selectable="false"
-							 text="{ImportDataProxy.getInstance().armatureProxy.durationScaled}"
-							 />
+				<s:Label text="{ImportDataProxy.getInstance().armatureProxy.durationScaled}"/>
 			</s:HGroup>
 			<s:Label width="100%" height="24" verticalAlign="middle"
-					 text="{resourceManager.getString('resources','totalTime')}"
+					 text="{resourceManager.getString('resources','totalTimeScale')}"
 					 />
 			<s:HGroup width="100%" verticalAlign="middle">
 				<s:HSlider id="sliderAnimationScale" width="100%"

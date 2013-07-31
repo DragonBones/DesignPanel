@@ -28,7 +28,7 @@
 			
 			[Bindable]
 			private var _contactUs:String = 
-				"If you have any questions, suggestions or bug reports, please contact us <font color='#03E2EA'><a href='http://dragonbones.github.io/contact_us.html'>HERE</a></font>";
+				"If you have any questions, suggestions or bug reports, please contact us <font color='#66ccff'><a href='http://dragonbones.github.io/contact_us.html'>HERE</a></font>";
 			
 			[Bindable]
 			private var _helpUs:String = "";
@@ -86,11 +86,13 @@
 			
 			protected function contactUsBtn_onClick(event:MouseEvent):void
 			{
+				DBGATrackerManager.trackEvent("AboutWindow:ClickContactUs", "AboutWindow:ClickContactUs");
 				navigateToURL(new URLRequest("http://dragonbones.github.io/contact_us.html"));
 			}
 			
 			protected function copyright_clickHandler(event:MouseEvent):void
 			{
+				DBGATrackerManager.trackEvent("AboutWindow:ClickCopyright", "AboutWindow:ClickCopyright");
 				navigateToURL(new URLRequest("http://dragonbones.github.io/about_us.html"));
 			}
 			
