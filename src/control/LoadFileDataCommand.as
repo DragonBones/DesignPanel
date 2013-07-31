@@ -39,7 +39,8 @@ package control
 	{
 		public static const instance:LoadFileDataCommand = new LoadFileDataCommand();
 		
-		private static const FILE_FILTER_ARRAY:Array = [new FileFilter("Exported data", "*." + String(["swf", "dbswf", "png", "zip"]).replace(/\,/g, ";*."))];
+		private static const FILE_FILTER_ARRAY:Array = [new FileFilter("Exported Data", "*." + String(["swf", "dbswf", "png", "zip"]).replace(/\,/g, ";*."))];
+		private static const SPINE_FILTER_ARRAY:Array = [new FileFilter("Spine Data", "*." + String(["zip"]).replace(/\,/g, ";*."))];
 	
 		private var _fileREF:FileReference;
 		private var _urlLoader:URLLoader;
@@ -48,6 +49,7 @@ package control
 		private var _xmlDataProxy:XMLDataProxy;
 		private var _bitmapData:BitmapData;
 		private var _spineObject:Object;
+		private var _fileType:int;
 		
 		private var _isLoading:Boolean;
 		public function isLoading():Boolean
@@ -63,12 +65,14 @@ package control
 			_loaderContext.allowCodeImport = true;
 		}
 		
-		public function load(url:String = null):void
+		//allType
+		public function load(url:String = null, fileType:int = 0):void
 		{
 			if(_isLoading)
 			{
 				return;
 			}
+			_fileType = fileType;
 			if(url)
 			{
 				_isLoading = true;
@@ -82,7 +86,15 @@ package control
 			else
 			{
 				_fileREF.addEventListener(Event.SELECT, onFileHaneler);
-				_fileREF.browse(FILE_FILTER_ARRAY);
+				switch(_fileType)
+				{
+					case 0:
+						_fileREF.browse(FILE_FILTER_ARRAY);
+						break;
+					case 1:
+						_fileREF.browse(SPINE_FILTER_ARRAY);
+						break;
+				}
 			}
 		}
 	
@@ -133,6 +145,7 @@ package control
 			_spineObject = null;
 			_isLoading = false;
 			var dataType:String = BytesType.getType(fileData);
+			
 			switch(dataType)
 			{
 				case BytesType.SWF:
@@ -155,7 +168,7 @@ package control
 						MessageDispatcher.dispatchEvent(MessageDispatcher.LOAD_FILEDATA_COMPLETE, _xmlDataProxy, decompressedData.textureBytes);
 						return;
 					}
-					catch(_e:Error)
+					catch(e:Error)
 					{
 						break;
 					}
@@ -235,6 +248,15 @@ package control
 						}
 						zip.clear();
 						
+						switch(_fileType)
+						{
+							case 1:
+								if(!_spineObject)
+								{
+									throw new Error("break");
+								}
+								break;
+						}
 						if(textureBytes)
 						{
 							//_textureBytes
@@ -248,7 +270,7 @@ package control
 						}
 						break;
 					}
-					catch(_e:Error)
+					catch(e:Error)
 					{
 						break;
 					}

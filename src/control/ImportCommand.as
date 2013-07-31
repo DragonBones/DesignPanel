@@ -48,7 +48,7 @@ package control
 			LoadFLADataCommand.instance.load(isSelectedInFLALibrary, armatureNames);
 		}
 		
-		public function importFileData(isMerge:Boolean, url:String = null):void
+		public function importFileData(isMerge:Boolean, url:String = null, fileType:int = 0):void
 		{
 			if(LoadFLADataCommand.instance.isLoading)
 			{
@@ -58,7 +58,7 @@ package control
 			
 			MessageDispatcher.addEventListener(MessageDispatcher.LOAD_FILEDATA_COMPLETE, loadCommandHandler);
 			
-			LoadFileDataCommand.instance.load(url);
+			LoadFileDataCommand.instance.load(url, fileType);
 		}
 		
 		private function loadCommandHandler(e:Message):void

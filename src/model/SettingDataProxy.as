@@ -12,7 +12,7 @@ package model
 	[Bindable]
 	public class SettingDataProxy
 	{
-		public static const importArrayCollectionSource:Array = new Array('allLibraryItems','selectedItems','exportedData');
+		public static const importArrayCollectionSource:Array = new Array('allLibraryItems','selectedItems','exportedData', "spineData");
 		public static const exportArrayCollectionSource:Array = new Array('swf','png','swf+xml','png+xml','pngs+xml','swf+json','png+json','pngs+json');
 		
 		public static const DATA_IMPORT_ID:String = "dataImportID";
@@ -107,6 +107,7 @@ package model
 			dataImportArrayCollection.source.push(ResourceManager.getInstance().getString('resources', String(importArrayCollectionSource[0])));
 			dataImportArrayCollection.source.push(ResourceManager.getInstance().getString('resources', String(importArrayCollectionSource[1])));
 			dataImportArrayCollection.source.push(ResourceManager.getInstance().getString('resources', String(importArrayCollectionSource[2])));
+			dataImportArrayCollection.source.push(ResourceManager.getInstance().getString('resources', String(importArrayCollectionSource[3])));
 			
 			dataExportArrayCollection.source.length = 0;
 			dataExportArrayCollection.source.push(ResourceManager.getInstance().getString('resources', String(exportArrayCollectionSource[0])));
