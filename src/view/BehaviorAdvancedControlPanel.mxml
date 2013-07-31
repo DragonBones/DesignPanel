@@ -179,7 +179,7 @@
 						 text="{resourceManager.getString('resources','loop')}"
 						 />
 				<s:NumericStepper id="numLoop" width="60" height="24" cornerRadius="0" textAlign="right"
-								  maximum="100" minimum="-100" snapInterval="1"
+								  maximum="100" minimum="0" snapInterval="1"
 								  />
 			</s:HGroup>
 			
