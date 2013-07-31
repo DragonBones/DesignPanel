@@ -53,9 +53,9 @@
 						
 						if(isMultipleFrameAnimation)
 						{
-							numAnimationScale.value = animationScale;
+							numAnimationScale.value = animationScale * 100;
 							numAnimationScale.enabled = true;
-							sliderAnimationScale.value = animationScale;
+							sliderAnimationScale.value = animationScale * 100;
 							sliderAnimationScale.enabled = true;
 							numLoop.enabled = true;
 							numLoop.value = loop;
@@ -99,12 +99,12 @@
 						sliderFadeInTime.value = numFadeInTime.value = _importDataProxy.armatureProxy.fadeInTime;
 						break;
 					case sliderAnimationScale:
-						_importDataProxy.armatureProxy.animationScale = sliderAnimationScale.value;
-						sliderAnimationScale.value = numAnimationScale.value = _importDataProxy.armatureProxy.animationScale;
+						_importDataProxy.armatureProxy.animationScale = sliderAnimationScale.value * 0.01;
+						sliderAnimationScale.value = numAnimationScale.value = _importDataProxy.armatureProxy.animationScale * 100;
 						break;
 					case numAnimationScale:
-						_importDataProxy.armatureProxy.animationScale = numAnimationScale.value;
-						sliderAnimationScale.value = numAnimationScale.value = _importDataProxy.armatureProxy.animationScale;
+						_importDataProxy.armatureProxy.animationScale = numAnimationScale.value * 0.01;
+						sliderAnimationScale.value = numAnimationScale.value = _importDataProxy.armatureProxy.animationScale * 100;
 						break;
 					case numLoop:
 						_importDataProxy.armatureProxy.loop = numLoop.value;
@@ -147,10 +147,10 @@
 					 />
 			<s:HGroup width="100%" verticalAlign="middle">
 				<s:HSlider id="sliderAnimationScale" width="100%"
-						   minimum="0" maximum="10" snapInterval="0.01"
+						   minimum="0" maximum="1000" snapInterval="1"
 						   />
 				<s:NumericStepper id="numAnimationScale" width="60" height="24" cornerRadius="0" textAlign="right"
-								  maximum="100" minimum="0" snapInterval="0.01"
+								  maximum="10000" minimum="0" snapInterval="1"
 								  />
 			</s:HGroup>
 			
