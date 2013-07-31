@@ -998,7 +998,6 @@ dragonBones.getArmatureList = function(isSelected, armatureNames)
 	{
 		return false;
 	}
-	_currentDom.exitEditMode();
 	_currentDomName = _currentDom.name.split(".")[0];
 	
 	var timeline = _currentDom.getTimeline();
@@ -1008,6 +1007,7 @@ dragonBones.getArmatureList = function(isSelected, armatureNames)
 		_currentFrameBackup = timeline.currentFrame;
 	}
 	_librarySelectItemsBackup = _currentDom.library.getSelectedItems().concat();
+	_currentDom.exitEditMode();
 	
 	if(armatureNames)
 	{
