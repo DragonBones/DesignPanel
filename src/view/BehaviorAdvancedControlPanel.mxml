@@ -145,10 +145,10 @@
 					 />
 			<s:HGroup width="100%" verticalAlign="middle">
 				<s:HSlider id="sliderAnimationScale" width="100%"
-						   minimum="0" maximum="1000" snapInterval="1"
+						   minimum="0" maximum="2000" snapInterval="1"
 						   />
 				<s:NumericStepper id="numAnimationScale" width="60" height="24" cornerRadius="0" textAlign="right"
-								  maximum="10000" minimum="0" snapInterval="1"
+								  maximum="100000" minimum="0" snapInterval="1"
 								  />
 			</s:HGroup>
 			
