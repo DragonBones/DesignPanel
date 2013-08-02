@@ -31,10 +31,6 @@
 			[Bindable]
 			private var _about:String = "";
 			
-			//[Bindable]
-			//private var _contactUs:String = 
-			//	"If you have any questions, suggestions or bug reports, please contact us <font color='#66ccff'><a href='http://dragonbones.github.io/contact_us.html'>HERE</a></font>";
-			
 			[Bindable]
 			private var _helpUs:String = "";
 			
@@ -157,12 +153,12 @@
 				   close="closeHandler(event)">
 		<s:TabBar id="tabs" width="100%" dataProvider="{vs}"/>
 		<mx:ViewStack id="vs" width="100%" height="100%" top="24">
-			<s:NavigatorContent label="Online Help" width="100%" height="100%">
+			<s:NavigatorContent label="{resourceManager.getString('resources', 'onlineHelp')}" width="100%" height="100%">
 				<mx:TextArea left="5" right="5" top="5" bottom="5" borderVisible="false"
 							 contentBackgroundAlpha="0.0" editable="false" fontSize="14"
 							 htmlText="{_onlineHelp}"/>
 			</s:NavigatorContent>
-			<s:NavigatorContent label="Contact Us" width="100%" height="100%" fontSize="14">
+			<s:NavigatorContent label="{resourceManager.getString('resources', 'contactUs')}" width="100%" height="100%" fontSize="14">
 				<s:Scroller left="5" right="5" top="5" bottom="5" 
 							creationComplete="contactUs_creationComplete(event)">
 					<s:VGroup gap="0">
@@ -188,7 +184,7 @@
 					</s:VGroup>
 				</s:Scroller>
 			</s:NavigatorContent>
-			<s:NavigatorContent label="About" width="100%" height="100%">
+			<s:NavigatorContent label="{resourceManager.getString('resources', 'about')}" width="100%" height="100%">
 				<s:VGroup left="10" right="10" top="10" bottom="10" >
 					<s:Label width="100%" fontSize="14" fontWeight="bold" textAlign="center"
 								 text="DragonBones V{DragonBones.VERSION} ({DragonBones.VERSION_NUMBER})"/>
@@ -210,7 +206,7 @@
 								 text="{resourceManager.getString('resources', 'copyright')}" />
 				</s:VGroup>
 			</s:NavigatorContent>
-			<s:NavigatorContent label="Help Us" width="100%" height="100%">
+			<s:NavigatorContent label="{resourceManager.getString('resources', 'helpUs')}" width="100%" height="100%">
 				<mx:TextArea left="5" right="5" top="5" bottom="5" editable="false"
 							 contentBackgroundAlpha="0.0"  borderVisible="false" fontSize="14"
 							 htmlText="{_helpUs}"/>
