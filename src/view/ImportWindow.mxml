@@ -7,6 +7,7 @@
 			   >
 	<fx:Script>
 		<![CDATA[
+			import cloud.GA.DBGATrackerManager;
 			import control.ImportCommand;
 			
 			import message.Message;

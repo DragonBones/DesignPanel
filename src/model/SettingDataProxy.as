@@ -23,6 +23,9 @@ package model
 		public static const BONE_HIGHLIGHT_COLOR:String = "boneHighlightColor";
 		public static const BACKGROUND_COLOR:String = "backgoundColor";
 		
+		public static const USERNAME:String = "userName";
+		public static const USEREMAIL:String = "userEmail";
+		
 		private static const SHARE_LOCAL:String = "DragonBones/SkeletonDesignPanel/V1";
 		
 		private static var _instance:SettingDataProxy;
@@ -150,6 +153,28 @@ package model
 			setData(BACKGROUND_COLOR, _backgroundColor);
 		}
 		
+		private var _userName:String;
+		public function get userName():String
+		{
+			return _userName;
+		}
+		public function set userName(value:String):void
+		{
+			_userName = value;
+			setData(USERNAME, _userName);
+		}
+		
+		private var _userEmail:String;
+		public function get userEmail():String
+		{
+			return _userEmail;
+		}
+		public function set userEmail(value:String):void
+		{
+			_userEmail = value;
+			setData(USEREMAIL, _userEmail);
+		}
+		
 		public function SettingDataProxy()
 		{
 			if (_instance)
@@ -164,6 +189,9 @@ package model
 			_exportScaleID = hasData(EXPORT_SCALE_ID)?getData(EXPORT_SCALE_ID):5;
 			
 			_boneHighlightColor = hasData(BONE_HIGHLIGHT_COLOR)?getData(BONE_HIGHLIGHT_COLOR):0xFF0000;
+			
+			_userName = hasData(USERNAME)?getData(USERNAME):"";
+			_userEmail = hasData(USEREMAIL)?getData(USEREMAIL):"";
 			
 			if(hasData(LANGUAGE_ID))
 			{

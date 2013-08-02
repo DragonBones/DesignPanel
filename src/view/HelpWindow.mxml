@@ -13,12 +13,17 @@
 	<fx:Script>
 		<![CDATA[
 			import cloud.DBCloud;
+			import cloud.GA.DBGATrackerManager;
 			import cloud.events.DBCloudEvent;
 			
 			import dragonBones.core.DragonBones;
 			import dragonBones.utils.ConstValues;
 			
+			import model.SettingDataProxy;
+			
+			import mx.controls.Alert;
 			import mx.events.FlexEvent;
+			import mx.validators.EmailValidator;
 			
 			[Bindable]
 			private var _onlineHelp:String = "";
@@ -26,9 +31,9 @@
 			[Bindable]
 			private var _about:String = "";
 			
-			[Bindable]
-			private var _contactUs:String = 
-				"If you have any questions, suggestions or bug reports, please contact us <font color='#66ccff'><a href='http://dragonbones.github.io/contact_us.html'>HERE</a></font>";
+			//[Bindable]
+			//private var _contactUs:String = 
+			//	"If you have any questions, suggestions or bug reports, please contact us <font color='#66ccff'><a href='http://dragonbones.github.io/contact_us.html'>HERE</a></font>";
 			
 			[Bindable]
 			private var _helpUs:String = "";
@@ -96,10 +101,60 @@
 				navigateToURL(new URLRequest("http://dragonbones.github.io/about_us.html"));
 			}
 			
+			protected function contactUs_creationComplete(event:FlexEvent):void
+			{
+				resetContectUs();
+			}
+			
+			protected function submitBtn_clickHandler(event:MouseEvent):void
+			{
+				var result:Array = Validator.validateAll([nameValid, messageValid, emialValid]);
+				if(result.length != 0)
+				{
+					return;
+				}
+				SettingDataProxy.getInstance().userName = nameText.text;
+				SettingDataProxy.getInstance().userEmail = emailText.text;
+				
+				DBCloud.instance.addEventListener(DBCloudEvent.CONTACT_US_SUCCESS, onContactUsSuccess);
+				DBCloud.instance.addEventListener(DBCloudEvent.CONTACT_US_FAILED, onContactUsFailed);
+				DBCloud.instance.cotactUs({name: nameText.text, email: emailText.text, message: messageText.text});
+			}
+			
+			private function onContactUsSuccess(event:DBCloudEvent):void
+			{
+				DBCloud.instance.removeEventListener(DBCloudEvent.CONTACT_US_SUCCESS, onContactUsSuccess);
+				DBCloud.instance.removeEventListener(DBCloudEvent.CONTACT_US_FAILED, onContactUsFailed);
+				Alert.show("Your message has been send successfully.");
+			}
+			
+			private function onContactUsFailed(event:DBCloudEvent):void
+			{
+				DBCloud.instance.removeEventListener(DBCloudEvent.CONTACT_US_SUCCESS, onContactUsSuccess);
+				DBCloud.instance.removeEventListener(DBCloudEvent.CONTACT_US_FAILED, onContactUsFailed);
+				Alert.show("Failed to send message. Please check your network and try later");
+			}
+			
+			protected function resetBtn_clickHandler(event:MouseEvent):void
+			{
+				resetContectUs();
+			}
+			
+			private function resetContectUs():void
+			{
+				nameText.text = SettingDataProxy.getInstance().userName;
+				emailText.text = SettingDataProxy.getInstance().userEmail;
+				messageText.text = "";
+			}
 		]]>
 	</fx:Script>
-	<s:TitleWindow left="20" right="20" top="20" bottom="20" title="{resourceManager.getString('resources','help')}" close="closeHandler(event)">
-		
+	<fx:Declarations>
+		<mx:Validator id="nameValid" required="true" source="{nameText}" property="text"/>
+		<mx:Validator id="messageValid" required="true" source="{messageText}" property="text"/>
+		<mx:EmailValidator id="emialValid" source="{emailText}" property="text" />
+	</fx:Declarations>
+	<s:TitleWindow left="20" right="20" top="20" bottom="20" title="{resourceManager.getString('resources','help')}" 
+				   close="closeHandler(event)">
 		<s:TabBar id="tabs" width="100%" dataProvider="{vs}"/>
 		<mx:ViewStack id="vs" width="100%" height="100%" top="24">
 			<s:NavigatorContent label="Online Help" width="100%" height="100%">
@@ -107,10 +162,31 @@
 							 contentBackgroundAlpha="0.0" editable="false" fontSize="14"
 							 htmlText="{_onlineHelp}"/>
 			</s:NavigatorContent>
-			<s:NavigatorContent label="Contact Us" width="100%" height="100%">
-					<mx:TextArea left="5" right="5" top="5" bottom="5" borderVisible="false" 
-								 contentBackgroundAlpha="0.0" fontSize="14" editable="false"
-								 htmlText="{_contactUs}" />
+			<s:NavigatorContent label="Contact Us" width="100%" height="100%" fontSize="14">
+				<s:Scroller left="5" right="5" top="5" bottom="5" 
+							creationComplete="contactUs_creationComplete(event)">
+					<s:VGroup gap="0">
+						<s:Label width="100%" 
+								 text="Welcome anyone to send us message here! (bug reports, questions, sugestions, etc..)"/>
+						<s:Form defaultButton="{submitBtn}">
+							<s:FormItem label="Your Name:" required="true">
+								<s:TextInput id="nameText" width="180" maxChars="64"/>
+							</s:FormItem>
+							<s:FormItem label="Your Email:" required="true">
+								<s:TextInput id="emailText" width="180"/>
+							</s:FormItem>
+							<s:FormItem label="Message:" required="true">
+								<s:TextArea id="messageText" width="180" height="150"/>
+							</s:FormItem>
+							<s:FormItem>
+								<s:HGroup gap="40">
+									<s:Button id="submitBtn" label="Submit" click="submitBtn_clickHandler(event)"/>
+									<s:Button id="resetBtn" label="Reset" click="resetBtn_clickHandler(event)"/>
+								</s:HGroup>
+							</s:FormItem>
+						</s:Form>
+					</s:VGroup>
+				</s:Scroller>
 			</s:NavigatorContent>
 			<s:NavigatorContent label="About" width="100%" height="100%">
 				<s:VGroup left="10" right="10" top="10" bottom="10" >

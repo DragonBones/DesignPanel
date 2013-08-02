@@ -18,6 +18,9 @@ package cloud.events
 		public static const LOAD_HELPUS_SUCCESS:String = "DBCloudEvent:LOAD_HELPUS_SUCCESS";
 		public static const LOAD_HELPUS_FAILED:String = "DBCloudEvent:LOAD_HELPUS_FAILED";
 		
+		public static const CONTACT_US_SUCCESS:String = "DBCloudEvent:CONTACT_US_SUCCESS";
+		public static const CONTACT_US_FAILED:String = "DBCloudEvent:CONTACT_US_FAILED";
+		
 		public var _data:Object;
 		
 		public function DBCloudEvent(type:String, data:Object=null, bubbles:Boolean=false, cancelable:Boolean=false)

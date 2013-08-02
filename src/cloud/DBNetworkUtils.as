@@ -5,15 +5,12 @@ package cloud
 	import cloud.events.DBNetworkCommandEvent;
 	import cloud.events.DBNetworkEvent;
 	
-	import flash.events.Event;
 	import flash.events.EventDispatcher;
 	import flash.events.IEventDispatcher;
-	import flash.events.StatusEvent;
-	import flash.net.URLRequest;
 	
 	public class DBNetworkUtils extends EventDispatcher
 	{
-		public static var serverURL:String = "http://dragonbones.github.io";
+		public static const serverURL:String = "http://dragonbones.github.io";
 		
 		public static var instance:DBNetworkUtils = new DBNetworkUtils();
 		
