@@ -90,7 +90,7 @@ package model
 				_selectedSkinData = _armatureData.getSkinData(selectSkinName) || _armatureData.getSkinData(null);
 			}
 			
-			armature = factory.buildArmature(armatureName, null, null, selectedSkinName);
+			armature = factory.buildArmature(armatureName, null, null, null, selectedSkinName);
 			
 			if(_armatureData && _armatureData.boneDataList.length > 0)
 			{
@@ -459,7 +459,7 @@ package model
 				var animationName:String = lastAnimationState.name;
 				
 				//
-				armature = factory.buildArmature(armatureName, null, selectedSkinName);
+				armature = factory.buildArmature(armatureName, null, null, null, selectedSkinName);
 				
 				_armature.animation.gotoAndPlay(animationName, 0, -1);
 				lastAnimationState = _armature.animation.lastAnimationState;
@@ -477,7 +477,7 @@ package model
 			else
 			{
 				//
-				armature = factory.buildArmature(armatureName, null, selectedSkinName);
+				armature = factory.buildArmature(armatureName, null, null, null, selectedSkinName);
 			}
 		}
 		

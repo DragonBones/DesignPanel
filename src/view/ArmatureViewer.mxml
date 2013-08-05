@@ -468,6 +468,7 @@
 					return;
 				}
 				
+				
 				if(_boneRollOver && _boneRollOver != _boneSelected)
 				{
 					updateBoneHighlight(_boneRollOver, null);
