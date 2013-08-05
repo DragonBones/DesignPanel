@@ -90,7 +90,7 @@ package model
 				_selectedSkinData = _armatureData.getSkinData(selectSkinName) || _armatureData.getSkinData(null);
 			}
 			
-			armature = factory.buildArmature(armatureName, null, selectedSkinName);
+			armature = factory.buildArmature(armatureName, null, null, selectedSkinName);
 			
 			if(_armatureData && _armatureData.boneDataList.length > 0)
 			{

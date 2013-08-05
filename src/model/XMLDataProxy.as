@@ -106,6 +106,11 @@ package model
 			_xml.@[ConstValues.A_VERSION] = DragonBones.DATA_VERSION;
 		}
 		
+		public function setImagePath(imagePath:String):void
+		{
+			_xml.@[ConstValues.A_IMAGE_PATH] = imagePath;
+		}
+		
 		public function getArmatureXMLList(armatureName:String = null):XMLList
 		{
 			if(armatureName)

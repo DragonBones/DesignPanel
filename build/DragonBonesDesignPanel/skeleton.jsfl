@@ -948,23 +948,23 @@ function generateAnimationEventFrames(animationXML, mainFrame)
 	for(var i = 0;i < length;i ++)
 	{
 		var frame = mainFrame.frames[i];
-		var eventXML = <{FRAME} {A_DURATION}={frame.duration}/>;
+		var frameXML = <{FRAME} {A_DURATION}={frame.duration}/>;
 		var event = isSpecialFrame(frame, EVENT_PREFIX, true);
 		var action = isSpecialFrame(frame, ACTION_PREFIX, true);
 		var sound = frame.soundName && (frame.soundLibraryItem.linkageClassName || frame.soundName);
 		if(event)
 		{
-			eventXML.@[A_EVENT] = event;
+			frameXML.@[A_EVENT] = event;
 		}
 		if(action)
 		{
-			eventXML.@[A_ACTION] = action;
+			frameXML.@[A_ACTION] = action;
 		}
 		if(sound)
 		{
 			frameXML.@[A_SOUND] = sound;
 		}
-		animationXML.appendChild(eventXML);
+		animationXML.appendChild(frameXML);
 	}
 }
 

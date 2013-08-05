@@ -187,6 +187,8 @@ package control
 								GlobalConstValues.TEXTURE_ATLAS_DATA_NAME + (isSWF?GlobalConstValues.SWF_SUFFIX:GlobalConstValues.PNG_SUFFIX),
 								date
 							);
+							_xmlDataProxy.setImagePath(GlobalConstValues.TEXTURE_ATLAS_DATA_NAME + GlobalConstValues.PNG_SUFFIX);
+							
 							if(isXML)
 							{
 								zip.add(
