@@ -11,6 +11,7 @@
 	</fx:Declarations>
 	<fx:Script>
 		<![CDATA[
+			import cloud.GA.DBGATrackerManager;
 			
 			import message.Message;
 			import message.MessageDispatcher;

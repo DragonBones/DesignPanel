@@ -178,7 +178,7 @@
 				<s:Label width="100%" height="24" verticalAlign="middle"
 						 text="{resourceManager.getString('resources','loop')}"
 						 />
-				<s:NumericStepper id="numLoop" width="60" height="24" cornerRadius="0" textAlign="right"
+				<s:NumericStepper id="numLoop" width="50" height="24" cornerRadius="0" textAlign="right"
 								  maximum="100" minimum="0" snapInterval="1"
 								  />
 			</s:HGroup>

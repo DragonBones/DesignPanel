@@ -7,9 +7,6 @@ package cloud
 	
 	import flash.events.EventDispatcher;
 	import flash.events.IEventDispatcher;
-	import flash.net.URLRequest;
-	import flash.net.URLRequestMethod;
-	import flash.net.navigateToURL;
 	
 	public class DBCloud extends EventDispatcher
 	{
@@ -74,6 +71,11 @@ package cloud
 		public function loadHelpUs():void
 		{
 			new DBNC_LoadHelpUs().execute();
+		}
+		
+		public function cotactUs(data:Object):void
+		{
+			new DBNC_ContactUs(data).execute();
 		}
 	}
 }

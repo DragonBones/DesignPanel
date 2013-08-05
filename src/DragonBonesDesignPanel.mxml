@@ -13,6 +13,7 @@
 	</fx:Declarations>
 	<fx:Script>
 		<![CDATA[
+			import cloud.GA.DBGATrackerManager;
 			import cloud.DBCloud;
 			import cloud.DBNetworkUtils;
 			import cloud.events.DBCloudEvent;
@@ -297,9 +298,9 @@
 				textureAtlasWindow.visible = true;
 			}
 			
-			private function popUpAboutWindow():void
+			private function popUpHelpWindow():void
 			{
-				DBGATrackerManager.trackPageview("/aboutWindow");
+				DBGATrackerManager.trackPageview("/helpWindow");
 				aboutWindow.visible = true;
 			}
 			
@@ -422,7 +423,7 @@
 					  />
 			<s:Button width="68" height="24" cornerRadius="0"
 					  label="{resourceManager.getString('resources','help')}"
-					  click="popUpAboutWindow()"
+					  click="popUpHelpWindow()"
 					  />
 			<s:Spacer width="100%"/>
 			<mx:ViewStack id="onlineStatus" height="100%">

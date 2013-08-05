@@ -11,6 +11,7 @@
 	</fx:Declarations>
 	<fx:Script>
 		<![CDATA[
+			import cloud.GA.DBGATrackerManager;
 			import model.ImportDataProxy;
 			
 			import mx.events.CloseEvent;
