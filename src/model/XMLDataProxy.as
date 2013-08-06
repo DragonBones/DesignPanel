@@ -108,7 +108,7 @@ package model
 		
 		public function setImagePath(imagePath:String):void
 		{
-			_xml.@[ConstValues.A_IMAGE_PATH] = imagePath;
+			_textureAtlasXML.@[ConstValues.A_IMAGE_PATH] = imagePath;
 		}
 		
 		public function getArmatureXMLList(armatureName:String = null):XMLList
