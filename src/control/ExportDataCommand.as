@@ -10,6 +10,8 @@ package control
 	import flash.events.Event;
 	import flash.events.IOErrorEvent;
 	import flash.geom.Matrix;
+	import flash.geom.Point;
+	import flash.geom.Rectangle;
 	import flash.net.FileReference;
 	import flash.utils.ByteArray;
 	
@@ -32,9 +34,10 @@ package control
 		public static const instance:ExportDataCommand = new ExportDataCommand();
 		
 		private var _fileREF:FileReference;
-		private var _exportType:uint;
 		private var _isExporting:Boolean;
-		private var _exportScale:Number;
+		private var _scale:Number;
+		private var _exportType:uint;
+		private var _backgroundColor:uint;
 		
 		private var _importDataProxy:ImportDataProxy;
 		
@@ -48,7 +51,7 @@ package control
 			_importDataProxy = ImportDataProxy.getInstance();
 		}
 		
-		public function export(exportType:uint, exportScale:Number):void
+		public function export(exportType:uint, scale:Number, backgroundColor:uint = 0):void
 		{
 			if(_isExporting)
 			{
@@ -57,16 +60,18 @@ package control
 			_isExporting = true;
 			
 			_exportType = exportType;
-			_exportScale = exportScale;
+			_scale = scale;
 			
 			switch(_exportType)
 			{
 				case 0:
 				case 2:
 				case 5:
-					_exportScale = 1;
+					_scale = 1;
 					break;
 			}
+			
+			_backgroundColor = backgroundColor;
 			
 			exportStart();
 		}
@@ -80,7 +85,7 @@ package control
 			_xmlDataProxy = _importDataProxy.xmlDataProxy;
 			_bitmapData = _importDataProxy.textureAtlas.bitmapData;
 			
-			if(_exportScale != 1)
+			if(_scale != 1)
 			{
 				_xmlDataProxy = _xmlDataProxy.clone();
 				var subBitmapDataDic:Object;
@@ -103,14 +108,14 @@ package control
 					);
 				}
 				
-				_xmlDataProxy.scaleData(_exportScale);
+				_xmlDataProxy.scaleData(_scale);
 					
 				_bitmapData = BitmapDataUtil.getMergeBitmapData(
 					subBitmapDataDic,
 					_xmlDataProxy.getSubTextureRectMap(),
 					_xmlDataProxy.textureAtlasWidth,
 					_xmlDataProxy.textureAtlasHeight,
-					_exportScale
+					_scale
 				);
 			}
 			
@@ -144,7 +149,7 @@ package control
 				case 1:
 					try
 					{
-						dataBytes = getPNGBytes();
+						dataBytes = getPNGBytes(_backgroundColor);
 						if(dataBytes)
 						{
 							exportSave(
@@ -175,7 +180,7 @@ package control
 						}
 						else
 						{
-							dataBytes = getPNGBytes();
+							dataBytes = getPNGBytes(_backgroundColor);
 						}
 						
 						if(dataBytes)
@@ -310,9 +315,19 @@ package control
 			return null;
 		}
 		
-		private function getPNGBytes():ByteArray
+		private function getPNGBytes(color:uint = 0):ByteArray
 		{
-			if(_importDataProxy.textureAtlas.movieClip)
+			if(color)
+			{
+				var bitmapData:BitmapData = new BitmapData(_bitmapData.width, _bitmapData.height, true, color);
+				bitmapData.draw(_bitmapData);
+				
+				var byteArray:ByteArray = PNGEncoder.encode(bitmapData);
+				bitmapData.dispose();
+				
+				return byteArray;
+			}
+			else if(_importDataProxy.textureAtlas.movieClip)
 			{
 				return PNGEncoder.encode(_bitmapData);
 			}
