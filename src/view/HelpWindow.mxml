@@ -81,19 +81,19 @@
 			private function closeHandler(event:Event):void
 			{
 				this.visible = false;
-				DBGATrackerManager.trackEvent("AboutWindow:Close", "AboutWindow:Close");
+				DBGATrackerManager.trackEvent("HelpWindow:Close", "HelpWindow:Close");
 				DBGATrackerManager.trackPageview("/");
 			}
 			
 			protected function contactUsBtn_onClick(event:MouseEvent):void
 			{
-				DBGATrackerManager.trackEvent("AboutWindow:ClickContactUs", "AboutWindow:ClickContactUs");
+				DBGATrackerManager.trackEvent("HelpWindow:ClickContactUs", "HelpWindow:ClickContactUs");
 				navigateToURL(new URLRequest("http://dragonbones.github.io/contact_us.html"));
 			}
 			
 			protected function copyright_clickHandler(event:MouseEvent):void
 			{
-				DBGATrackerManager.trackEvent("AboutWindow:ClickCopyright", "AboutWindow:ClickCopyright");
+				DBGATrackerManager.trackEvent("HelpWindow:ClickCopyright", "HelpWindow:ClickCopyright");
 				navigateToURL(new URLRequest("http://dragonbones.github.io/about_us.html"));
 			}
 			

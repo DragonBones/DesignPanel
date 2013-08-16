@@ -26,14 +26,14 @@
 			
 			private function exportData():void
 			{
-				DBGATrackerManager.trackEvent("ExportWindow:ExportData", "ExportWindow:ExportData:"+String(SettingDataProxy.importArrayCollectionSource[SettingDataProxy.getInstance().dataExportID]));
+				DBGATrackerManager.trackEvent("ExportWindow:ExportData", "ExportWindow:ExportData:"+String(SettingDataProxy.exportArrayCollectionSource[SettingDataProxy.getInstance().dataExportID]));
 				
 				if(!ImportDataProxy.getInstance().xmlDataProxy)
 				{
 					return;
 				}
 				MessageDispatcher.addEventListener(MessageDispatcher.EXPORT, commandHandler);
-				ExportDataCommand.instance.export(SettingDataProxy.getInstance().dataExportID, getExportScale());
+				ExportDataCommand.instance.export(SettingDataProxy.getInstance().dataExportID, getExportScale(), bgColorCheckBox.selected ? (colorPicker.selectedColor + 0xff000000) : 0);
 			}
 			
 			private function getExportScale():Number
@@ -71,6 +71,7 @@
 			<s:Label height="24" textAlign="right" verticalAlign="middle"
 					 text="{resourceManager.getString('resources','exportscale') + ':'}"
 					 />
+			<s:CheckBox id="bgColorCheckBox" label="bgColor"/>
 		</s:VGroup>
 		<s:VGroup width="100%" gap="6">
 			<s:DropDownList id="exportType" width="100%" height="24" cornerRadius="0" textAlign="right"
@@ -82,6 +83,7 @@
 						enabled="{SettingDataProxy.getInstance().dataExportID != 0 &amp;&amp; SettingDataProxy.getInstance().dataExportID != 2 &amp;&amp; SettingDataProxy.getInstance().dataExportID != 5}"
 						selectedIndex="@{SettingDataProxy.getInstance().exportScaleID}"
 						/>
+			<mx:ColorPicker id="colorPicker" selectedColor="white"/>
 		</s:VGroup>
 	</s:HGroup>
 	
