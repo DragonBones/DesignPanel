@@ -173,10 +173,13 @@
 				{
 					case SettingDataProxy.BONE_HIGHLIGHT_COLOR:
 						_boneRolloverFilter.color = _boneHighlightFilter.color = value as uint;
-						if(_boneHighlightFilter.color && _boneSelected)
+						if(_boneSelected)
 						{
 							updateBoneHighlight(_boneSelected, null);
-							updateBoneHighlight(_boneSelected, _boneHighlightFilter);
+							if(_boneHighlightFilter.color)
+							{
+								updateBoneHighlight(_boneSelected, _boneHighlightFilter);
+							}
 						}
 						break;
 					case SettingDataProxy.LANGUAGE_ID:
