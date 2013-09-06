@@ -71,7 +71,7 @@
 			<s:Label height="24" textAlign="right" verticalAlign="middle"
 					 text="{resourceManager.getString('resources','exportscale') + ':'}"
 					 />
-			<s:CheckBox id="bgColorCheckBox" label="bgColor"/>
+			<s:CheckBox id="bgColorCheckBox" label="{resourceManager.getString('resources','backgroundColor')}"/>
 		</s:VGroup>
 		<s:VGroup width="100%" gap="6">
 			<s:DropDownList id="exportType" width="100%" height="24" cornerRadius="0" textAlign="right"
@@ -83,7 +83,7 @@
 						enabled="{SettingDataProxy.getInstance().dataExportID != 0 &amp;&amp; SettingDataProxy.getInstance().dataExportID != 2 &amp;&amp; SettingDataProxy.getInstance().dataExportID != 5}"
 						selectedIndex="@{SettingDataProxy.getInstance().exportScaleID}"
 						/>
-			<mx:ColorPicker id="colorPicker" selectedColor="white"/>
+			<mx:ColorPicker id="colorPicker" selectedColor="white" enabled="{bgColorCheckBox.selected}"/>
 		</s:VGroup>
 	</s:HGroup>
 	
