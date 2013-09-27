@@ -244,8 +244,9 @@ package control
 						{
 							_xmlDataProxy = _xmlDataProxy.clone();
 						}
-						_xmlDataProxy.changePath();
 						
+						//do not need to change changePath for TexturePacker
+						//_xmlDataProxy.changePath();
 						
 						subBitmapDataDic = BitmapDataUtil.getSubBitmapDataDic(
 							_bitmapData, 
