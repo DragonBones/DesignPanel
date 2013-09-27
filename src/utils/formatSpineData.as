@@ -52,6 +52,8 @@ const A_SCALE_X:String = "scaleX";
 const A_SCALE_Y:String = "scaleY";
 const A_WIDTH:String = "width";
 const A_HEIGHT:String = "height";
+const A_INHERIT_SCALE:String = "inheritScale";
+const A_INHERIT_ROTATION:String = "inheritRotation";
 
 const V_STEPPED:String = "stepped";
 
@@ -118,6 +120,40 @@ function formatBone(boneObject:Object):XML
 				{ConstValues.A_SCALE_Y}={formatNumber(boneObject[A_SCALE_Y])}
 			/>
 		</{ConstValues.BONE}>;
+		
+	var inheritRatation:String = boneObject[A_INHERIT_ROTATION] as String;
+	switch (inheritRatation)
+	{
+		case "0":
+		case "false":
+		case "no":
+			boneXML.@[ConstValues.A_FIXED_ROTATION] = true;
+			break;
+		default:
+			boneXML.@[ConstValues.A_FIXED_ROTATION] = false;
+			break;
+	}
+	
+	var inheritScale:String = boneObject[A_INHERIT_SCALE] as String;
+	if (inheritScale)
+	{
+		switch (inheritScale)
+		{
+			case "1":
+			case "true":
+			case "yes":
+				boneXML.@[ConstValues.A_SCALE_MODE] = 0;
+				break;
+			default:
+				boneXML.@[ConstValues.A_SCALE_MODE] = 1;
+				break;
+		}
+	}
+	else
+	{
+		boneXML.@[ConstValues.A_SCALE_MODE] = 0;
+	}
+	
 	var parent:String = boneObject[A_PARENT];
 	if(parent)
 	{
