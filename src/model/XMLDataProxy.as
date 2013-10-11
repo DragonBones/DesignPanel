@@ -253,9 +253,13 @@ package model
 		{
 			for each(var displayXML:XML in getDisplayXMLList())
 			{
-				var subTextureName:String = displayXML.@[ConstValues.A_NAME];
-				subTextureName = subTextureName.split("/").join("-");
-				displayXML.@[ConstValues.A_NAME] = subTextureName;
+				if(displayXML.@[ConstValues.A_TYPE] == DisplayData.IMAGE)
+				{
+					var subTextureName:String = displayXML.@[ConstValues.A_NAME];
+					
+					subTextureName = subTextureName.split("/").join("-");
+					displayXML.@[ConstValues.A_NAME] = subTextureName;
+				}
 			}
 			
 			for each(var subTextureXML:XML in getSubTextureXMLList())
