@@ -47,6 +47,7 @@ var A_TWEEN_ROTATE ="twR";
 var A_IS_ARMATURE = "isArmature";
 var A_MOVEMENT = "mov";
 var A_VISIBLE = "visible";
+var A_BLENDING = "bd";
 
 var A_WIDTH = "width";
 var A_HEIGHT = "height";
@@ -492,7 +493,6 @@ function generateMovement(_item, _mainFrame, _layers){
 					_zList[_i] = ++_z;
 				}
 			}
-			_z = _zList[_frameStart];
 			_boneList = _boneZDic[_boneName];
 			for(_i = _frameStart;_i < _frameStart + _frameDuration;_i ++){
 				if(!isNaN(_boneList[_i])){
@@ -586,6 +586,16 @@ function generateFrame(_frame, _boneName, _symbol, _z, _noAutoEasing){
 	_frameXML.@[A_SKEW_Y] = formatNumber(_symbol.skewY);
 	_frameXML.@[A_SCALE_X] = formatNumber(_symbol.scaleX);
 	_frameXML.@[A_SCALE_Y] = formatNumber(_symbol.scaleY);
+	
+	var blend = {"normal": 0, "layer": 1, "darken": 2, "multiply": 3, "lighten": 4, "screen": 5, "overlay": 6, "hard light": 7, "add": 8, "subtract": 9, "difference": 10, "invert": 11, "alpha": 12, "erase": 13};
+
+	var symbolModel = _symbol.blendMode.toLowerCase();
+	
+	if (blend[symbolModel] > 0)
+	{
+		_frameXML.@[A_BLENDING] = blend[symbolModel];
+	}
+
 	helpPoint = _symbol.getTransformationPoint();
 	
 	if(_symbol.instanceType == BITMAP)
