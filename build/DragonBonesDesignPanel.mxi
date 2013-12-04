@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<macromedia-extension name="DragonBonesDesignPanel" version="2.4" type="command">
+<macromedia-extension name="DragonBonesDesignPanel" version="2.4.1" type="command">
 
 	<author name="DragonBones Team"/>
 	<products>
