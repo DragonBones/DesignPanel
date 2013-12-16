@@ -48,6 +48,7 @@ var A_IS_ARMATURE = "isArmature";
 var A_MOVEMENT = "mov";
 var A_VISIBLE = "visible";
 var A_BLENDING = "bd";
+var A_TWEEN_FRAME = "tweenFrame";
 
 var A_WIDTH = "width";
 var A_HEIGHT = "height";
@@ -82,6 +83,7 @@ var STRING = "string";
 var LABEL_TYPE_NAME = "name";
 var EVENT_PREFIX = "@";
 var MOVEMENT_PREFIX = "#";
+var NO_TWEEN_PREFIX = "~";
 var NO_EASING = "^";
 var DELIM_CHAR = "|";
 var UNDERLINE_CHAR = "_";
@@ -214,7 +216,7 @@ function isMainFrame(_frame){
 		{
 			return false;
 		}
-		if(_frame.name.indexOf(NO_EASING) == 0 && _frame.name.length == 1)
+		if((_frame.name.indexOf(NO_EASING) == 0 || _frame.name.indexOf(NO_TWEEN_PREFIX) == 0) && _frame.name.length == 1)
 		{
 			return false;
 		}
@@ -278,6 +280,7 @@ function isArmatureItem(_item, _isChildArmature){
 			return _layersFiltered;
 		}
 	}
+
 	return null;
 }
 
@@ -732,6 +735,13 @@ function generateFrame(_frame, _boneName, _symbol, _z, _noAutoEasing){
 	_str = isSpecialFrame(_frame, EVENT_PREFIX, true);
 	if(_str){
 		_frameXML.@[A_EVENT] = _str;
+	}
+
+	//NO_TWEEN_PREFIX
+	var _tweenFrame =  _frame.labelType == LABEL_TYPE_NAME && _frame.name.indexOf(NO_TWEEN_PREFIX) == 0 && _frame.name.length == 1;
+
+	if(_tweenFrame){
+		_frameXML.@[A_TWEEN_FRAME] = _tweenFrame;
 	}
 
 	//sound
