@@ -3,11 +3,11 @@ package model
 	import flash.errors.IllegalOperationError;
 	import flash.net.SharedObject;
 	
-	import message.Message;
-	import message.MessageDispatcher;
-	
 	import mx.collections.ArrayCollection;
 	import mx.resources.ResourceManager;
+	
+	import message.Message;
+	import message.MessageDispatcher;
 	
 	[Bindable]
 	public class SettingDataProxy
@@ -18,6 +18,9 @@ package model
 		public static const DATA_IMPORT_ID:String = "dataImportID";
 		public static const DATA_EXPORT_ID:String = "dataExportID";
 		public static const EXPORT_SCALE_ID:String = "exportScaleID";
+		public static const EXPORT_BACKGROUND_COLOR:String = "exportBackgoundColor";
+		
+		public static const MERGE_LAYERS_IN_FOLDER:String = "mergeLayersInfolder";
 		
 		public static const LANGUAGE_ID:String = "languageID";
 		public static const BONE_HIGHLIGHT_COLOR:String = "boneHighlightColor";
@@ -40,17 +43,25 @@ package model
 		
 		private var _shareObject:SharedObject;
 		
-		private var _dataImportID:int;
 		public function get dataImportID():int
 		{
-			return _dataImportID;
+			return hasData(DATA_IMPORT_ID)?getData(DATA_IMPORT_ID):0;
 		}
 		public function set dataImportID(value:int):void
 		{
-			_dataImportID = value < 0 ? 0 : value;
-			setData(DATA_IMPORT_ID, _dataImportID);
+			value = value < 0 ? 0 : value;
+			setData(DATA_IMPORT_ID, value);
 		}
 		public var dataImportArrayCollection:ArrayCollection = new ArrayCollection([]);
+		
+		public function get mergeLayersInFolder():Boolean
+		{
+			return hasData(MERGE_LAYERS_IN_FOLDER)?getData(MERGE_LAYERS_IN_FOLDER):false;
+		}
+		public function set mergeLayersInFolder(value:Boolean):void
+		{
+			setData(MERGE_LAYERS_IN_FOLDER, value);
+		}
 		
 		public var textureMaxWidthID:int;
 		public function get textureMaxWidth():int
@@ -68,21 +79,18 @@ package model
 		public var textureSortID:int = 0;
 		public var textureSortArrayCollection:ArrayCollection = new ArrayCollection(["MaxRects"]);
 		
-		private var _dataExportID:int;
 		public function get dataExportID():int
 		{
-			return _dataExportID;
+			return hasData(DATA_EXPORT_ID)?getData(DATA_EXPORT_ID):0;
 		}
 		public function set dataExportID(value:int):void
 		{
-			_dataExportID = value;
-			setData(DATA_EXPORT_ID, _dataExportID);
+			setData(DATA_EXPORT_ID, value);
 		}
 		
-		private var _exportScaleID:int;
 		public function get exportScaleID():int
 		{
-			return _exportScaleID;
+			return hasData(EXPORT_SCALE_ID)?getData(EXPORT_SCALE_ID):5;
 		}
 		public function set exportScaleID(value:int):void
 		{
@@ -90,39 +98,19 @@ package model
 			{
 				value = 7;
 			}
-			_exportScaleID = value;
-			setData(EXPORT_SCALE_ID, _exportScaleID);
+			setData(EXPORT_SCALE_ID, value);
 		}
 		
 		public var dataExportArrayCollection:ArrayCollection = new ArrayCollection([]);
 		
-		private var _languageID:int = -1;
 		public function get languageID():int
 		{
-			return _languageID;
+			return hasData(LANGUAGE_ID)?getData(LANGUAGE_ID):0;
 		}
 		public function set languageID(value:int):void
 		{
-			_languageID = value;
-			ResourceManager.getInstance().localeChain = [languageArrayCollection[_languageID].value];
-			
-			dataImportArrayCollection.source.length = 0;
-			dataImportArrayCollection.source.push(ResourceManager.getInstance().getString('resources', String(importArrayCollectionSource[0])));
-			dataImportArrayCollection.source.push(ResourceManager.getInstance().getString('resources', String(importArrayCollectionSource[1])));
-			dataImportArrayCollection.source.push(ResourceManager.getInstance().getString('resources', String(importArrayCollectionSource[2])));
-			dataImportArrayCollection.source.push(ResourceManager.getInstance().getString('resources', String(importArrayCollectionSource[3])));
-			
-			dataExportArrayCollection.source.length = 0;
-			dataExportArrayCollection.source.push(ResourceManager.getInstance().getString('resources', String(exportArrayCollectionSource[0])));
-			dataExportArrayCollection.source.push(ResourceManager.getInstance().getString('resources', String(exportArrayCollectionSource[1])));
-			dataExportArrayCollection.source.push(ResourceManager.getInstance().getString('resources', String(exportArrayCollectionSource[2])));
-			dataExportArrayCollection.source.push(ResourceManager.getInstance().getString('resources', String(exportArrayCollectionSource[3])));
-			dataExportArrayCollection.source.push(ResourceManager.getInstance().getString('resources', String(exportArrayCollectionSource[4])));
-			dataExportArrayCollection.source.push(ResourceManager.getInstance().getString('resources', String(exportArrayCollectionSource[5])));
-			dataExportArrayCollection.source.push(ResourceManager.getInstance().getString('resources', String(exportArrayCollectionSource[6])));
-			dataExportArrayCollection.source.push(ResourceManager.getInstance().getString('resources', String(exportArrayCollectionSource[7])));
-			
-			setData(LANGUAGE_ID, _languageID);
+			updateLanguage(value);
+			setData(LANGUAGE_ID, value);
 		}
 		public var languageArrayCollection:ArrayCollection = new ArrayCollection([
 			{label:"English", value:"en_US"}, 
@@ -131,48 +119,40 @@ package model
 			{label:"日本語", value:"ja_JP"}
 		]);
 		
-		private var _boneHighlightColor:uint;
 		public function get boneHighlightColor():uint
 		{
-			return _boneHighlightColor;
+			return hasData(BONE_HIGHLIGHT_COLOR)?getData(BONE_HIGHLIGHT_COLOR):0xFF0000;
 		}
 		public function set boneHighlightColor(value:uint):void
 		{
-			_boneHighlightColor = value;
-			setData(BONE_HIGHLIGHT_COLOR, _boneHighlightColor);
+			setData(BONE_HIGHLIGHT_COLOR, value);
 		}
 		
-		private var _backgroundColor:uint;
 		public function get backgroundColor():uint
 		{
-			return _backgroundColor;
+			return hasData(BACKGROUND_COLOR)?getData(BACKGROUND_COLOR):0xFFFFFFFF;
 		}
 		public function set backgroundColor(value:uint):void
 		{
-			_backgroundColor = value;
-			setData(BACKGROUND_COLOR, _backgroundColor);
+			setData(BACKGROUND_COLOR, value);
 		}
 		
-		private var _userName:String;
 		public function get userName():String
 		{
-			return _userName;
+			return hasData(USERNAME)?getData(USERNAME):"";
 		}
 		public function set userName(value:String):void
 		{
-			_userName = value;
-			setData(USERNAME, _userName);
+			setData(USERNAME, value);
 		}
 		
-		private var _userEmail:String;
 		public function get userEmail():String
 		{
-			return _userEmail;
+			return hasData(USEREMAIL)?getData(USEREMAIL):"";;;
 		}
 		public function set userEmail(value:String):void
 		{
-			_userEmail = value;
-			setData(USEREMAIL, _userEmail);
+			setData(USEREMAIL, value);
 		}
 		
 		public function SettingDataProxy()
@@ -184,18 +164,9 @@ package model
 			
 			_shareObject = SharedObject.getLocal(SHARE_LOCAL, "/");
 			
-			_dataImportID = hasData(DATA_IMPORT_ID)?getData(DATA_IMPORT_ID):0;
-			_dataExportID = hasData(DATA_EXPORT_ID)?getData(DATA_EXPORT_ID):0;
-			_exportScaleID = hasData(EXPORT_SCALE_ID)?getData(EXPORT_SCALE_ID):5;
-			
-			_boneHighlightColor = hasData(BONE_HIGHLIGHT_COLOR)?getData(BONE_HIGHLIGHT_COLOR):0xFF0000;
-			
-			_userName = hasData(USERNAME)?getData(USERNAME):"";
-			_userEmail = hasData(USEREMAIL)?getData(USEREMAIL):"";
-			
 			if(hasData(LANGUAGE_ID))
 			{
-				languageID = getData(LANGUAGE_ID);
+				updateLanguage(languageID);
 			}
 			else if (JSFLProxy.isAvailable)
 			{
@@ -227,6 +198,27 @@ package model
 					languageID = 0;
 					break;
 			}
+		}
+		
+		private function updateLanguage(value:int):void
+		{
+			ResourceManager.getInstance().localeChain = [languageArrayCollection[value].value];
+			
+			dataImportArrayCollection.source.length = 0;
+			dataImportArrayCollection.source.push(ResourceManager.getInstance().getString('resources', String(importArrayCollectionSource[0])));
+			dataImportArrayCollection.source.push(ResourceManager.getInstance().getString('resources', String(importArrayCollectionSource[1])));
+			dataImportArrayCollection.source.push(ResourceManager.getInstance().getString('resources', String(importArrayCollectionSource[2])));
+			dataImportArrayCollection.source.push(ResourceManager.getInstance().getString('resources', String(importArrayCollectionSource[3])));
+			
+			dataExportArrayCollection.source.length = 0;
+			dataExportArrayCollection.source.push(ResourceManager.getInstance().getString('resources', String(exportArrayCollectionSource[0])));
+			dataExportArrayCollection.source.push(ResourceManager.getInstance().getString('resources', String(exportArrayCollectionSource[1])));
+			dataExportArrayCollection.source.push(ResourceManager.getInstance().getString('resources', String(exportArrayCollectionSource[2])));
+			dataExportArrayCollection.source.push(ResourceManager.getInstance().getString('resources', String(exportArrayCollectionSource[3])));
+			dataExportArrayCollection.source.push(ResourceManager.getInstance().getString('resources', String(exportArrayCollectionSource[4])));
+			dataExportArrayCollection.source.push(ResourceManager.getInstance().getString('resources', String(exportArrayCollectionSource[5])));
+			dataExportArrayCollection.source.push(ResourceManager.getInstance().getString('resources', String(exportArrayCollectionSource[6])));
+			dataExportArrayCollection.source.push(ResourceManager.getInstance().getString('resources', String(exportArrayCollectionSource[7])));
 		}
 		
 		/**
