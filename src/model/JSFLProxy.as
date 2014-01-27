@@ -377,7 +377,7 @@
 		/**
 		 * Get armature data by name
 		 */
-		public function generateArmature(armatureName:String, mergeLayersInFolder:Boolean):void
+		public function generateArmature(armatureName:String, mergeLayersInFolder:Boolean = false):void
 		{
 			runJSFLMethod(GENERATE_ARMATURE, "dragonBones.generateArmature", armatureName, false, true, mergeLayersInFolder);
 		}
