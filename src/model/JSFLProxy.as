@@ -1,7 +1,5 @@
 ﻿package model
 {
-	import adobe.utils.MMExecute;
-	
 	import flash.errors.IllegalOperationError;
 	import flash.events.Event;
 	import flash.events.IOErrorEvent;
@@ -10,6 +8,8 @@
 	import flash.net.URLLoader;
 	import flash.net.URLRequest;
 	import flash.utils.ByteArray;
+	
+	import adobe.utils.MMExecute;
 	
 	import message.MessageDispatcher;
 	
@@ -190,10 +190,7 @@
 					}
 				}
 				
-				_urlLoader = new URLLoader();
-				_urlLoader.addEventListener(Event.COMPLETE, jsflLoadHandler);
-				_urlLoader.addEventListener(IOErrorEvent.IO_ERROR, jsflLoadHandler);
-				_urlLoader.load(new URLRequest (JSFL_URL));
+				loadJSFLFile();
 			}
 			
 			
@@ -235,6 +232,26 @@
 					}
 					break;
 			}
+		}
+		
+		public function loadJSFLFile():void
+		{
+			if(_urlLoader)
+			{
+				_urlLoader.removeEventListener(Event.COMPLETE, jsflLoadHandler);
+				_urlLoader.removeEventListener(IOErrorEvent.IO_ERROR, jsflLoadHandler);
+				try 
+				{
+					_urlLoader.close();
+				}
+				catch (e:Error)
+				{
+				}
+			}
+			_urlLoader = new URLLoader();
+			_urlLoader.addEventListener(Event.COMPLETE, jsflLoadHandler);
+			_urlLoader.addEventListener(IOErrorEvent.IO_ERROR, jsflLoadHandler);
+			_urlLoader.load(new URLRequest (JSFL_URL));
 		}
 		
 		public function runJSFLCode(type:String, code:String):void
@@ -360,9 +377,9 @@
 		/**
 		 * Get armature data by name
 		 */
-		public function generateArmature(armatureName:String):void
+		public function generateArmature(armatureName:String, mergeLayersInFolder:Boolean):void
 		{
-			runJSFLMethod(GENERATE_ARMATURE, "dragonBones.generateArmature", armatureName, false, true);
+			runJSFLMethod(GENERATE_ARMATURE, "dragonBones.generateArmature", armatureName, false, true, mergeLayersInFolder);
 		}
 		
 		/**

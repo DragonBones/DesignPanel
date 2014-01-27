@@ -43,6 +43,7 @@ var A_SCALE_Y = "scY";
 var A_PIVOT_X = "pX";
 var A_PIVOT_Y = "pY";
 var A_Z_ORDER = "z";
+var A_BLEND_MODE = "blendMode";
 var A_DISPLAY_INDEX = "displayIndex";
 var A_EVENT = "event";
 var A_SOUND = "sound";
@@ -70,7 +71,11 @@ var SYMBOL = "symbol";
 var MOVIE_CLIP = "movie clip";
 var GRAPHIC = "graphic";
 var BITMAP = "bitmap";
-var MOTION = "motion";
+var TWEEN_TYPE_IK = "IK pose";
+var TWEEN_TYPE_NONE = "none";
+var TWEEN_TYPE_SHAPE = "shape";
+var TWEEN_TYPE_MOTION = "motion";
+var TWEEN_TYPE_MOTION_OBJECT = "motion object";
 var STRING = "string";
 var LABEL_TYPE_NAME = "name";
 var EVENT_PREFIX = "@";
@@ -85,6 +90,7 @@ var ANIMATION_DATA = "animationData";
 
 var TEXTURE_SWF_ITEM = "textureSWFItem";
 var TEXTURE_SWF = "armatureTextureSWF.swf";
+var TEXTURE_AUTO_CREATE = "dbTextures";
 
 var _helpTransform = {x:0, y:0};
 
@@ -93,9 +99,11 @@ var _currentDomName;
 var _currentItemBackup;
 var _currentFrameBackup;
 var _librarySelectItemsBackup;
+var _isMergeLayersInFolder;
+
+var _defaultFadeInTime;
 
 var _xml;
-var _skinXML;
 
 function trace()
 {
@@ -133,7 +141,7 @@ function isBoneLayer(layer)
 	var i = frames.length;
 	while(i --)
 	{
-		if(getBoneSymbol(frames[i].elements))
+		if(frames[i].elements.length > 0)
 		{
 			return true;
 		}
@@ -290,7 +298,11 @@ function isArmatureItem(item, isChildArmature)
 			case "mask":
 				break;
 			default:
-				if(isMainLayer(layer))
+				if(layer.name && layer.name.indexOf("^") == 0)
+				{
+					break;
+				}
+				else if(isMainLayer(layer))
 				{
 					mainLayer = layer;
 				}
@@ -316,6 +328,7 @@ function isArmatureItem(item, isChildArmature)
 			mainLayer = {};
 			mainLayer.frameCount = item.timeline.frameCount;
 			mainLayer.frames = [];
+			mainLayer.noLabelChildArmature = true;
 			
 			var frame = {};
 			frame.labelType = LABEL_TYPE_NAME;
@@ -393,28 +406,6 @@ function getBoneSymbol(elements)
 	return null;
 }
 
-//get bone by name from a frame 
-function getBoneFromLayers(layers, boneName, frameIndex)
-{
-	var i = layers.length;
-	var layer;
-	var frame;
-	while(i --)
-	{
-		layer = layers[i];
-		if(layer.name == boneName)
-		{
-			frame = layer.frames[frameIndex];
-			if(frame)
-			{
-				return getBoneSymbol(frame.elements);
-			}
-			break;
-		}
-	}
-	return null;
-}
-
 function appendXML(parentXML, childXML)
 {
 	var xmlList = parentXML[childXML.localName()];
@@ -429,12 +420,26 @@ function appendXML(parentXML, childXML)
 	}
 }
 
-function getAnimationXML(armatureXML, name, item, duration)
+function getAnimationXML(armatureXML, name, item, duration, noLabelChildArmature)
 {
 	var xml = armatureXML[ANIMATION].(@name == name)[0];
 	if(!xml)
 	{
-		var fadeInTime = 0.3;
+		var fadeInTime;
+
+		if(noLabelChildArmature)
+		{
+			fadeInTime = 0;
+		}
+		else if(!isNaN(_defaultFadeInTime))
+		{
+			fadeInTime = _defaultFadeInTime;
+		}
+		else
+		{
+			fadeInTime = 0.3;
+		}
+		
 		var loop = 1;
 		var scale = 1;
 		var tweenEasing = NaN;
@@ -640,7 +645,7 @@ function getDisplayXML(slotXML, name, item, frameXML, isArmature)
 	return xml;
 }
 
-function generateAnimation(item, mainFrame, layers, armatureXML)
+function generateAnimation(item, mainFrame, layers, armatureXML, result, noLabelChildArmature)
 {
 	var start = mainFrame.frame.startFrame;
 	var duration = mainFrame.duration;
@@ -652,12 +657,14 @@ function generateAnimation(item, mainFrame, layers, armatureXML)
 		animationName = animationName.substr(1);
 	}
 	
-	var animationXML = getAnimationXML(armatureXML, animationName, item, duration);
+	var animationXML = getAnimationXML(armatureXML, animationName, item, duration, noLabelChildArmature);
 
 	var boneNameDic = {};
 	var boneZDic = {};
 	var zList = [];
 	
+	var changeFrames = [];
+	var timeline;
 	var layersLength = layers.length;
 	var layer;
 	var boneName;
@@ -666,12 +673,16 @@ function generateAnimation(item, mainFrame, layers, armatureXML)
 	var framesLength;
 	var frameStart
 	var frameDuration;
+	var elements;
 	var symbol;
 	var boneList;
 	var zOrder;
+	var itemFolderName;
+	var noAutoEasingFrame;
 	for(var i = 0;i < layersLength;i ++)
 	{
 		layer = layers[i];
+		layer.locked = false;
 		boneName = formatName(layer);
 		boneZDic[boneName] = boneZDic[boneName] || [];
 		timelineXML = null;
@@ -680,6 +691,19 @@ function generateAnimation(item, mainFrame, layers, armatureXML)
 		for(var j = 0;j < framesLength;j ++)
 		{
 			frame = frames[j];
+			//
+			if(frame.duration > 1 && frame.tweenType == TWEEN_TYPE_SHAPE)
+			{
+				changeFrames.push({layer:layer, start:frame.startFrame + 1, end:frame.startFrame + frame.duration});
+				_currentDom.library.editItem(item.name);
+				timeline = _currentDom.getTimeline();
+				timeline.setSelectedLayers(timeline.layers.indexOf(layer));
+				timeline.convertToKeyframes(frame.startFrame, frame.startFrame + frame.duration);
+				//
+				frames = filterKeyFrames(layer.frames.slice(start, start + duration));
+				framesLength = frames.length;
+			}
+			
 			if(frame.startFrame < start)
 			{
 				frameStart = 0;
@@ -695,10 +719,42 @@ function generateAnimation(item, mainFrame, layers, armatureXML)
 				frameStart = frame.startFrame - start;
 				frameDuration= frame.duration;
 			}
-			symbol = getBoneSymbol(frame.elements);
+			elements = frame.elements;
+			symbol = getBoneSymbol(elements);
+			itemFolderName = null;
+			noAutoEasingFrame = false;
 			if(!symbol)
 			{
-				continue;
+				if(elements.length > 0)
+				{
+					_currentDom.library.editItem(item.name);
+					timeline = _currentDom.getTimeline();
+					timeline.currentFrame = frame.startFrame;
+					
+					_currentDom.selectNone();
+					_currentDom.selection = elements.concat();
+					
+					if(_currentDom.selection && _currentDom.selection.length > 0)
+					{
+						itemFolderName = TEXTURE_AUTO_CREATE + "/" + item.name;
+						_currentDom.library.addNewItem("folder", itemFolderName);
+						var newMCName = boneName + "_" + frame.startFrame;
+						_currentDom.convertToSymbol(MOVIE_CLIP, newMCName, "top left");
+						_currentDom.library.moveToFolder(itemFolderName, newMCName, true);
+						
+						symbol = _currentDom.selection[0];
+					}
+				}
+				
+				if(!symbol)
+				{
+					continue;
+				}
+				noAutoEasingFrame = true;
+			}
+			else
+			{
+			
 			}
 			if(!timelineXML)
 			{
@@ -730,19 +786,37 @@ function generateAnimation(item, mainFrame, layers, armatureXML)
 				boneList[k] = zOrder;
 			}
 			
-			if(frame.tweenType == "motion object")
+			if(frame.tweenType == TWEEN_TYPE_MOTION_OBJECT)
 			{
 				break;
 			}
 			//zOrder
 			addFrameToTimeline(
-				generateFrame(item, frame, boneName, symbol, i, noAutoEasing, armatureXML),
+				generateFrame(item, frame, boneName, symbol, i, noAutoEasing || noAutoEasingFrame, armatureXML),
 				frameStart,
 				frameDuration, 
 				timelineXML
 			);
+			
+			if(itemFolderName)
+			{
+				_currentDom.breakApart();
+				_currentDom.exitEditMode();
+			}
 		}
 	}
+	
+	if(changeFrames.length > 0)
+	{
+		_currentDom.library.editItem(item.name);
+		timeline = _currentDom.getTimeline();
+		for each(var object in changeFrames)
+		{
+			timeline.setSelectedLayers(timeline.layers.indexOf(object.layer));
+			timeline.clearKeyframes(object.start, object.end);
+		}
+	}
+	
 	
 	var timelineXMLList = animationXML[TIMELINE];
 	var prevFrameXML;
@@ -863,12 +937,15 @@ function generateFrame(item, frame, boneName, symbol, zOrder, noAutoEasing, arma
 	
 	var boneXML = getBoneXML(armatureXML, boneName, item, frameXML);
 	var slotXML = getSlotXML(armatureXML, boneName, item, frameXML);
+	if(symbol.blendMode)
+	{
+		slotXML.@[A_BLEND_MODE] = symbol.blendMode;
+	}
 	
 	var imageItem = symbol.libraryItem;
 	var imageName = formatName(imageItem);
 	var isChildArmature = symbol.symbolType == MOVIE_CLIP;
-	var isArmature = isArmatureItem(imageItem, isChildArmature);
-	
+	var isArmature = Boolean(isArmatureItem(imageItem, isChildArmature));
 	var displayXML = getDisplayXML(slotXML, imageName, item, frameXML, isArmature);
 	
 	var transformXML = frameXML[TRANSFORM][0];
@@ -887,7 +964,7 @@ function generateFrame(item, frame, boneName, symbol, zOrder, noAutoEasing, arma
 	
 	if(isArmature)
 	{
-		dragonBones.generateArmature(imageName, isChildArmature);
+		dragonBones.generateArmature(imageName, isChildArmature, false, _isMergeLayersInFolder);
 	}
 	
 	var str = isSpecialFrame(frame, ACTION_PREFIX, true);
@@ -897,11 +974,11 @@ function generateFrame(item, frame, boneName, symbol, zOrder, noAutoEasing, arma
 	}
 	
 	//ease
-	if(noAutoEasing?frame.tweenType != MOTION:isNoEasingFrame(frame))
+	if(noAutoEasing?frame.tweenType != TWEEN_TYPE_MOTION:isNoEasingFrame(frame))
 	{
 		frameXML.@[A_TWEEN_EASING] = NaN;
 	}
-	else if(frame.tweenType == MOTION)
+	else if(frame.tweenType == TWEEN_TYPE_MOTION)
 	{
 		frameXML.@[A_TWEEN_EASING] = formatNumber(frame.tweenEasing * 0.01);
 		var tweenRotate = 0;
@@ -984,7 +1061,364 @@ function addFrameToTimeline(frameXML, start, duration, timelineXML)
 	timelineXML.appendChild(frameXML);
 }
 
-dragonBones.getArmatureList = function(isSelected, armatureNames)
+function canMergeLayersInFolder(item)
+{
+	if(item)
+	{
+		var timeline = item.timeline;
+		var folderMap = {};
+		var hasFolder = false;
+		for each(var layer in timeline.layers)
+		{
+			if(layer.layerType == "folder")
+			{
+				folderMap[layer.name] = 0;
+				hasFolder = true;
+			}
+		}
+		if(hasFolder)
+		{
+			for each(var layer in timeline.layers)
+			{
+				if(layer.layerType != "folder" && layer.parentLayer)
+				{
+					var count = folderMap[layer.parentLayer.name] || 0;
+					count ++;
+					if(count > 1)
+					{
+						return true;
+					}
+					folderMap[layer.parentLayer.name] = count;
+				}
+			}
+		}
+	}
+	return false;
+}
+
+function mergeLayersInFolder(item)
+{
+	var _currentDom = fl.getDocumentDOM();
+	var library = _currentDom.library;
+	
+	library.selectNone();
+	library.duplicateItem(item.name);
+	
+	var itemCopy = library.getSelectedItems()[0];
+	
+	library.addNewItem("folder", TEXTURE_AUTO_CREATE);
+	library.moveToFolder(TEXTURE_AUTO_CREATE, itemCopy.name, true);
+	
+	library.editItem(itemCopy.name);
+	var timeline = itemCopy.timeline;
+	
+	//搜索所有图层，把补间转换为关键帧，去掉嵌套的文件夹，标记需要删除的图层
+	var folderObjArr = [];
+	var currFolderLayer = null;
+	var junkLayerMark = [];
+	var junkLayerCount = 0;
+	var layerID = -1;
+	for each(var layer in timeline.layers)
+	{
+		layerID++;
+		if(currFolderLayer)
+		{
+			if(folderObj)
+			{
+			}
+			else
+			{
+				var folderObj = {folderLayerID:layerID - 1 - junkLayerCount, layerIdArr:[]};
+			}
+		}
+		else
+		{
+			if(layer.layerType=="folder")
+			{
+				//找到一个文件夹
+				currFolderLayer = layer;
+			}
+			continue;
+		}
+		
+		if(layer.parentLayer)
+		{
+			if(layer.parentLayer == currFolderLayer)
+			{
+				if(layer.layerType == "folder")
+				{
+					//嵌套的文件夹
+					layer.layerType = "normal";
+					junkLayerCount ++;
+					junkLayerMark[layerID] = true;
+					continue;
+				}
+			}
+		}
+		else
+		{
+			folderObjArr.push(folderObj);
+			folderObj = null;
+			currFolderLayer = null;
+			if(layer.layerType == "folder")
+			{
+				//找到一个文件夹
+				currFolderLayer = layer;
+			}
+			continue;
+		}
+		
+		switch(layer.layerType)
+		{
+			case "guide":
+			case "mask":
+				junkLayerCount ++;
+				junkLayerMark[layerID] = true;
+				continue;
+			break;
+		}
+		
+		folderObj.layerIdArr.push(layerID - junkLayerCount);
+		timeline.currentLayer = layerID;
+		if(layer.animationType == "none")
+		{
+			//无补间，或传统补间，或形状补间
+			var frameID = layer.frames.length;
+			while(frameID --)
+			{
+				var startFrameId = layer.frames[frameID].startFrame;
+				var frame = layer.frames[frameID];
+				
+				var hasPlayOnceOrLoopGraphic = false;
+				for each(var element in frame.elements)
+				{
+					if(
+						element.libraryItem
+						&&
+						element.libraryItem.timeline
+						&&
+						element.libraryItem.timeline.frameCount>1
+						&&
+						element.symbolType=="graphic"
+						&&
+						(
+							element.loop=="play once"
+							||
+							element.loop=="loop"
+						)
+					)
+					{
+						hasPlayOnceOrLoopGraphic=true;
+						break;
+					}
+				}
+				if(hasPlayOnceOrLoopGraphic)
+				{
+					timeline.convertToKeyframes(startFrameId + 1,frameID + 1);
+				}
+				else
+				{
+					switch(frame.tweenType)
+					{
+						case TWEEN_TYPE_MOTION:
+						case TWEEN_TYPE_SHAPE:
+							if(startFrameId != frameID)
+							{
+								timeline.convertToKeyframes(startFrameId + 1,frameID + 1);
+							}
+						break;
+						case TWEEN_TYPE_NONE:
+							//
+						break;
+					}
+				}
+				frameID = startFrameId;
+			}
+		}
+		else
+		{
+			//TWEEN_TYPE_MOTION_OBJECT或IK pose全部转成关键帧
+			
+			//timeline.convertToKeyframes(0, layer.frames.length);//失败
+			var frameID = layer.frames.length;
+			while(frameID --)
+			{
+				timeline.convertToKeyframes(frameID);
+			}
+		}
+	}
+	if(folderObj)
+	{
+		folderObjArr.push(folderObj);
+		folderObj = null;
+	}
+	
+	var layerID = junkLayerMark.length;
+	while(-- layerID >= 0)
+	{
+		if(junkLayerMark[layerID])
+		{
+			timeline.deleteLayer(layerID);
+		}
+	}
+	junkLayerMark = null;
+	
+	var folderObjID = folderObjArr.length;
+	while(folderObjID --)
+	{
+		
+		for each(var layer in timeline.layers)
+		{
+			layer.locked = true;
+			layer.visible = true;
+		}
+		
+		
+		var folderObj = folderObjArr[folderObjID];
+		//trace(folderObj.folderLayerID + "," + folderObj.layerIdArr);
+		
+		//获取最大帧数
+		var maxFrameCount = -1;
+		for each(var layerID in folderObj.layerIdArr)
+		{
+			var layer = timeline.layers[layerID];
+			layer.locked = false;
+			if(maxFrameCount < layer.frames.length)
+			{
+				maxFrameCount = layer.frames.length;
+			}
+		}
+		
+		//根据最大帧数补齐不足最大帧数的图层
+		for each(var layerID in folderObj.layerIdArr)
+		{
+			var layer = timeline.layers[layerID];
+			if(layer.frames.length < maxFrameCount)
+			{
+				timeline.currentLayer = layerID;
+				timeline.convertToBlankKeyframes(layer.frames.length);
+				timeline.currentLayer = layerID;//没这句有时候不行很奇怪
+				timeline.insertFrames(maxFrameCount - layer.frames.length, false, layer.frames.length);
+			}
+		}
+		
+		//标记公共关键帧
+		var keyFrameIdMark = new Array();
+		for each(var layerID in folderObj.layerIdArr)
+		{
+			var layer = timeline.layers[layerID];
+			var frameID = maxFrameCount;
+			while(frameID --)
+			{
+				frameID = layer.frames[frameID].startFrame;
+				keyFrameIdMark[frameID] = true;
+			}
+		}
+		
+		//同步关键帧
+		for each(var layerID in folderObj.layerIdArr)
+		{
+			var layer = timeline.layers[layerID];
+			timeline.currentLayer = layerID;
+			var frameID = keyFrameIdMark.length;
+			while(frameID--)
+			{
+				if(keyFrameIdMark[frameID])
+				{
+					var frame = layer.frames[frameID];
+					if(frame.startFrame == frameID)
+					{
+					}
+					else
+					{
+						timeline.convertToKeyframes(frameID);
+					}
+				}
+			}
+		}
+		
+		var folderLayer = timeline.layers[folderObj.folderLayerID];
+		folderLayer.locked = false;
+		folderLayer.layerType = "normal";
+		timeline.currentLayer = folderObj.folderLayerID;
+		if(folderLayer.length < maxFrameCount)
+		{
+			timeline.insertFrames(maxFrameCount - folderLayer.length, false, folderLayer.length);
+		}
+		
+		var frameID = keyFrameIdMark.length;
+		while(frameID --)
+		{
+			if(keyFrameIdMark[frameID])
+			{
+				timeline.currentLayer = folderObj.folderLayerID;
+				timeline.convertToKeyframes(frameID);
+				timeline.currentFrame = frameID;
+				_currentDom.selectAll();
+				if(_currentDom.selection.length)
+				{
+					_currentDom.group();
+					var itemName = item.name + "_" + folderLayer.name + "_" + (frameID + 1);
+					if(library.itemExists(itemName))
+					{
+						var itemID = 1;
+						while(library.itemExists(itemName + "(" + (++ itemID) + ")"))
+						{
+						}
+						itemName += "(" + itemID + ")";
+					}
+					_currentDom.convertToSymbol(MOVIE_CLIP, itemName, "top left");
+					
+					var element = _currentDom.selection[0];
+					itemName = element.libraryItem.name;
+					timeline.currentLayer = folderObj.folderLayerID;
+					var frame = timeline.layers[folderObj.folderLayerID].frames[frameID];
+					frame.labelType = LABEL_TYPE_NAME;
+					frame.name = NO_EASING;
+					library.addItemToDocument({x:0,y:0}, itemName);
+					_currentDom.selection[0].matrix = element.matrix;
+					
+					_currentDom.library.moveToFolder(TEXTURE_AUTO_CREATE, itemName, true);
+				}
+			}
+		}
+		
+		var i = folderObj.layerIdArr.length;
+		while(i --)
+		{
+			var layerID = folderObj.layerIdArr[i];
+			timeline.deleteLayer(layerID);
+		}
+	}
+	return itemCopy;
+}
+
+function putItemToTimeline(dom, textureName)
+{
+	_helpTransform.x = _helpTransform.y = 0;
+	var timeline = dom.getTimeline();
+	timeline.currentFrame = 0;
+	var tryTimes = 0;
+	var putSuccess = false;
+	var symbol;
+	dom.selectNone();
+	do
+	{
+		putSuccess = dom.library.addItemToDocument(_helpTransform, textureName);
+		symbol = dom.selection[0]
+		tryTimes ++;
+	}
+	while((!putSuccess || !symbol) && tryTimes < 5);
+	if(symbol)
+	{
+		return symbol;
+	}
+	
+	trace("内存不足导致放置贴图失败！请尝试重新导入。");
+	return false;
+}
+
+dragonBones.getArmatureList = function(isSelected, armatureNames, defaultFadeInTime)
 {
 	fl.outputPanel.clear();
 	
@@ -1016,7 +1450,7 @@ dragonBones.getArmatureList = function(isSelected, armatureNames)
 	
 	var items;
 	var item;
-	if(armatureNames.length > 0)
+	if(armatureNames && armatureNames.length > 0)
 	{
 		items = [];
 		for each(var armatureName in armatureNames)
@@ -1032,6 +1466,8 @@ dragonBones.getArmatureList = function(isSelected, armatureNames)
 	{
 		items = isSelected?_librarySelectItemsBackup:_currentDom.library.items;
 	}
+	
+	_defaultFadeInTime = defaultFadeInTime;
 	
 	var xml = 
 		<{DRAGON_BONES}
@@ -1053,7 +1489,7 @@ dragonBones.getArmatureList = function(isSelected, armatureNames)
 	return xml.toXMLString();
 }
 
-dragonBones.generateArmature = function(armatureName, isChildArmature, newGenerate)
+dragonBones.generateArmature = function(armatureName, isChildArmature, newGenerate, isMergeLayersInFolder)
 {
 	var item = _currentDom.library.items[_currentDom.library.findItemIndex(armatureName)];
 	if(!item)
@@ -1072,19 +1508,32 @@ dragonBones.generateArmature = function(armatureName, isChildArmature, newGenera
 	{
 		return false;
 	}
-	
+	_isMergeLayersInFolder = isMergeLayersInFolder;
 	var armatureXML = 
 		<{ARMATURE} {A_NAME}={armatureName}>
 			<{SKIN} {A_NAME}=""/>
 		</{ARMATURE}>;
 	appendXML(_xml, armatureXML);
 	
+	//
+	if(_isMergeLayersInFolder && canMergeLayersInFolder(item))
+	{
+		item = mergeLayersInFolder(item);
+	}
+	
+	
+	var result = {};
 	var layersFiltered = isArmatureItem(item, isChildArmature);
+	if(!layersFiltered)
+	{
+		return false;
+	}
 	var mainLayer = layersFiltered.shift();
 	var mainFrameList = getMainFrameList(mainLayer.frames);
+	var noLabelChildArmature = mainLayer.noLabelChildArmature
 	for each(var mainFrame in mainFrameList)
 	{
-		generateAnimation(item, mainFrame, layersFiltered, armatureXML);
+		generateAnimation(item, mainFrame, layersFiltered, armatureXML, result, noLabelChildArmature);
 	}
 	
 	return _xml.toXMLString();
@@ -1105,10 +1554,11 @@ dragonBones.clearTextureSWFItem = function()
 	timeline.removeFrames(0, timeline.frameCount);
 	timeline.insertBlankKeyframe(0);
 	timeline.insertBlankKeyframe(1);
+	
 	return true;
 }
 
-dragonBones.addTextureToSWFItem = function(textureName, isLast)
+dragonBones.addTextureToSWFItem = function(textureName)
 {
 	var item = _currentDom.library.items[_currentDom.library.findItemIndex(textureName)];
 	if(!item)
@@ -1116,55 +1566,30 @@ dragonBones.addTextureToSWFItem = function(textureName, isLast)
 		return false;
 	}
 	
-	var timeline = _currentDom.getTimeline();
-	timeline.currentFrame = 0;
-	_helpTransform.x = _helpTransform.y = 0;
-	var tryTimes = 0;
-	var putSuccess = false;
-	var symbol;
-	_currentDom.selectNone();
-	do
+	var symbol = putItemToTimeline(_currentDom, textureName);
+	if(symbol)
 	{
-		putSuccess = _currentDom.library.addItemToDocument(_helpTransform, textureName);
-		symbol = _currentDom.selection[0]
-		tryTimes ++;
-	}
-	while((!putSuccess || !symbol) && tryTimes < 5);
-	if(!symbol)
-	{
-		trace("内存不足导致放置贴图失败！请尝试重新导入。");
-		return false;
-	}
-	switch(symbol.instanceType)
-	{
-		case SYMBOL:
-			if(symbol.symbolType != MOVIE_CLIP)
-			{
-				symbol.symbolType = MOVIE_CLIP
-			}
-			break;
-		case BITMAP:
-			var bitmapItem = symbol.libraryItem;
-			bitmapItem.linkageExportForAS = true;
-			bitmapItem.linkageClassName = bitmapItem.name;
-			break;
+		switch(symbol.instanceType)
+		{
+			case SYMBOL:
+				if(symbol.symbolType != MOVIE_CLIP)
+				{
+					symbol.symbolType = MOVIE_CLIP
+				}
+				break;
+			case BITMAP:
+				var bitmapItem = symbol.libraryItem;
+				bitmapItem.linkageExportForAS = true;
+				bitmapItem.linkageClassName = bitmapItem.name;
+				break;
+		}
+		
+		_currentDom.getTimeline().currentFrame = 1;
+		
+		return textureName;
 	}
 	
-	if(isLast)
-	{
-		timeline.removeFrames(1, 1);
-		if(_currentItemBackup)
-		{
-			_currentDom.library.editItem(_currentItemBackup.name);
-			_currentDom.getTimeline().currentFrame = _currentFrameBackup;
-			//select backup library items
-		}
-	}
-	else
-	{
-		timeline.currentFrame = 1;
-	}
-	return textureName;
+	return false;
 }
 
 dragonBones.exportSWF = function()
@@ -1174,10 +1599,6 @@ dragonBones.exportSWF = function()
 		return "";
 	}
 	
-	if(!_currentDom.library.itemExists(TEXTURE_SWF_ITEM))
-	{
-		return "";
-	}
 	var folderURL = fl.configURI;
 	if(folderURL.indexOf("/")>=0)
 	{
@@ -1191,13 +1612,32 @@ dragonBones.exportSWF = function()
 	{
 		return "";
 	}
+	
+	if(!_currentDom.library.itemExists(TEXTURE_SWF_ITEM))
+	{
+		return "";
+	}
+	
+	//
+	_currentDom.getTimeline().removeFrames(1, 1);
+	if(_currentItemBackup)
+	{
+		_currentDom.library.editItem(_currentItemBackup.name);
+		_currentDom.getTimeline().currentFrame = _currentFrameBackup;
+		//select backup library items
+	}
+	
 	folderURL = folderURL + "WindowSWF" + pathDelimiter + PANEL_FOLDER;
 	if(!FLfile.exists(folderURL))
 	{
 		FLfile.createFolder(folderURL);
 	}
 	var swfURL = folderURL + pathDelimiter + TEXTURE_SWF;
+	
 	_currentDom.library.items[_currentDom.library.findItemIndex(TEXTURE_SWF_ITEM)].exportSWF(swfURL);
+	
+	_currentDom.library.deleteItem(TEXTURE_AUTO_CREATE);
+	
 	return swfURL;
 }
 
@@ -1441,5 +1881,4 @@ dragonBones.copyAnimation = function(targetArmatureName, sourceArmatureName, sou
 		}
 	}
 }
-
 })();
