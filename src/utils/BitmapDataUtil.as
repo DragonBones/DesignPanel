@@ -14,12 +14,15 @@ package utils
 			for(var subTextureName:String in rectDic)
 			{
 				var rect:Rectangle = rectDic[subTextureName];
-				var matrix:Matrix = new Matrix();
-				matrix.tx = -rect.x;
-				matrix.ty = -rect.y;
-				var subBitmapData:BitmapData = new BitmapData(rect.width, rect.height, true, 0xFF00FF);
-				subBitmapData.draw(bitmapData, matrix);
-				subBitmapDataDic[subTextureName] = subBitmapData;
+				if(rect.width && rect.height)
+				{
+					var matrix:Matrix = new Matrix();
+					matrix.tx = -rect.x;
+					matrix.ty = -rect.y;
+					var subBitmapData:BitmapData = new BitmapData(rect.width, rect.height, true, 0xFF00FF);
+					subBitmapData.draw(bitmapData, matrix);
+					subBitmapDataDic[subTextureName] = subBitmapData;
+				}
 			}
 			return subBitmapDataDic;
 		}
