@@ -176,6 +176,7 @@ package model
 			else
 			{
 				languageID = 0;
+				updateLanguage(0);
 			}
 		}
 		
@@ -192,10 +193,12 @@ package model
 						if(languageArrayCollection[i].value == languageCode)
 						{
 							languageID = i;
+							updateLanguage(i);
 							return;
 						}
 					}
 					languageID = 0;
+					updateLanguage(0);
 					break;
 			}
 		}

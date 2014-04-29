@@ -2,10 +2,8 @@ package control
 {
 	import com.adobe.serialization.json.JSON;
 	
-	import dragonBones.objects.DataParser;
-	import dragonBones.utils.ConstValues;
-	
 	import flash.display.BitmapData;
+	import flash.display.DisplayObject;
 	import flash.display.MovieClip;
 	import flash.events.Event;
 	import flash.events.IOErrorEvent;
@@ -14,6 +12,9 @@ package control
 	import flash.geom.Rectangle;
 	import flash.net.FileReference;
 	import flash.utils.ByteArray;
+	
+	import dragonBones.objects.DataParser;
+	import dragonBones.utils.ConstValues;
 	
 	import message.Message;
 	import message.MessageDispatcher;
@@ -97,7 +98,19 @@ package control
 					{
 						movieClip.gotoAndStop(movieClip.totalFrames);
 						movieClip.gotoAndStop(displayName);
-						subBitmapDataDic[displayName] = movieClip.getChildAt(0);
+						
+						var subDisplay:DisplayObject = movieClip.getChildAt(0);
+						
+						if(_scale < 1)
+						{
+							var subBitmapData:BitmapData = new BitmapData(subDisplay.width, subDisplay.height, true, 0xFF00FF);
+							subBitmapData.draw(subDisplay);
+							subBitmapDataDic[displayName] = subBitmapData;
+						}
+						else
+						{
+							subBitmapDataDic[displayName] = subDisplay;
+						}
 					}
 				}
 				else

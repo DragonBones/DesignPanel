@@ -17,13 +17,14 @@
 			import cloud.events.DBCloudEvent;
 			
 			import dragonBones.core.DragonBones;
-			import dragonBones.utils.ConstValues;
 			
 			import model.SettingDataProxy;
 			
 			import mx.controls.Alert;
 			import mx.events.FlexEvent;
 			import mx.validators.EmailValidator;
+			
+			import utils.GlobalConstValues;
 			
 			[Bindable]
 			private var _onlineHelp:String = "";
@@ -187,7 +188,7 @@
 			<s:NavigatorContent label="{resourceManager.getString('resources', 'about')}" width="100%" height="100%">
 				<s:VGroup left="10" right="10" top="10" bottom="10" >
 					<s:Label width="100%" fontSize="14" fontWeight="bold" textAlign="center"
-								 text="DragonBones V{DragonBones.VERSION} ({DragonBones.VERSION_NUMBER})"/>
+								 text="DragonBones V{DragonBones.VERSION} ({GlobalConstValues.VERSION_NUMBER})"/>
 					<s:Line width="100%">
 						<s:stroke>
 							<s:SolidColorStroke color="0x000000" weight="1" caps="square"/>
