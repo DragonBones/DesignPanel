@@ -33,6 +33,7 @@ const TRANSLATE:String = "translate";
 const SCALE:String = "scale";
 const COMBINE:String = "combine";
 const ATTACHMENT:String = "attachment";
+const ADDITIVE:String = "additive";
 const COLOR:String = "color";
 
 const A_NAME:String = "name";
@@ -52,6 +53,8 @@ const A_SCALE_X:String = "scaleX";
 const A_SCALE_Y:String = "scaleY";
 const A_WIDTH:String = "width";
 const A_HEIGHT:String = "height";
+const A_INHERIT_SCALE:String = "inheritScale";
+const A_INHERIT_ROTATION:String = "inheritRotation";
 
 const V_STEPPED:String = "stepped";
 
@@ -118,6 +121,40 @@ function formatBone(boneObject:Object):XML
 				{ConstValues.A_SCALE_Y}={formatNumber(boneObject[A_SCALE_Y])}
 			/>
 		</{ConstValues.BONE}>;
+		
+	var inheritRatation:String = boneObject[A_INHERIT_ROTATION] as String;
+	switch (inheritRatation)
+	{
+		case "0":
+		case "false":
+		case "no":
+			boneXML.@[ConstValues.A_FIXED_ROTATION] = true;
+			break;
+		default:
+			boneXML.@[ConstValues.A_FIXED_ROTATION] = false;
+			break;
+	}
+	
+	var inheritScale:String = boneObject[A_INHERIT_SCALE] as String;
+	if (inheritScale)
+	{
+		switch (inheritScale)
+		{
+			case "1":
+			case "true":
+			case "yes":
+				boneXML.@[ConstValues.A_SCALE_MODE] = 2;
+				break;
+			default:
+				boneXML.@[ConstValues.A_SCALE_MODE] = 0;
+				break;
+		}
+	}
+	else
+	{
+		boneXML.@[ConstValues.A_SCALE_MODE] = 2;
+	}
+	
 	var parent:String = boneObject[A_PARENT];
 	if(parent)
 	{
@@ -136,6 +173,7 @@ function formatSkin(skinObject:Object, skinName:String, slotList:Array, textureA
 	
 	var parentName:String;
 	var firstAttachment:String;
+    var blendMode:String;
 	var zOrder:int;
 	for(var slotName:String in skinObject)
 	{
@@ -147,24 +185,42 @@ function formatSkin(skinObject:Object, skinName:String, slotList:Array, textureA
 			{
 				parentName = slotObjectInList[A_BONE];
 				firstAttachment = slotObjectInList[ATTACHMENT];
+                var additive:Object = slotObjectInList[ADDITIVE];
+                if(additive && additive is Boolean)
+                {
+                    var isAdditive:Boolean = additive as Boolean;
+                    if(isAdditive)
+                    {
+                        blendMode = "add";
+                    }
+                    else
+                    {
+                        blendMode = "normal";
+                    }
+                }
+                else
+                {
+                    blendMode = "normal";
+                }
 				break;
 			}
 			zOrder ++;
 		}
 		//默认的display标记出来，以便放到displayList的首位
-		skinXML.appendChild(formatSlot(skinObject[slotName], slotName, parentName, firstAttachment, zOrder, textureAtlasXML));
+		skinXML.appendChild(formatSlot(skinObject[slotName], slotName, parentName, firstAttachment, blendMode, zOrder, textureAtlasXML));
 	}
 			
 	return skinXML;
 }
 
-function formatSlot(slotObject:Object, slotName:String, slotParent:String, firstAttachment:String, zOrder:int, textureAtlasXML:XML):XML
+function formatSlot(slotObject:Object, slotName:String, slotParent:String, firstAttachment:String, blendMode:String, zOrder:int, textureAtlasXML:XML):XML
 {
 	var slotXML:XML =
 		<{ConstValues.SLOT}
 			{ConstValues.A_NAME}={slotName}
 			{ConstValues.A_PARENT}={slotParent}
 			{ConstValues.A_Z_ORDER}={zOrder}
+            {ConstValues.A_BLENDMODE}={blendMode}
 		/>;
 	
 	var displayXML:XML;
@@ -203,6 +259,17 @@ function formatDisplay(displayObject:Object, displayName:String, textureAtlasXML
 	{
 		scaleX = width / Number(subTextureXML.@[ConstValues.A_WIDTH]);
 		scaleY = height / Number(subTextureXML.@[ConstValues.A_HEIGHT]);
+		
+		var spineScaleX:String = displayObject[A_SCALE_X];
+		if (spineScaleX)
+		{
+			scaleX *= Number(spineScaleX);
+		}
+		var spineScaleY:String = displayObject[A_SCALE_Y];
+		if (spineScaleY)
+		{
+			scaleY *= Number(spineScaleY);
+		}
 		
 		if(isNaN(scaleX))
 		{
