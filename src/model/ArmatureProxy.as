@@ -1,7 +1,6 @@
 package model
 {
 	import dragonBones.Armature;
-	import dragonBones.Bone;
 	import dragonBones.animation.AnimationState;
 	import dragonBones.animation.WorldClock;
 	import dragonBones.factorys.NativeFactory;
@@ -13,14 +12,10 @@ package model
 	import dragonBones.objects.TransformTimeline;
 	import dragonBones.utils.DBDataUtil;
 	
-	import flash.events.Event;
-	
 	import message.MessageDispatcher;
 	
 	import mx.collections.ArrayCollection;
 	import mx.collections.XMLListCollection;
-	
-	import spark.components.supportClasses.Skin;
 	
 	[Bindable]
 	/**
@@ -176,7 +171,7 @@ package model
 				}
 				else
 				{
-					for each(var timeline:Timeline in _selectedAnimationData.timelines)
+					for each(var timeline:Timeline in _selectedAnimationData.timelineList)
 					{
 						if(timeline.frameList.length > 1)
 						{
@@ -193,13 +188,13 @@ package model
 		
 		public function get fadeInTime():Number
 		{
-			return _selectedAnimationData?_selectedAnimationData.fadeInTime:0;
+			return _selectedAnimationData?_selectedAnimationData.fadeTime:0;
 		}
 		public function set fadeInTime(value:Number):void
 		{
 			if(_selectedAnimationData)
 			{
-				_selectedAnimationData.fadeInTime =  value;
+				_selectedAnimationData.fadeTime =  value;
 				updateAnimation();
 			}
 		}
@@ -233,13 +228,13 @@ package model
 		
 		public function get loop():int
 		{
-			return _selectedAnimationData?_selectedAnimationData.loop:0;
+			return _selectedAnimationData?_selectedAnimationData.playTimes:0;
 		}
 		public function set loop(value:int):void
 		{
 			if(_selectedAnimationData)
 			{ 
-				_selectedAnimationData.loop = value;
+				_selectedAnimationData.playTimes = value;
 				updateAnimation();
 			}
 		}
@@ -465,11 +460,11 @@ package model
 				lastAnimationState = _armature.animation.lastAnimationState;
 				if(lastAnimationState)
 				{
-					lastAnimationState.currentTime = currentTime;
+					lastAnimationState.setCurrentTime(currentTime);
 					if(!isPlaying)
 					{
-						_armature.animation.advanceTime(0);
-						_armature.animation.advanceTime(0);
+						_armature.advanceTime(0);
+						_armature.advanceTime(0);
 						_armature.animation.stop();
 					}
 				}

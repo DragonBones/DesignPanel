@@ -1,6 +1,5 @@
 package model
 {
-	import dragonBones.core.DBObject;
 	import dragonBones.core.DragonBones;
 	import dragonBones.objects.AnimationData;
 	import dragonBones.objects.ArmatureData;
@@ -65,41 +64,6 @@ package model
 		{
 			
 		}
-		
-		/*
-		public function moveTexturePivotToData():void
-		{
-			var subTextureXMLList:XMLList = getSubTextureXMLList();
-			var subTextureXML:XML = subTextureXMLList[0];
-			var displayXMLList:XMLList;
-			var subTextureName:String;
-			var pivotX:int;
-			var pivotY:int;
-			if(subTextureXML && subTextureXML.@[ConstValues.A_PIVOT_X].length() > 0)
-			{
-				displayXMLList = getDisplayXMLList(_xml);
-				for each(subTextureXML in subTextureXMLList)
-				{
-					subTextureName = subTextureXML.@[ConstValues.A_NAME];
-					pivotX = int(subTextureXML.@[ConstValues.A_PIVOT_X]);
-					pivotY = int(subTextureXML.@[ConstValues.A_PIVOT_Y]);
-					
-					delete subTextureXML.@[ConstValues.A_PIVOT_X];
-					delete subTextureXML.@[ConstValues.A_PIVOT_Y];
-					for each(var displayXML:XML in displayXMLList)
-					{
-						var displayName:String = displayXML.@[ConstValues.A_NAME];
-						if(displayName == subTextureName)
-						{
-							displayXML[ConstValues.TRANSFORM].@[ConstValues.A_PIVOT_X] = pivotX;
-							displayXML[ConstValues.TRANSFORM].@[ConstValues.A_PIVOT_Y] = pivotY;
-						}
-					}
-				}
-				setVersion();
-			}
-		}
-		*/
 		
 		public function setVersion():void
 		{
@@ -645,9 +609,9 @@ package model
 		{
 			var animationData:AnimationData = armatureData.getAnimationData(animationName);
 			var animationXML:XML = getAnimationXMLList(armatureData.name, animationName)[0];
-			animationXML.@[ConstValues.A_FADE_IN_TIME] = formatNumber(animationData.fadeInTime, 1000);
+			animationXML.@[ConstValues.A_FADE_IN_TIME] = formatNumber(animationData.fadeTime, 1000);
 			animationXML.@[ConstValues.A_SCALE] = formatNumber(animationData.scale);
-			animationXML.@[ConstValues.A_LOOP] = animationData.loop;
+			animationXML.@[ConstValues.A_LOOP] = animationData.playTimes;
 			animationXML.@[ConstValues.A_TWEEN_EASING] = formatNumber(animationData.tweenEasing);
 		}
 		

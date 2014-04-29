@@ -2,6 +2,8 @@
 	import dragonBones.utils.ConstValues;
 	
 	public class GlobalConstValues {
+		public static const VERSION_NUMBER:Number = 2420;
+		
 		public static const SWF_SUFFIX:String = ".dbswf";
 		public static const PNG_SUFFIX:String = ".png";
 		public static const ZIP_SUFFIX:String = ".zip";

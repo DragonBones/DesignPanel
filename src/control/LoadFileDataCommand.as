@@ -6,10 +6,8 @@ package control
 	import dragonBones.objects.DecompressedData;
 	import dragonBones.utils.BytesType;
 	import dragonBones.utils.ConstValues;
-	import dragonBones.utils.checkBytesTailisXML;
 	
 	import flash.display.BitmapData;
-	import flash.display.Loader;
 	import flash.events.Event;
 	import flash.events.IOErrorEvent;
 	import flash.events.ProgressEvent;
@@ -31,6 +29,7 @@ package control
 	import utils.PNGEncoder;
 	import utils.formatSpineData;
 	import utils.objectToXML;
+	import utils.checkBytesTailisXML;
 	
 	import zero.zip.Zip;
 	import zero.zip.ZipFile;

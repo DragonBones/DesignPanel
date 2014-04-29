@@ -24,7 +24,6 @@
 			
 			import dragonBones.animation.WorldClock;
 			import dragonBones.core.DragonBones;
-			import dragonBones.objects.ArmatureData;
 			import dragonBones.utils.ConstValues;
 			
 			import message.Message;
@@ -39,6 +38,8 @@
 			
 			import view.ExportWindow;
 			import view.ImportWindow;
+			
+			import utils.GlobalConstValues;
 			
 			//
 			JSFLProxy.getInstance();
@@ -341,7 +342,7 @@
 			{
 				DBGATrackerManager.createDBGATracker(this);
 				DBGATrackerManager.trackPageview("/");
-				DBGATrackerManager.trackEvent("Version", "Version:" + String(DragonBones.VERSION_NUMBER));
+				DBGATrackerManager.trackEvent("Version", "Version:" + String(GlobalConstValues.VERSION_NUMBER));
 				DBGATrackerManager.trackEvent("Language", "Language:" + String(SettingDataProxy.getInstance().languageArrayCollection[language.selectedIndex].value));
 				
 				DBCloud.instance.addEventListener(DBCloudEvent.INITED, cloud_onInited);
@@ -369,7 +370,7 @@
 			{
 				trace("cloud_onLoadLatestVersionSuccess");
 				var latestVersion:Number = Number(event.data.outputData);
-				if(latestVersion > DragonBones.VERSION_NUMBER)
+				if(latestVersion > GlobalConstValues.VERSION_NUMBER)
 				{
 					DBCloud.instance.ifNeedUpdate = 1;
 					upgradeBtn.visible = true; 
