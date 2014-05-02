@@ -24,11 +24,14 @@
 			}
 			
 			var dimensions:uint = 0;
+			var maxWidth:Number = 0;
 			var rectList:Vector.<Rectangle> = new Vector.<Rectangle>;
 			for each(rect in rectMap)
 			{
 				dimensions += rect.width * rect.height;
 				rectList.push(rect);
+				
+				maxWidth = Math.max(rect.width, maxWidth);
 			}
 			//sort texture by size
 			rectList.sort(sortRectList);
@@ -39,7 +42,7 @@
 				widthDefault = Math.sqrt(dimensions);
 			}
 			
-			widthDefault = getNearest2N(Math.max(int(rectList[0].width) + padding, widthDefault));
+			widthDefault = getNearest2N(Math.max(maxWidth + padding, widthDefault));
 			
 			var heightMax:uint = HIGHEST;
 			var remainAreaList:Vector.<Rectangle> = new Vector.<Rectangle>;
