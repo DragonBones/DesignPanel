@@ -1,0 +1,184 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Tree xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark" 
+		 xmlns:mx="library://ns.adobe.com/flex/mx"
+		 doubleClickEnabled="true"
+		 itemDoubleClick="expandNode(event)" 
+		 dragStart="onDragStart(event)" 
+		 dragEnter="onDragEnter(event)" 
+		 dragOver="onDragOver(event)" 
+		 dragExit="onDragExit(event)" 
+		 dragDrop="onDragDrop(event)"
+		 folderClosedIcon="@Embed(source='./assets/armature_icon.png')"
+		 folderOpenIcon="@Embed(source='./assets/armature_open_icon.png')"
+		 defaultLeafIcon="@Embed(source='./assets/bone_icon.png')"
+		 >
+	<fx:Script>
+		<![CDATA[
+			import mx.controls.treeClasses.TreeItemRenderer;
+			import mx.controls.treeClasses.TreeListData;
+			import mx.events.DragEvent;
+			import mx.events.ListEvent;
+			import mx.events.TreeEvent;
+			
+			//isBranch = "false"
+			
+			public var lastMoveNode:XML;
+			
+			public function selectItemByName(_itemName:String):void{
+				var _item:Object = eachItems(dataProvider.source as XMLList, selectItemByNameStep, [_itemName]);
+				if(_item){
+					var _parent:XML = _item.parent();
+					if(_parent){
+						var _parents:Array = [_parent];
+						while(_parent.parent()){
+							_parent = _parent.parent();
+							_parents.unshift(_parent);
+						}
+						for each(_parent in _parents){
+							expandItem(_parent, true);
+						}
+					}
+					selectedItem = _item;
+					scrollToIndex(getItemIndex(selectedItem));
+				}
+				else
+				{
+					selectedItem = null;
+				}
+			}
+			
+			private function selectItemByNameStep(_item:Object, _args:Array):Object{
+				var _name:String = _item[labelField];
+				if(_name && _name == _args[0]){
+					return _item;
+				}
+				return null;
+			}
+			
+			private function eachItems(_xmlList:XMLList, _callback:Function, _args:Array = null):Object{
+				var _result:Object;
+				for each(var _item:XML in _xmlList){
+					_result = _callback(_item, _args);
+					if(_result){
+						return _result;
+					}
+					_result = eachItems(_item.children(), _callback, _args);
+					if(_result){
+						return _result;
+					}
+				}
+				return null;
+			}
+			
+			private function expandNode(_e:ListEvent):void{
+				//var _node:XML=TreeListData(TreeItemRenderer(_e.itemRenderer).listData).item as XML;
+				expandItem(selectedItem, !isItemOpen(selectedItem));
+			}
+			
+			private function onDragStart(_e:DragEvent):void{}
+			
+			private function onDragEnter(_e:DragEvent):void{
+				if (_e.dragInitiator != this)	{
+					_e.preventDefault();
+				}
+			}
+			
+			private function onDragOver(_e:DragEvent):void{
+				var _listData:TreeListData=getListDataOnMousePos(_e);
+				if (_listData){
+					if(isInItemRender(_e)){
+						var _item:Object=_listData.item;
+						if (!isItemHighlighted(_item)){
+							drawItem(getItemRendenerOnMousePos(_e), false, true);
+						}
+						return;
+					}
+				}
+				clearIndicators();
+			}
+			
+			private function onDragExit(event:DragEvent):void{
+				clearIndicators();
+			}
+			
+			private function onDragDrop(_e:DragEvent):void{
+				hideDropFeedback(_e);
+				var _listData:TreeListData=getListDataOnMousePos(_e);
+				var _nodePoint:XML=_listData?_listData.item as XML:null;
+				
+				var _node:XML=_e.dragSource.dataForFormat("treeItems")[0];
+				var _parent:XML= getParentItem(_node) as XML;
+				var _isIn:Boolean = _nodePoint?isInItemRender(_e):false;
+				var _nodeTo:XML;
+				var _canMove:Boolean = true;
+				
+				if(_isIn){
+					_nodeTo = _nodePoint;
+				}else{
+					_nodeTo = _nodePoint?getParentItem(_nodePoint) as XML:null;
+				}
+				
+				lastMoveNode = _node;
+				
+				if(_nodeTo){
+					if(isMyChild(_node, _nodeTo) || (_isIn && _nodeTo == _parent)){
+						clearIndicators();
+						_e.preventDefault();
+						return;
+					}
+					if(_nodeTo == _parent){
+						return;
+					}
+					
+					if (_parent){
+						dataDescriptor.removeChildAt(_parent, _node, _node.childIndex());
+					}else{
+						dataProvider.removeItemAt(_node.childIndex());
+					}
+					dataDescriptor.addChildAt(_nodeTo, _node, _nodePoint.childIndex());
+					if(!isItemOpen(_nodeTo)){
+						expandItem(_nodeTo, true);
+					}
+					clearIndicators();
+					_e.preventDefault();
+				}
+			}
+			
+			private function getListDataOnMousePos(_e:DragEvent):TreeListData{
+				var _itemRenderer:TreeItemRenderer=getItemRendenerOnMousePos(_e);
+				if (_itemRenderer){
+					return _itemRenderer.listData as TreeListData;
+				}
+				return null;
+			}
+			
+			private function getItemRendenerOnMousePos(_e:DragEvent):TreeItemRenderer{
+				var _index:int=calculateDropIndex(_e);
+				return indexToItemRenderer(_index) as TreeItemRenderer;
+			}
+			
+			private function isMyChild(_my:XML, _node:XML):Boolean{
+				if(_node == _my){
+					return true;
+				}
+				if(_my.hasComplexContent()){
+					if(_my == _node.parent()){
+						return true;
+					}
+					for each(var _child:XML in _my.children()){
+						if(isMyChild(_child, _node)){
+							return true;
+						}
+					}
+				}
+				return false;
+			}
+			
+			private function isInItemRender(_e:DragEvent):Boolean{
+				var  _itemRenderer:TreeItemRenderer = indexToItemRenderer(calculateDropIndex(_e)) as TreeItemRenderer;
+				return _itemRenderer.mouseY>=10;
+			}
+		]]>
+	</fx:Script>
+</mx:Tree>

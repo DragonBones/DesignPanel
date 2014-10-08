@@ -1,0 +1,687 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009"
+		 xmlns:s="library://ns.adobe.com/flex/spark"
+		 xmlns:mx="library://ns.adobe.com/flex/mx"
+		 xmlns:components="core.view.components.*"
+		 xmlns:core="core.*"
+		 width="500" height="500" 
+		 creationComplete="creationCompleteHandler(event)"
+		 addedToStage="addedToStageHandler(event)"
+		 removedFromStage="removedFromStageHandler(event)" 
+		 >
+	
+	<fx:Script>
+		<![CDATA[
+			import core.AssetManager;
+			import com.greensock.TweenMax;
+			
+			import core.events.ViewEvent;
+			import core.utils.getPointTarget;
+			
+			
+			import dragonBones.Armature;
+			import dragonBones.Bone;
+			import dragonBones.Slot;
+			import dragonBones.animation.WorldClock;
+			import dragonBones.events.AnimationEvent;
+			
+			import flash.filters.GlowFilter;
+			import flash.ui.Mouse;
+			import flash.ui.MouseCursor;
+			
+			private static const MIN_SCALE:Number = 0.1;
+			private static const MAX_SCALE:Number = 10;
+			
+			private var _isMouseIn:Boolean = false;
+			private var _isMouseDown:Boolean = false;
+			private var _isDragedArmature:Boolean = false;
+			private var _isDragedBone:Boolean = false;
+			private var _scaleToType:int = 0;
+			
+			private var _pointHelp:Point = new Point();
+			private var _mousePoint:Point = new Point();
+			private var _targetPoint:Point = new Point();
+			private var _scalePoint:Point = new Point();
+			
+			private var _boneHighlightEnabled:Boolean = true;
+			private var _boneHighlightColor:uint = 0xff0000;
+			private var _boneSelectedFilter:GlowFilter;
+			private var _boneRolloverFilter:GlowFilter;
+			
+			private var _clock:WorldClock;
+			private var _boneRollOver:Bone;
+			private var _boneSelected:Bone;
+			private var _armatureSymbols:ArmatureSymbols;
+			
+			
+			private var _armatureScale:Number = 1;
+			[Bindable]
+			public function get armatureScale():Number
+			{
+				return _armatureScale;
+			}
+			public function set armatureScale(value:Number):void
+			{
+				if(value < MIN_SCALE)
+				{
+					value = MIN_SCALE;
+				}
+				else if(value > MAX_SCALE)
+				{
+					value = MAX_SCALE;
+				}
+				var dScale:Number = value - _armatureScale;
+				_armatureScale = value;
+				armatureContainer.scaleX = armatureContainer.scaleY = _armatureScale;
+				
+				//
+				if(_scalePoint.x || _scalePoint.y)
+				{
+					armatureContainer.x += (armatureContainer.x - _scalePoint.x) * dScale;
+					armatureContainer.y += (armatureContainer.y - _scalePoint.y) * dScale;
+					
+					updateArmaturePosition();	
+				}
+			}
+			
+			/*
+			public function get boneHighlightEnabled():Boolean
+			{
+				return _boneHighlightEnabled;
+			}
+			public function set boneHighlightEnabled(value:Boolean):void
+			{
+				if(_boneHighlightEnabled == value)
+				{
+					return;
+				}
+				_boneHighlightEnabled = value;
+				generateBoneColorFilter();
+			}
+			public function get boneHighlightColor():uint
+			{
+				return _boneHighlightColor;
+			}
+			public function set boneHighlightColor(value:uint):void
+			{
+				if(_boneHighlightColor == value)
+				{
+					return;
+				}
+				_boneHighlightColor = value;
+				generateBoneColorFilter();
+			}
+			*/
+			
+			private var _armature:Armature;
+			public function get armature():Armature
+			{
+				return _armature;
+			}
+			public function set armature(value:Armature):void
+			{
+				if(_armature == value)
+				{
+					return;
+				}
+				_isDragedArmature = false;
+				_isDragedBone = false;
+				_boneRollOver = null;
+				_boneSelected = null;
+				if(_armature)
+				{
+					_armature.removeEventListener(AnimationEvent.FADE_IN, armatureAnimationHandler);
+					_armature.removeEventListener(AnimationEvent.START, armatureAnimationHandler);
+					_armature.removeEventListener(AnimationEvent.COMPLETE, armatureAnimationHandler);
+					_clock.remove(_armature);
+					armatureContainer.removeChild(_armature.display as DisplayObjectContainer);
+				}
+				_armature = value;
+				if(_armature)
+				{
+					_clock.add(_armature);
+					_armature.addEventListener(AnimationEvent.FADE_IN, armatureAnimationHandler);
+					_armature.addEventListener(AnimationEvent.START, armatureAnimationHandler);
+					_armature.addEventListener(AnimationEvent.COMPLETE, armatureAnimationHandler);
+					//
+					_armature.animation.play();
+					armatureContainer.addChildAt(_armature.display as DisplayObjectContainer, 0);
+					tweenArmatureScale(_armatureScale, 0);
+					updateAnimationControl();
+				}
+				
+				_armatureSymbols.visible = false;
+				_armatureSymbols.armature = _armature;
+				
+				if(_armature)
+				{
+					this.enabled = true;
+				}
+				else
+				{
+					this.enabled = false;
+				}
+			}
+			
+			public function get animationSelected():String
+			{
+				return (_armature && _armature.animation.lastAnimationState)?_armature.animation.lastAnimationState.name:null;
+			}
+			public function set animationSelected(value:String):void
+			{
+				if(animationSelected == value)
+				{
+					return;
+				}
+				if(value && _armature.animation.animationList.indexOf(value) < 0)
+				{
+					return;
+				}
+				if(value)
+				{
+					_armature.animation.gotoAndPlay(value);
+				}
+			}
+			
+			private function creationCompleteHandler(event:Event):void
+			{
+				this.enabled = false;
+				generateBoneColorFilter();
+				_clock = new WorldClock();
+				scrollArea.doubleClickEnabled = true;
+			}
+			
+			private function generateBoneColorFilter():void
+			{
+				if(_boneHighlightEnabled)
+				{
+					_boneSelectedFilter = new GlowFilter(_boneHighlightColor, 0.5, 4, 4, 64, 1, true);
+					_boneRolloverFilter = new GlowFilter(_boneHighlightColor, 0.5, 1, 1, 64, 1, true);
+				}
+				else
+				{
+					_boneSelectedFilter = null;
+					_boneRolloverFilter = null;
+				}
+			}
+			
+			private function addedToStageHandler(event:Event):void
+			{
+				_armatureSymbols = new ArmatureSymbols();
+				armatureContainer.addChild(_armatureSymbols);
+				
+				
+				scrollArea.addEventListener(MouseEvent.ROLL_OVER, scrollAreaMouseHandler);
+				scrollArea.addEventListener(MouseEvent.ROLL_OUT, scrollAreaMouseHandler);
+				scrollArea.addEventListener(MouseEvent.MOUSE_DOWN, scrollAreaMouseHandler);
+				scrollArea.addEventListener(MouseEvent.MOUSE_WHEEL, scrollAreaMouseHandler);
+				scrollArea.addEventListener(MouseEvent.DOUBLE_CLICK, scrollAreaMouseHandler);
+				scrollArea.addEventListener(Event.ENTER_FRAME, enterFrameHandler);
+			}
+			
+			private function removedFromStageHandler(event:Event):void
+			{
+				scrollArea.removeEventListener(MouseEvent.ROLL_OVER, scrollAreaMouseHandler);
+				scrollArea.removeEventListener(MouseEvent.ROLL_OUT, scrollAreaMouseHandler);
+				scrollArea.removeEventListener(MouseEvent.MOUSE_DOWN, scrollAreaMouseHandler);
+				scrollArea.removeEventListener(MouseEvent.MOUSE_WHEEL, scrollAreaMouseHandler);
+				scrollArea.removeEventListener(MouseEvent.DOUBLE_CLICK, scrollAreaMouseHandler);
+				scrollArea.removeEventListener(Event.ENTER_FRAME, enterFrameHandler);
+			}
+			
+			private function scrollAreaMouseHandler(e:MouseEvent):void
+			{
+				switch(e.type)
+				{
+					case MouseEvent.ROLL_OVER:
+						_isMouseIn = true;
+						updateRollOverBone();
+						break;
+					
+					case MouseEvent.ROLL_OUT:
+						_isMouseIn = false;
+						updateRollOverBone();
+						break;
+					
+					case MouseEvent.MOUSE_DOWN:
+						_isMouseDown = true;
+						_mousePoint.x = scrollArea.mouseX;
+						_mousePoint.y = scrollArea.mouseY;
+						_targetPoint.x = armatureContainer.x;
+						_targetPoint.y = armatureContainer.y;
+						this.stage.focus = null;
+						this.stage.addEventListener(MouseEvent.MOUSE_UP, scrollAreaMouseHandler);
+						scrollArea.addEventListener(MouseEvent.MOUSE_MOVE, scrollAreaMouseHandler);
+						updateRollOverBone();
+						clearArmatureScaleTween();
+						break;
+					
+					case MouseEvent.MOUSE_UP:
+						scrollArea.removeEventListener(MouseEvent.MOUSE_MOVE, scrollAreaMouseHandler);
+						this.stage.removeEventListener(MouseEvent.MOUSE_UP, scrollAreaMouseHandler);
+						if(_isDragedBone)
+						{
+							if(_boneSelected && _boneRollOver && _boneRollOver != _boneSelected)
+							{
+								this.dispatchEvent(new ViewEvent(ViewEvent.BONE_PARENT_CHANGE, [_boneRollOver.name, _boneSelected.name]));
+							}
+						}
+						else if(!_isDragedArmature)
+						{
+							if(_boneRollOver)
+							{
+								if(_boneRollOver != _boneSelected)
+								{
+									selectBone(_boneRollOver.name);
+								}
+							}
+							else
+							{
+								selectBone(null);
+							}
+							this.dispatchEvent(new ViewEvent(ViewEvent.BONE_SELECTED_CHANGE, _boneSelected?_boneSelected.name:null));
+						}
+						_isMouseDown = false;
+						_isDragedArmature = false;
+						_isDragedBone = false;
+						
+						updateRollOverBone();
+						break;
+					
+					case MouseEvent.DOUBLE_CLICK:
+						_isMouseDown = false;
+						_isDragedArmature = false;
+						if(!_boneRollOver)
+						{
+							tweenArmatureScale();
+						}
+						break;
+					
+					case MouseEvent.MOUSE_MOVE:
+						scrollArea.removeEventListener(MouseEvent.MOUSE_MOVE, scrollAreaMouseHandler);
+						if(_boneRollOver && _boneRollOver == _boneSelected)
+						{
+							_isDragedBone = true;
+						}
+						else
+						{
+							_isDragedArmature = true;
+						}
+						break;
+					
+					case MouseEvent.MOUSE_WHEEL:
+						clearArmatureScaleTween();
+						_scalePoint.x = scrollArea.mouseX;
+						_scalePoint.y = scrollArea.mouseY;
+						var speed:Number = 0.2 * armatureScale;
+						armatureScale += e.delta > 0?(speed):(-speed);
+						break;
+				}
+			}
+			
+			private function enterFrameHandler(e:Event):void
+			{
+				if(_armature)
+				{
+					_clock.advanceTime(-1);
+					
+					if(_isDragedArmature)
+					{
+						armatureContainer.x = _targetPoint.x + (scrollArea.mouseX - _mousePoint.x);
+						armatureContainer.y = _targetPoint.y + (scrollArea.mouseY - _mousePoint.y);
+						updateArmaturePosition();
+					}
+					
+					if(_isMouseIn)
+					{
+						updateRollOverBone();
+					}
+					
+					for each(var slot:Slot in _armature.getSlots(false))
+					{
+						var display:DisplayObject = slot.display as DisplayObject;
+						if(display)
+						{
+							if(!_boneHighlightEnabled)
+							{
+								display.filters = null;
+							}
+							else if(slot.parent == _boneSelected)
+							{
+								if(!display.filters || display.filters[0] != _boneSelectedFilter)
+								{
+									display.filters = [_boneSelectedFilter];
+								}
+							}
+							else if(slot.parent == _boneRollOver)
+							{
+								if(!display.filters || display.filters[0] != _boneRolloverFilter)
+								{
+									display.filters = [_boneRolloverFilter];
+								}
+							}
+							else
+							{
+								display.filters = null;
+							}
+						}
+					}
+					
+					
+					_armatureSymbols.update(_armatureScale, _boneSelected, _isDragedBone);
+				}
+			}
+			
+			public function tweenArmatureScale(scale:Number = NaN, frame:uint = 15):void
+			{
+				_scalePoint.x = 0;
+				_scalePoint.y = 0;
+				
+				var rect:Rectangle = armatureContainer.getBounds(armatureContainer);
+				
+				if(!scale)
+				{
+					_scaleToType ++;
+					if(_scaleToType > 2)
+					{
+						_scaleToType = 0;
+					}
+					
+					if(_scaleToType == 0)
+					{
+						scale = 1;
+					}
+					else
+					{
+						if(_scaleToType == 1)
+						{
+							scale = Math.min(scrollArea.width * 0.8 / rect.width, scrollArea.height * 0.8 / rect.height);
+						}
+						else
+						{
+							scale = Math.max(scrollArea.width * 0.8 / rect.width, scrollArea.height * 0.8 / rect.height);
+						}
+					}
+					if(!scale)
+					{
+						scale = 1;
+					}
+				}
+				
+				clearArmatureScaleTween();
+				
+				TweenMax.to(this, frame, {armatureScale:scale, useFrames:true});
+				TweenMax.to(
+					armatureContainer, 
+					frame, 
+					{
+						x:(scrollArea.width - rect.width * scale) * 0.5 - rect.x * scale,
+						y:(scrollArea.height - rect.height * scale) * 0.5 - rect.y * scale,
+						useFrames:true,
+						onUpdate:updateArmaturePosition
+					}
+				);
+			}
+			
+			public function selectBone(boneName:String):void
+			{
+				var bone:Bone = _armature.getBone(boneName);
+				
+				if(_boneSelected == bone)
+				{
+					return;
+				}
+				if(_boneSelected)
+				{
+					updateBoneHighlight(_boneSelected, null);
+				}
+				if(!bone && _boneSelected == _boneRollOver)
+				{
+					_boneRollOver = null;
+				}
+				_boneSelected = bone;
+				if(_boneSelected && _boneSelectedFilter)
+				{
+					updateBoneHighlight(_boneSelected, _boneSelectedFilter);
+				}
+				
+				if(_boneSelected)
+				{
+					_armatureSymbols.visible = true;
+				}
+				else
+				{
+					_armatureSymbols.visible = false;
+				}
+			}
+			
+			public function rollOverBone(boneName:String):void
+			{
+				var bone:Bone = _armature.getBone(boneName);
+				if(_boneRollOver == bone)
+				{
+					return;
+				}				
+				if(_boneRollOver && _boneRollOver != _boneSelected)
+				{
+					updateBoneHighlight(_boneRollOver, null);
+				}
+				_boneRollOver = bone;
+				if(_boneRollOver && _boneRollOver != _boneSelected && _boneRolloverFilter)
+				{
+					if(!_isMouseDown || !_boneSelected || !_boneRollOver.contains(_boneSelected))
+					{
+						updateBoneHighlight(_boneRollOver, _boneRolloverFilter);
+					}
+				}
+			}
+			
+			private function updateArmaturePosition():void
+			{
+				axisX.y = armatureContainer.y;
+				axisY.x = armatureContainer.x;
+			}
+			
+			private function clearArmatureScaleTween():void
+			{
+				TweenMax.killTweensOf(this);
+				TweenMax.killTweensOf(armatureContainer);
+			}
+			
+			private function updateRollOverBone():void
+			{
+				if(!_armature)
+				{
+					return;
+				}
+				var armatureDisplay:DisplayObjectContainer = _armature.display as DisplayObjectContainer;
+				_pointHelp.x = armatureDisplay.mouseX;
+				_pointHelp.y = armatureDisplay.mouseY;
+				var bone:Bone = _armature.getBoneByDisplay(getPointTarget(armatureDisplay, _pointHelp, 2));
+				rollOverBone(bone?bone.name:null);
+				
+				if(_isMouseDown)
+				{
+					Mouse.cursor = MouseCursor.HAND;
+				}
+				else if(_boneRollOver)
+				{
+					Mouse.cursor = MouseCursor.BUTTON;
+				}
+				else
+				{
+					Mouse.cursor = MouseCursor.AUTO;
+				}
+			}
+			
+			private function updateBoneHighlight(bone:Bone, filter:Object):void
+			{
+				var filters:Array = [filter];
+				
+				for each(var slot:Slot in bone.getSlots(false))
+				{
+					var display:DisplayObject = slot.display as DisplayObject;
+					if(display)
+					{
+						if(filter)
+						{
+							display.filters = filters;
+						}
+						else
+						{
+							display.filters = null;
+						}
+					}
+				}
+			}
+			
+			private function animationControlHandler(e:Event):void
+			{
+				switch(e.currentTarget)
+				{
+					case playBtn:
+						controlAnimation(0);
+						break;
+					
+					case playPrevBtn:
+						controlAnimation(-1);
+						break;
+					
+					case playNextBtn:
+						controlAnimation(1);
+						break;
+				}
+				
+				updateAnimationControl();
+			}
+			
+			private function armatureAnimationHandler(e:AnimationEvent):void
+			{
+				switch(e.type)
+				{
+					case AnimationEvent.FADE_IN:
+					case AnimationEvent.COMPLETE:
+						updateAnimationControl();
+						break;
+				}
+			}
+			
+			private function updateAnimationControl():void
+			{
+				if(_armature.animation.isPlaying)
+				{
+					playBtn.selected = true;
+				}
+				else
+				{
+					playBtn.selected = false;
+				}
+				
+				if(_armature.animation.animationList.length > 1)
+				{
+					playPrevBtn.enabled = true;
+					playNextBtn.enabled = true;
+				}
+				else
+				{
+					playPrevBtn.enabled = false;
+					playNextBtn.enabled = false;
+				}
+			}
+			
+			private function controlAnimation(type:int):void
+			{
+				if(!_armature)
+				{
+					return;
+				}
+				if(type == 0)
+				{
+					if(_armature.animation.isPlaying)
+					{
+						_armature.animation.stop();
+					}
+					else
+					{
+						_armature.animation.play();
+					}
+				}
+				else 
+				{
+					var index:int;
+					if(_armature.animation.lastAnimationState)
+					{
+						index = _armature.animation.animationList.indexOf(_armature.animation.lastAnimationState.name);
+					}
+					else
+					{
+						index = 0;
+					}
+					index += type>0?1:-1;
+					index %= _armature.animation.animationList.length;
+					if(index < 0)
+					{
+						index += _armature.animation.animationList.length;
+					}
+					var animationName:String = _armature.animation.animationList[index];
+					_armature.animation.gotoAndPlay(animationName);
+					
+					this.dispatchEvent(new ViewEvent(ViewEvent.ARMATURE_ANIMATION_CHANGE, animationName));
+				}
+			}
+		]]>
+	</fx:Script>
+	
+	<s:Scroller id="scrollArea" width="100%" height="100%" horizontalScrollPolicy="off" verticalScrollPolicy="off">
+		<s:Group>
+			<s:Rect width="100%" height="100%">
+				<s:fill>
+					<s:SolidColor color="0x444444"/>
+				</s:fill>
+			</s:Rect>
+			
+			<s:Line width="100%" id="axisX">
+				<s:stroke>
+					<s:SolidColorStroke color="0x999999" weight="1" caps="square"/>
+				</s:stroke>
+			</s:Line>
+			
+			<s:Line height="100%" id="axisY">
+				<s:stroke>
+					<s:SolidColorStroke color="0x999999" weight="1" caps="square"/>
+				</s:stroke>
+			</s:Line>
+			
+			<mx:UIComponent id="armatureContainer" mouseChildren="false" mouseEnabled="false"/>
+			
+		</s:Group>
+		
+	</s:Scroller>
+	
+	<s:HGroup top="2" left="2" right="2" width="100%" height="24" verticalAlign="middle" gap="0">
+		<s:Spacer width="100%"/>
+		
+		<s:Button id="playPrevBtn" icon="{AssetManager.PlayPrevious}"
+				  skinClass="core.view.skin.IconButtonSkin"
+				  click="animationControlHandler(event)"
+				  />
+		<components:PlayButton id="playBtn" 
+							   click="animationControlHandler(event)"/>
+		<s:Button id="playNextBtn" icon="{AssetManager.PlayNext}"
+				  skinClass="core.view.skin.IconButtonSkin"
+				  click="animationControlHandler(event)"
+				  />
+	</s:HGroup>
+	
+	<s:VGroup top="2" bottom="2" left="2" gap="2" width="24" height="100%" horizontalAlign="center">
+		<s:Spacer height="100%"/>
+		
+		<s:VSlider height="100" minimum="{MIN_SCALE}" maximum="{MAX_SCALE}" snapInterval="0.1" value="@{armatureScale}"/>
+	</s:VGroup>
+	
+	<s:Rect width="100%" height="100%">
+		<s:stroke>
+			<s:SolidColorStroke color="0x000000" weight="1"/>
+		</s:stroke>
+	</s:Rect>
+</s:Group>

@@ -1,0 +1,207 @@
+<?xml version="1.0" encoding="utf-8"?>
+<view:BaseWindow xmlns:fx="http://ns.adobe.com/mxml/2009" 
+						xmlns:s="library://ns.adobe.com/flex/spark" 
+						xmlns:mx="library://ns.adobe.com/flex/mx" 
+						xmlns:view="plugin.view.*"
+						
+						width="400"
+						title="{resourceManager.getString('resources', 'export')}" 
+						
+						creationComplete="creationCompleteHandler(event)"
+						>
+	
+	<fx:Declarations>
+	</fx:Declarations>
+	
+	<fx:Script>
+		<![CDATA[
+			import core.SettingManager;
+			import core.ShareConfig;
+			import core.events.ControllerEvent;
+			import core.model.vo.ExportVO;
+			import core.utils.GlobalConstValues;
+			
+			public var shareConfig:ShareConfig;
+			
+			[Bindable]
+			private var _settingManager:SettingManager = SettingManager.getInstance();
+			
+			[Bindable]
+			private var _isSWF:Boolean;
+			[Bindable]
+			private var _isPNGs:Boolean;
+			[Bindable]
+			private var _isMerged:Boolean;
+			
+			private function creationCompleteHandler(event:Event):void
+			{
+				if (shareConfig && shareConfig.parsedModel.vo.importVO)
+				{
+					skeletonDataNameTextInput.text = shareConfig.parsedModel.vo.importVO.name;
+				}
+				
+				updateView();
+			}
+			
+			private function updateView():void
+			{
+				var configObject:Object = dataFormatDropDownList.selectedItem;
+				if (configObject)
+				{
+					_isMerged = configObject.value == GlobalConstValues.CONFIG_TYPE_MERGED;
+					var backupselected:int = textureFormatDropDownList.selectedIndex;
+					
+					if (_isMerged)
+					{
+						textureFormatDropDownList.dataProvider = _settingManager.exportTextureMergedFormatAC;
+					}
+					else
+					{
+						textureFormatDropDownList.dataProvider = _settingManager.exportTextureFormatAC;
+					}
+					
+					textureFormatDropDownList.selectedIndex = Math.max(Math.min(backupselected, textureFormatDropDownList.dataProvider.length - 1), 0);
+					
+					var textureObject:Object = textureFormatDropDownList.selectedItem;
+					if (textureObject)
+					{
+						_isSWF = textureObject.value == GlobalConstValues.TEXTURE_ATLAS_TYPE_SWF;
+						_isPNGs = textureObject.value == GlobalConstValues.TEXTURE_ATLAS_TYPE_PNGS;
+					}
+				}
+			}
+			
+			private function changeHandler(event:Event):void
+			{
+				updateView();
+			}
+			
+			private function clickHandler(event:Event):void
+			{
+				if (shareConfig && shareConfig.parsedModel.vo.importVO)
+				{
+					var exportVO:ExportVO = new ExportVO();
+					exportVO.enableBackgroundColor = backgroundColorCheckBox.visible && backgroundColorCheckBox.selected;
+					exportVO.name = skeletonDataNameTextInput.text || shareConfig.parsedModel.vo.importVO.name;
+					_settingManager.setExportVOValues(exportVO);
+					
+					shareConfig.dispatcher.dispatchEvent(new ControllerEvent(ControllerEvent.EXPORT_FILE, exportVO));
+				}
+				
+				this.closeWindow();
+			}
+		]]>
+	</fx:Script>
+	
+	<view:layout>
+		<s:VerticalLayout
+			gap="10"
+			paddingLeft="10"
+			paddingRight="10"
+			paddingTop="10"
+			paddingBottom="30"
+			/>
+	</view:layout>
+	
+	<s:HGroup width="100%">
+		<s:VGroup minWidth="100" gap="6" horizontalAlign="right">
+			<s:Label height="24" textAlign="right" verticalAlign="middle" text="{resourceManager.getString('resources','dataFormat')}"/>
+			<s:Label height="24" textAlign="right" verticalAlign="middle" text="{resourceManager.getString('resources','textureFormat')}"/>
+			<s:Label height="24" textAlign="right" verticalAlign="middle" text="{resourceManager.getString('resources','exportscale')}"
+					 visible="{!_isSWF}" includeInLayout="{!_isSWF}"
+					 />
+			<s:Label height="24" textAlign="right" verticalAlign="middle" text="{resourceManager.getString('resources','backgroundColor')}"
+					 visible="{!_isSWF}" includeInLayout="{!_isSWF}"
+					 />
+			
+			<s:Label height="24" textAlign="right" verticalAlign="middle" text="{resourceManager.getString('resources','skeletonDataFileName')}"
+					 visible="{!_isMerged}" includeInLayout="{!_isMerged}"
+					 />
+			<s:Label height="24" textAlign="right" verticalAlign="middle" text="{resourceManager.getString('resources','textureDataFileName')}"
+					 visible="{!_isMerged &amp;&amp; !_isPNGs}" includeInLayout="{!_isMerged &amp;&amp; !_isPNGs}"
+					 />
+			<s:Label height="24" textAlign="right" verticalAlign="middle" text="{resourceManager.getString('resources','textureFileName')}"
+					 visible="{!_isMerged &amp;&amp; !_isPNGs}" includeInLayout="{!_isMerged &amp;&amp; !_isPNGs}"
+					 />
+			<s:Label height="24" textAlign="right" verticalAlign="middle" text="{resourceManager.getString('resources','subTextureFolderName')}"
+					 visible="{_isPNGs}" includeInLayout="{_isPNGs}"
+					 />
+			<s:Label height="24" textAlign="right" verticalAlign="middle" text="{resourceManager.getString('resources','textureAtlasPath')}"
+					 visible="{!_isMerged &amp;&amp; !_isPNGs}" includeInLayout="{!_isMerged &amp;&amp; !_isPNGs}"
+					 />
+			<s:Label height="24" textAlign="right" verticalAlign="middle" text="{resourceManager.getString('resources','skeletonDataName')}"/>
+		</s:VGroup>
+		
+		<s:VGroup width="100%" gap="6">
+			<s:DropDownList width="100%" height="24" textAlign="right" 
+							id="dataFormatDropDownList" labelField="label" 
+							dataProvider="{_settingManager.exportDataFormatAC}" 
+							selectedIndex="@{_settingManager.exportDataFormatIndex}" 
+							change="changeHandler(event)"
+							/>
+			<s:DropDownList width="100%" height="24" textAlign="right" 
+							id="textureFormatDropDownList" labelField="label" 
+							selectedIndex="@{_settingManager.exportTextureFormatIndex}" 
+							change="changeHandler(event)"
+							/>
+			<s:NumericStepper width="100%" minimum="0.1" maximum="32" snapInterval="0.1" stepSize="0.5" textAlign="right"
+							  value="@{_settingManager.exportScale}" visible="{!_isSWF}" includeInLayout="{!_isSWF}"
+							  />
+			
+			<s:HGroup width="100%" verticalAlign="middle"
+					  visible="{!_isSWF}" includeInLayout="{!_isSWF}"
+					  >
+				<s:CheckBox id="backgroundColorCheckBox" width="13"/>
+				<mx:ColorPicker width="24" height="24" 
+								selectedColor="@{_settingManager.exportBackgroundColor}" 
+								enabled="{backgroundColorCheckBox.selected}"
+								/>
+			</s:HGroup>
+			
+			<s:TextInput width="100%" height="24" textAlign="right" 
+						 text="@{_settingManager.dragonBonesFileName}"
+						 visible="{!_isMerged}" includeInLayout="{!_isMerged}"
+						 />
+			
+			<s:TextInput width="100%" height="24" textAlign="right" 
+						 text="@{_settingManager.textureAtlasFileName}"
+						 visible="{!_isMerged &amp;&amp; !_isPNGs}" includeInLayout="{!_isMerged &amp;&amp; !_isPNGs}"
+						 />
+			
+			<s:TextInput width="100%" height="24" textAlign="right" 
+						 text="@{_settingManager.textureAtlasConfigFileName}"
+						 visible="{!_isMerged &amp;&amp; !_isPNGs}" includeInLayout="{!_isMerged &amp;&amp; !_isPNGs}"
+						 />
+			
+			<s:TextInput width="100%" height="24" textAlign="right" 
+						 text="@{_settingManager.subTextureFolderName}"
+						 visible="{_isPNGs}" includeInLayout="{_isPNGs}"
+						 />
+			
+			<s:TextInput width="100%" height="24" textAlign="right" 
+						 text="@{_settingManager.textureAtlasPath}"
+						 visible="{!_isMerged &amp;&amp; !_isPNGs}" includeInLayout="{!_isMerged &amp;&amp; !_isPNGs}"
+						 />
+			
+			<s:TextInput id="skeletonDataNameTextInput" width="100%" height="24" textAlign="right"
+						 />
+			
+		</s:VGroup>
+	</s:HGroup>
+		
+	<s:Spacer height="10"/>
+	
+	<s:HGroup width="100%" horizontalAlign="center">
+		<s:Button width="100" height="24" cornerRadius="0"
+				  id="buttonOK"
+				  label="{resourceManager.getString('resources','ok')}"
+				  click="clickHandler(event)"
+				  />
+		
+		<s:Button width="100" height="24" cornerRadius="0"
+				  label="{resourceManager.getString('resources','cancel')}"
+				  click="closeHandler(event)"
+				  />
+	</s:HGroup>
+	
+</view:BaseWindow>

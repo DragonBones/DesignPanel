@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:TitleWindow xmlns:fx="http://ns.adobe.com/mxml/2009" 
+			   xmlns:s="library://ns.adobe.com/flex/spark" 
+			   xmlns:mx="library://ns.adobe.com/flex/mx"
+			   
+			   close="closeHandler(event)"
+			   >
+	<fx:Script>
+		<![CDATA[
+			import mx.events.CloseEvent;
+			import mx.managers.PopUpManager;
+			
+			protected function closeHandler(event:Event):void
+			{
+				closeWindow();
+			}
+			
+			public function showWindow(parent:DisplayObject):void
+			{
+				PopUpManager.addPopUp(this, parent, true);
+				PopUpManager.centerPopUp(this);
+			}
+			
+			public function closeWindow():void
+			{
+				PopUpManager.removePopUp(this);
+			}
+		]]>
+	</fx:Script>
+</s:TitleWindow>
