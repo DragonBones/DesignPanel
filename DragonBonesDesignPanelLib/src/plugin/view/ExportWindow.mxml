@@ -85,7 +85,7 @@
 					exportVO.name = skeletonDataNameTextInput.text || shareConfig.parsedModel.vo.importVO.name;
 					_settingManager.setExportVOValues(exportVO);
 					
-					shareConfig.dispatcher.dispatchEvent(new ControllerEvent(ControllerEvent.EXPORT_FILE, exportVO));
+					shareConfig.dispatcher.dispatchEvent(new ControllerEvent(ControllerEvent.EXPORT_FILE, [shareConfig.parsedModel.vo.importVO, exportVO]));
 				}
 				
 				this.closeWindow();
