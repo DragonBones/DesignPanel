@@ -5,11 +5,14 @@ bin-release/
 html-template/
 *.swf
 
-# Project property files
+# Other files and folders
+.settings/
+
+# Project files, i.e. `.project`, `.actionScriptProperties` and `.flexProperties`
+.project
 .actionScriptProperties
 .flexProperties
-.settings/
-.project
+.flexLibProperties
 
-
-build/DragonbonesDesignPanel.swf
+# should NOT be excluded as they contain compiler settings and other important
+# information for Eclipse / Flash Builder.
