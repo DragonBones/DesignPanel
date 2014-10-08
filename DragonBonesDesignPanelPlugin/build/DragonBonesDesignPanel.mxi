@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<macromedia-extension name="DragonBonesDesignPanel" version="3.0.0" type="command">
+
+	<author name="DragonBones Team"/>
+	<products>
+
+		<product name="Flash" version="11" primary="true"/>
+
+	</products>
+	<description>
+		<![CDATA[
+		]]>
+	</description>
+	<ui-access>
+		<![CDATA[
+		]]>
+	</ui-access>
+	<license-agreement>
+		<![CDATA[
+		]]>
+	</license-agreement>
+
+	<files>
+		<file source="DragonBonesDesignPanel/utils.jsfl" destination="$flash/WindowSWF/DragonBonesDesignPanel"/>
+		<file source="DragonBonesDesignPanel/events.jsfl" destination="$flash/WindowSWF/DragonBonesDesignPanel"/>
+		<file source="DragonBonesDesignPanel/dragonBones.jsfl" destination="$flash/WindowSWF/DragonBonesDesignPanel"/>
+		<file source="DragonBonesDesignPanel/createAnimation.jsfl" destination="$flash/WindowSWF/DragonBonesDesignPanel"/>
+		<file source="DragonBonesDesignPanel/import3DTextures.jsfl" destination="$flash/WindowSWF/DragonBonesDesignPanel"/>
+
+		<file source="DragonBonesDesignPanel.swf" destination="$flash/WindowSWF"/>
+	</files>
+
+</macromedia-extension>
