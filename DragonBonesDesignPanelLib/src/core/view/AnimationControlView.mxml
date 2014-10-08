@@ -1,0 +1,117 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		  xmlns:s="library://ns.adobe.com/flex/spark" 
+		  xmlns:mx="library://ns.adobe.com/flex/mx" 
+		  >
+	<s:VGroup width="100%" height="100%" gap="0">
+		<s:HGroup width="100%" gap="0">
+			<s:Button width="100%" height="24" cornerRadius="0" fontWeight="bold"
+					  label="{resourceManager.getString('resources','behaviorList')}"
+					  />
+			
+			<s:ToggleButton width="36" height="24" cornerRadius="0" label="&lt;&lt;" 
+							id="behaviorAdvancedSwitch"
+							/>
+			
+		</s:HGroup>
+		
+		<s:Scroller width="100%" height="100%" horizontalScrollPolicy="off" verticalScrollPolicy="off">
+			<s:HGroup width="100%" height="100%" gap="0">
+				<s:List minWidth="40" width="100%" height="100%" borderVisible="false" textAlign="center" horizontalScrollPolicy="off"
+						id="animationList"
+						labelField="name"
+						/>
+				
+				<s:Line height="100%">
+					<s:stroke>
+						<s:SolidColorStroke color="0x000000" weight="1"/>
+					</s:stroke>
+				</s:Line>
+				
+					<s:VGroup height="100%" gap="0" paddingLeft="6" paddingRight="6">
+						<s:HGroup width="100%" verticalAlign="middle">
+							<s:Label width="100%" height="24"
+									 text="{resourceManager.getString('resources','totalTimeSec')}"
+									 verticalAlign="middle"/>
+							
+							<s:Label height="24"
+									 />
+							
+						</s:HGroup>
+						
+						<s:Label width="100%" height="24"
+								 text="{resourceManager.getString('resources','totalTimeScale')}"
+								 verticalAlign="middle"/>
+						
+						<s:HGroup width="100%" verticalAlign="middle">
+							<s:NumericStepper width="100%" height="24" cornerRadius="0" textAlign="left"
+											  id="numAnimationScale"
+											  maximum="50000" minimum="0" stepSize="5"
+											  />
+							
+						</s:HGroup>
+						
+						<s:Label width="100%" height="24"
+								 text="{resourceManager.getString('resources','blendingTime')}"
+								 verticalAlign="middle"/>
+						
+						<s:HGroup width="100%" verticalAlign="middle">
+							<s:NumericStepper width="100%" height="24" cornerRadius="0" textAlign="left"
+											  id="numFadeInTime"
+											  maximum="50000" minimum="0" snapInterval="0.001" stepSize="0.1"
+											  />
+							
+						</s:HGroup>
+						
+						<s:Label width="100%" height="24"
+								 text="{resourceManager.getString('resources','loop')}"
+								 verticalAlign="middle"/>
+						
+						<s:HGroup width="100%" verticalAlign="middle">
+							<s:NumericStepper width="100%" height="24" cornerRadius="0" textAlign="left"
+											  id="numLoop" 
+											  maximum="100" minimum="0" snapInterval="1"
+											  />
+							
+						</s:HGroup>
+						
+						<s:HGroup width="100%" verticalAlign="middle">
+							<s:CheckBox label="Auto Tween"
+										id="checkAutoTween"
+										/>
+							
+						</s:HGroup>
+						
+						<!--
+						<s:Label width="100%" height="24"
+								 text="{resourceManager.getString('resources','keyFrameEase')}"
+								 verticalAlign="middle"/>
+						
+						<s:HGroup width="100%" verticalAlign="middle" height="24">
+							<s:NumericStepper width="100%" height="24" cornerRadius="0" textAlign="left"
+											  id="numTweenEasing" 
+											  maximum="2" minimum="-1" snapInterval="0.05"
+											  />
+							
+							<s:CheckBox width="16" label=""
+										id="checkTweenEasing"
+										/>
+							
+						</s:HGroup>
+						-->
+						
+					</s:VGroup>
+					
+			</s:HGroup>
+			
+		</s:Scroller>
+		
+	</s:VGroup>
+	
+	<s:Rect width="100%" height="100%">
+		<s:stroke>
+			<s:SolidColorStroke color="0x000000" weight="1"/>
+		</s:stroke>
+	</s:Rect>
+	
+</s:Group>

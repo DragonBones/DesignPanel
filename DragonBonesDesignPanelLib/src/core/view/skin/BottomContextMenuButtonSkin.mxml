@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:SparkButtonSkin xmlns:fx="http://ns.adobe.com/mxml/2009" 
+        xmlns:s="library://ns.adobe.com/flex/spark" 
+        xmlns:mx="library://ns.adobe.com/flex/mx"
+		minWidth="20" minHeight="20"
+		alpha.disabled="0.5"
+		alpha.up="0.8"
+		alpha.over="1"
+		alpha.down="1"
+        >
+
+    <fx:Metadata>
+        [HostComponent("spark.components.Button")]
+    </fx:Metadata>
+ 
+	<fx:Declarations>
+		<s:DropShadowFilter id="shadow" color="#ffffff" alpha="0.3" inner="true" />
+	</fx:Declarations>
+	<s:layout>
+		<s:BasicLayout/>
+	</s:layout>
+	
+	<s:states>
+        <s:State name="up"/>
+        <s:State name="down"/>
+        <s:State name="over"/>
+        <s:State name="disabled"/>
+    </s:states>
+	
+	<s:Rect width="100%" height="100%" alpha="0">
+		<s:fill>
+			<s:SolidColor color="#222222"/>
+		</s:fill>
+	</s:Rect>
+	<s:Rect width="100%" height="100%" radiusX="1" radiusY="1" 
+			alpha.up="0" alpha.over="0.8" alpha.down="0.8" alpha.disabled="0">
+		<s:stroke>
+			<s:SolidColorStroke color.over="#ffffff" color.down="#ffffff"
+								caps="none" joints="round" weight="1" />
+		</s:stroke>
+	</s:Rect>
+	<s:HGroup width="100%" height="100%" verticalAlign="middle">
+		<s:BitmapImage id="iconDisplay" width="16" height="16"/>
+		
+		<s:Label id="labelDisplay"
+				 width="100%" height="100%"
+				 verticalAlign="middle"
+				 maxDisplayedLines="1"
+				 horizontalCenter="0" verticalCenter="1"
+				 color.up="#ffffff" color.over="#ffffff" color.down="#ffffff" color.disabled="#484848">
+		</s:Label>
+	</s:HGroup>
+	
+</s:SparkButtonSkin>
