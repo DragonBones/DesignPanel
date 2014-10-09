@@ -330,11 +330,12 @@ package plugin.mediator
 					break;
 				
 				case ControllerEvent.IMPORT_PROGRESS:
-					if (_alert)
+					if (!_alert)
 					{
-						var progressEvent:ProgressEvent = e.data as ProgressEvent;
-						_alert.title = ResourceManager.getInstance().getString('resources', 'importFileProgress', [Math.round(progressEvent.bytesLoaded / progressEvent.bytesTotal * 100) || 0]);
+						Alert.show(ResourceManager.getInstance().getString('resources','importFileWaitting'));
 					}
+					var progressEvent:ProgressEvent = e.data as ProgressEvent;
+					_alert.title = ResourceManager.getInstance().getString('resources', 'importFileProgress', [Math.round(progressEvent.bytesLoaded / progressEvent.bytesTotal * 100) || 0]);
 					break;
 				
 				case ControllerEvent.IMPORT_COMPLETE:
@@ -402,17 +403,19 @@ package plugin.mediator
 			switch (e.type)
 			{
 				case ImportFLAService.IMPORT_ARMATURE:
-					if (_alert)
+					if (!_alert)
 					{
-						_alert.title = ResourceManager.getInstance().getString('resources', 'importSkeletonProgress', [e.data[1], e.data[2]]);
+						_alert = Alert.show(ResourceManager.getInstance().getString('resources','importFLAWaitting'));
 					}
+					_alert.title = ResourceManager.getInstance().getString('resources', 'importSkeletonProgress', [e.data[1], e.data[2]]);
 					break;
 				
 				case ImportFLAService.IMPORT_SUBTEXTURE:
-					if (_alert)
+					if (!_alert)
 					{
-						_alert.title = ResourceManager.getInstance().getString('resources', 'importTextureProgress', [e.data[1], e.data[2]]);
+						_alert = Alert.show(ResourceManager.getInstance().getString('resources','importFLAWaitting'));
 					}
+					_alert.title = ResourceManager.getInstance().getString('resources', 'importTextureProgress', [e.data[1], e.data[2]]);
 					break;
 			}
 		}

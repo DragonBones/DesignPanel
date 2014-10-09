@@ -2,11 +2,12 @@ package core
 {
 	import flash.events.IEventDispatcher;
 	
+	import core.controller.CreateAnimationToFlashCommand;
 	import core.controller.ExportFileCommand;
-	import core.controller.MultipleImportAndExportCommand;
 	import core.controller.ImportFLACommand;
 	import core.controller.ImportFileCommand;
 	import core.controller.ModelCommand;
+	import core.controller.MultipleImportAndExportCommand;
 	import core.controller.RemoveArmatureCommand;
 	import core.events.ControllerEvent;
 	import core.events.ModelEvent;
@@ -82,6 +83,7 @@ package core
 			commandMap.map(core.events.ControllerEvent.REMOVE_ARMATURE).toCommand(core.controller.RemoveArmatureCommand);
 			
 			commandMap.map(core.events.ControllerEvent.MULTIPLE_IMPORT_AND_EXPORT).toCommand(core.controller.MultipleImportAndExportCommand);
+			commandMap.map(core.events.ControllerEvent.CREATE_ANIMATION_TO_FLASH).toCommand(core.controller.CreateAnimationToFlashCommand);
 			
 			
 			// service
