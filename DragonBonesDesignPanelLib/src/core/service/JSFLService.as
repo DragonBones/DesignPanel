@@ -32,8 +32,8 @@
 				"DragonBonesDesignPanel/import3DTextures.jsfl"
 			];
 		
-		private static const PORT_JSFL:String = "portJSFL";
-		private static const PORT_CHECK_CONNECT:String = "portCheckConnect";
+		public static const PORT_JSFL:String = "portJSFL";
+		public static const PORT_CHECK_CONNECT:String = "portCheckConnect";
 		
 		/**
 		 * Determine if JSFLAPI isAvailable
