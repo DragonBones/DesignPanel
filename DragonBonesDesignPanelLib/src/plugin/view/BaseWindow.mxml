@@ -15,14 +15,19 @@
 				closeWindow();
 			}
 			
-			public function showWindow(parent:DisplayObject):void
+			public function showWindow(parent:DisplayObject, fixPopUP:Boolean = false):void
 			{
 				PopUpManager.addPopUp(this, parent, true);
 				PopUpManager.centerPopUp(this);
+				if (fixPopUP)
+				{
+					this.isPopUp = false;
+				}
 			}
 			
 			public function closeWindow():void
 			{
+				this.isPopUp = true;
 				PopUpManager.removePopUp(this);
 			}
 		]]>

@@ -20,7 +20,7 @@ package plugin.controller
 		
 		override public function execute():void
 		{
-			_settingManager = new SettingManager();
+			_settingManager = SettingManager.getInstance();
 			
 			switch(event.type)
 			{
