@@ -1226,7 +1226,7 @@ var dragonBones;
                     var elements = frame.elements;
                     var boneSymbol = Utils.filter(elements, null, ["instanceType", "bitmap", "symbol"])[0];
                     var itemFolderName = null;
-                    var noAutoEasingFrame = false;
+                    var noAutoEasingFrame = noAutoEasing;
                     if (!boneSymbol)
                     {
                         if (elements.length > 0)
@@ -1615,6 +1615,10 @@ var dragonBones;
                     frameXML.@[DragonBones.A_TWEEN_SCALE] = 0;
                 }
             }
+            else if (noAutoEasing)
+            {
+                frameXML.@[DragonBones.A_TWEEN_EASING] = NaN;
+            }
             else
             {
                 // auto tween frame
@@ -1625,7 +1629,7 @@ var dragonBones;
                 var frameNameList = DragonBones.getNameParameters(frame.name);
 
                 // modify ease
-                if (noAutoEasing? frame.tweenType != "motion": frameNameList[1] == DragonBones.NO_EASING)
+                if (frameNameList[1] == DragonBones.NO_EASING || (noAutoEasing && frame.tweenType != "motion"))
                 {
                     frameXML.@[DragonBones.A_TWEEN_EASING] = NaN;
                 }

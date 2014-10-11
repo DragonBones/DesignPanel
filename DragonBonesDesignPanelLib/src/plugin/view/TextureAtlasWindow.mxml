@@ -44,7 +44,6 @@
 				updateSize();
 			}
 			
-			
 			private function removeFromStageHandler(event:Event):void
 			{
 				this.stage.removeEventListener(Event.RESIZE, stageResizeHandler);

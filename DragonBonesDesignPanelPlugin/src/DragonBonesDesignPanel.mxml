@@ -64,13 +64,13 @@
 					case buttonTextureAtlas:
 						var textureAtlasWindow:TextureAtlasWindow = new TextureAtlasWindow();
 						textureAtlasWindow.shareConfig = armaturesPanel.shareConfig;
-						textureAtlasWindow.showWindow(this);
+						textureAtlasWindow.showWindow(this, true);
 						break;
 					
 					case buttonXML:
 						var xmlWindow:XMLWindow = new XMLWindow();
 						xmlWindow.shareConfig = armaturesPanel.shareConfig;
-						xmlWindow.showWindow(this);
+						xmlWindow.showWindow(this, true);
 						break;
 				}
 			}
