@@ -5,6 +5,7 @@ package plugin.mediator
 	import flash.events.MouseEvent;
 	import flash.events.ErrorEvent;
 	import flash.events.ProgressEvent;
+	import flash.events.UncaughtErrorEvent;
 	
 	import mx.controls.Alert;
 	import mx.managers.PopUpManager;
@@ -97,6 +98,11 @@ package plugin.mediator
 			importFLAService.addEventListener(ImportFLAService.IMPORT_SUBTEXTURE, importFLAHandler);
 			importFLAService.addEventListener(ImportFLAService.IMPORT_ARMATURE_ERROR, importFLAErrorHandler);
 			importFLAService.addEventListener(ImportFLAService.IMPORT_SUBTEXTURE_ERROR, importFLAErrorHandler);
+			
+			importFLAService.addEventListener(ImportFLAService.IMPORT_FLA_COMPLETE, serviceHandler);
+			importFileService.addEventListener(ImportFileService.IMPORT_FILE_COMPLETE, serviceHandler);
+			
+			this.view.loaderInfo.uncaughtErrorEvents.addEventListener(UncaughtErrorEvent.UNCAUGHT_ERROR, uncaughtErrorHandler);
 		}
 		
 		override public function destroy():void
@@ -140,6 +146,11 @@ package plugin.mediator
 			importFLAService.removeEventListener(ImportFLAService.IMPORT_SUBTEXTURE, importFLAHandler);
 			importFLAService.removeEventListener(ImportFLAService.IMPORT_ARMATURE_ERROR, importFLAErrorHandler);
 			importFLAService.removeEventListener(ImportFLAService.IMPORT_SUBTEXTURE_ERROR, importFLAErrorHandler);
+			
+			importFLAService.removeEventListener(ImportFLAService.IMPORT_FLA_COMPLETE, serviceHandler);
+			importFileService.removeEventListener(ImportFileService.IMPORT_FILE_COMPLETE, serviceHandler);
+			
+			this.view.loaderInfo.uncaughtErrorEvents.removeEventListener(UncaughtErrorEvent.UNCAUGHT_ERROR, uncaughtErrorHandler);
 		}
 		
 		private function resetUI():void
@@ -362,6 +373,16 @@ package plugin.mediator
 			
 		}
 		
+		private function serviceHandler(e:Event):void
+		{	
+			switch(e.type)
+			{
+				case ImportFLAService.IMPORT_FLA_COMPLETE:
+					clearAlert();
+					break;
+			}
+		}
+		
 		private function importErrorHandler(event:ErrorEvent):void
 		{	
 			switch(event.text)
@@ -432,6 +453,11 @@ package plugin.mediator
 					jsflService.runJSFLMethod(null, "trace", "import texture error");
 					break;
 			}
+		}
+		
+		private function uncaughtErrorHandler(e:UncaughtErrorEvent):void
+		{
+			Alert.show(e.toString(), "Uncaught Error");
 		}
 		
 		private function clearAlert():void

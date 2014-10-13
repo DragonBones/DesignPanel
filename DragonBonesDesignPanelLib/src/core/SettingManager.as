@@ -14,20 +14,21 @@ package core
 	public class SettingManager
 	{
 		private static const SHARE_LOCAL:String = "DragonBones/DesignPanel";
-		
-		private static const EXPORT_BACKGROUND_COLOR:String = "exportBackgoundColor";
-		
-		private static const IMPORT_TYPE:String = "importType";
-		private static const IMPORT_FAIDIN_TIME:String = "IMPORT_FAIDIN_TIME";
-		private static const EXPORT_DATA_FORMAT:String = "EXPORT_DATA_FORMAT";
-		private static const EXPORT_TEXTURE_FORMAT:String = "EXPORT_TEXTURE_FORMAT";
 		private static const LANGUAGE_ID:String = "languageID";
 		
-		private static const EXPORT_SCALE:String = "exportScale";
+		private static const IMPORT_TYPE:String = "importType";
+		private static const IMPORT_FADE_IN_TIME:String = "importFadeInTime";
+		private static const SIZE_CONSTRAINTS:String = "sizeConstraints";
 		//private static const MERGE_LAYERS_IN_FOLDER:String = "mergeLayersInfolder";
 		
-		private static const BONE_HIGHLIGHT_ENABLED:String = "BONE_HIGHLIGHT_ENABLED";
-		private static const BONE_HIGHLIGHT_COLOR:String = "BONE_HIGHLIGHT_COLOR";
+		private static const EXPORT_DATA_FORMAT:String = "exportDataFormat";
+		private static const EXPORT_TEXTURE_FORMAT:String = "exportTextureFormat";
+		
+		private static const EXPORT_SCALE:String = "exportScale";
+		private static const EXPORT_BACKGROUND_COLOR:String = "exportBackgoundColor";
+		
+		private static const BONE_HIGHLIGHT_ENABLED:String = "boneHighlightEnabled";
+		private static const BONE_HIGHLIGHT_COLOR:String = "boneHighlightColor";
 		private static const BACKGROUND_COLOR:String = "backgoundColor";
 		
 		private static const TEXTURE_ATLAS_PATH:String = "exportTextureAtlasPath";
@@ -36,8 +37,8 @@ package core
 		private static const TEXTURE_ATLAS_CONFIG_FILE_NAME:String = "textureAtlasConfigFileName";
 		private static const SUB_TEXTURE_FOLDER_NAME:String = "subTextureFolderName";
 		
-		private static const USERNAME:String = "userName";
-		private static const USEREMAIL:String = "userEmail";
+		private static const USER_NAME:String = "userName";
+		private static const USERE_MAIL:String = "userEmail";
 		
 		private static var _instance:SettingManager;
 		public static function getInstance():SettingManager
@@ -65,6 +66,12 @@ package core
 		]);
 		
 		//
+		public var sizeConstraintsAC:ArrayCollection = new ArrayCollection([
+			{value:0, label:"POT(Power of 2)"}, 
+			{value:1, label:"Any Size"}, 
+		]);
+		
+		//
 		public var exportDataFormatAC:ArrayCollection = new ArrayCollection([
 			{value:GlobalConstValues.CONFIG_TYPE_MERGED, label:GlobalConstValues.CONFIG_TYPE_MERGED}, 
 			{value:GlobalConstValues.CONFIG_TYPE_AMF3, label:GlobalConstValues.CONFIG_TYPE_AMF3}, 
@@ -85,7 +92,7 @@ package core
 		]);
 		
 		//
-		public var textureAtlasWidthAC:ArrayCollection = new ArrayCollection(["AutoSize", 128, 256, 512, 1024, 2048, 4096]);
+		public var textureAtlasWidthAC:ArrayCollection = new ArrayCollection(["Auto Size", 128, 256, 512, 1024, 2048, 4096]);
 		
 		public var textureAtlasWidthIndex:int = 0;
 		public var textureAtlasPadding:int = 2;
@@ -127,11 +134,20 @@ package core
 		
 		public function get importFadeInTime():Number
 		{
-			return hasData(IMPORT_FAIDIN_TIME)?getData(IMPORT_FAIDIN_TIME):0.3;
+			return hasData(IMPORT_FADE_IN_TIME)?getData(IMPORT_FADE_IN_TIME):0.3;
 		}
 		public function set importFadeInTime(value:Number):void
 		{
-			setData(IMPORT_FAIDIN_TIME, value);
+			setData(IMPORT_FADE_IN_TIME, value);
+		}
+		
+		public function get sizeConstraintsIndex():int
+		{
+			return hasData(SIZE_CONSTRAINTS)?getData(SIZE_CONSTRAINTS):0;
+		}
+		public function set sizeConstraintsIndex(value:int):void
+		{
+			setData(SIZE_CONSTRAINTS, value);
 		}
 		
 		/* 临时注释掉mergeLayersInFolder功能,代码先不要删
@@ -266,20 +282,20 @@ package core
 		
 		public function get userName():String
 		{
-			return hasData(USERNAME)?getData(USERNAME):"";
+			return hasData(USER_NAME)?getData(USER_NAME):"";
 		}
 		public function set userName(value:String):void
 		{
-			setData(USERNAME, value);
+			setData(USER_NAME, value);
 		}
 		
 		public function get userEmail():String
 		{
-			return hasData(USEREMAIL)?getData(USEREMAIL):"";
+			return hasData(USERE_MAIL)?getData(USERE_MAIL):"";
 		}
 		public function set userEmail(value:String):void
 		{
-			setData(USEREMAIL, value);
+			setData(USERE_MAIL, value);
 		}
 		
 		public function SettingManager()
