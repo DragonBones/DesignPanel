@@ -320,7 +320,7 @@ package core.model
 					}
 				}
 				
-				updateTextureAtlasFromRectMap(getSubTextureRectMap());
+				updateTextureAtlasFromRectMap(getSubTextureRectMap(), true);
 				return true;
 			}
 			return false;
@@ -362,7 +362,7 @@ package core.model
 				addSubTexture(subTexture);
 			}
 			
-			updateTextureAtlasFromRectMap(getSubTextureRectMap());
+			updateTextureAtlasFromRectMap(getSubTextureRectMap(), true);
 		}
 		
 		public function createTextureAtlas(rectMap:Object, subTextureList:Vector.<String> = null, name:String = null):void
@@ -391,10 +391,10 @@ package core.model
 			updateTextureAtlasFromRectMap(rectMap);
 		}
 		
-		public function updateTextureAtlasFromRectMap(rectMap:Object):void
+		public function updateTextureAtlasFromRectMap(rectMap:Object, autoSize:Boolean = false):void
 		{
 			var area:Rectangle = TextureUtil.packTextures(
-				_vo.textureAtlasWidth,
+				autoSize?0:_vo.textureAtlasWidth,
 				_vo.textureAtlasPadding,
 				rectMap
 			);
@@ -440,7 +440,7 @@ package core.model
 			var subTextureTransformList:XMLList = getSubTextureList();
 			scaleList(subTextureTransformList, scale);
 			
-			updateTextureAtlasFromRectMap(getSubTextureRectMap());
+			updateTextureAtlasFromRectMap(getSubTextureRectMap(), true);
 		}
 		
 		public function changeBoneParent(armatureName:String, boneName:String, boneParentName:String):void

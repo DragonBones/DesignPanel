@@ -12,7 +12,7 @@
 		/**
 		 * Place textures by textureAtlasXML data
 		 */
-		public static function packTextures(widthDefault:uint, padding:uint, rectMap:Object, verticalSide:Boolean = false):Rectangle
+		public static function packTextures(widthDefault:uint, padding:uint, rectMap:Object, verticalSide:Boolean = false, isNearest2N:Boolean = true):Rectangle
 		{
 			for each(var rect:Rectangle in rectMap)
 			{
@@ -43,7 +43,11 @@
 				widthDefault = Math.sqrt(dimensions);
 			}
 			
-			widthDefault = getNearest2N(Math.max(maxWidth + padding, widthDefault));
+			widthDefault = Math.max(maxWidth + padding, widthDefault);
+			if (isNearest2N)
+			{
+				widthDefault = getNearest2N(widthDefault);
+			}
 			
 			var heightMax:uint = HIGHEST;
 			var remainAreaList:Vector.<Rectangle> = new Vector.<Rectangle>;
@@ -136,7 +140,12 @@
 			}
 			while (rectList.length > 0);
 			
-			heightMax = getNearest2N(heightMax - getLowestArea(remainAreaList).height);
+			heightMax = heightMax - (getLowestArea(remainAreaList).height + padding);
+			
+			if (isNearest2N)
+			{
+				getNearest2N(heightMax);
+			}
 			
 			return new Rectangle(0, 0, widthDefault, heightMax);
 		}
