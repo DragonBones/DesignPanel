@@ -51,6 +51,7 @@
 								break;
 							
 							case GlobalConstValues.IMPORT_TYPE_EXPORTED:
+								importVO.typeFilter = GlobalConstValues.FILE_FILTER_ARRAY;
 								shareConfig.dispatcher.dispatchEvent(new ControllerEvent(ControllerEvent.IMPORT_FILE, importVO));
 								break;
 						}
