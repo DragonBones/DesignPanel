@@ -32,8 +32,7 @@
 				"DragonBonesDesignPanel/import3DTextures.jsfl"
 			];
 		
-		public static const PORT_JSFL:String = "portJSFL";
-		public static const PORT_CHECK_CONNECT:String = "portCheckConnect";
+		private static const PORT_JSFL:String = "portJSFL";
 		
 		/**
 		 * Determine if JSFLAPI isAvailable
@@ -74,8 +73,6 @@
 		[Inject]
 		public var client:LocalConnectionClientService;
 		
-		public var isServerConnected:Boolean;
-		
 		private var _requestGroup:RequestGroup;
 		private var _timer:Timer;
 		
@@ -98,7 +95,6 @@
 			if(server)
 			{
 				server.addPort(PORT_JSFL);
-				server.addPort(PORT_CHECK_CONNECT);
 				server.addEventListener(LocalConnectionServerService.SERVER_RECEIIVED, serverHandler);
 			}
 			else
@@ -121,7 +117,6 @@
 			if(server)
 			{
 				server.removePort(PORT_JSFL);
-				server.removePort(PORT_CHECK_CONNECT);
 				server.removeEventListener(LocalConnectionServerService.SERVER_RECEIIVED, serverHandler);
 			}
 			else
@@ -207,8 +202,7 @@
 		{
 			if (client)
 			{
-				_prevPort = PORT_CHECK_CONNECT;
-				client.send(PORT_CHECK_CONNECT, null, "handshake");
+				
 			}
 		}
 		
@@ -223,12 +217,6 @@
 					{
 						sendVO = vo.clone();
 						sendVO.data = MMExecute(vo.data.toString());
-						server.send(sendVO);
-					}
-					else if(vo.port == PORT_CHECK_CONNECT)
-					{
-						sendVO = vo.clone();
-						sendVO.data = "handshake";
 						server.send(sendVO);
 					}
 					break;
@@ -248,26 +236,15 @@
 							this.dispatchEvent(new ServiceEvent(vo.type, vo.data));
 						}
 					}
-					else if(vo.port == PORT_CHECK_CONNECT)
-					{
-						// handshake
-						isServerConnected = true;
-					}
 					break;
 			}
 		}
 		
 		private function clientErrorHandler(e:Event):void
 		{
-			if (_prevPort == PORT_JSFL)
-			{
-				light.managers.ErrorManager.getInstance().dispatchErrorEvent(this, JSFL_CONNECTION_ERROR, e.toString());
-			}
-			else if (_prevPort == PORT_CHECK_CONNECT)
-			{
-				isServerConnected = false;
-				client.connectToServer(-1);
-			}
+			light.managers.ErrorManager.getInstance().dispatchErrorEvent(this, JSFL_CONNECTION_ERROR, e.toString());
+			
+			client.connectToServer();
 		}
 	}
 }
