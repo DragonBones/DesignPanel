@@ -326,11 +326,15 @@ package core
 			exportVO.scale = exportScale;
 			exportVO.textureAtlasPath = textureAtlasPath;
 			exportVO.configType = exportDataFormatAC.source[exportDataFormatIndex].value;
-			exportVO.textureAtlasType = exportTextureFormatAC.source[exportTextureFormatIndex].value;
-			exportVO.dragonBonesFileName = dragonBonesFileName;
-			exportVO.textureAtlasFileName = textureAtlasFileName;
-			exportVO.textureAtlasConfigFileName = textureAtlasConfigFileName;
-			exportVO.subTextureFolderName = subTextureFolderName;
+			
+			if (exportVO.configType == GlobalConstValues.CONFIG_TYPE_MERGED)
+			{
+				exportVO.textureAtlasType = exportTextureMergedFormatAC.source[exportTextureFormatIndex].value;
+			}
+			else
+			{
+				exportVO.textureAtlasType = exportTextureFormatAC.source[exportTextureFormatIndex].value;
+			}
 		}
 		
 		/**
