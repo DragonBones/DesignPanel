@@ -255,6 +255,105 @@ var dragonBonesExtensions;
         return currentScale;
     }
 
+    function offsetContainerContents(containerSymbol, x, y)
+    {
+        var timeline = containerSymbol.libraryItem.timeline;
+        //
+        for each (var layer in timeline.layers)
+        {
+            for each (var frame in layer.frames)
+            {
+                for each (var element in frame.elements)
+                {
+                    element.x += x;
+                    element.y += y;
+                }
+            }
+        }
+    }
+
+    function swapBoneSymbol(layer, frame, args)
+    {
+        var currentDOM = fl.getDocumentDOM();
+        var swapBoneItemNameDic = args[0];
+        if (!swapBoneItemNameDic)
+        {
+            swapBoneItemNameDic = args[0] = {};
+        }
+
+        var boneSymbol = Utils.filter(frame.elements, null, ["instanceType", "symbol", "bitmap"])[0];
+
+        if (boneSymbol)
+        {
+            var swapBoneItemName = swapBoneItemNameDic[layer.mame];
+            if (swapBoneItemName)
+            {
+                currentDOM.selectNone();
+                boneSymbol.selected = true;
+                currentDOM.swapElement(swapBoneItemName);
+            }
+            else
+            {
+                swapBoneItemNameDic[layer.mame] = boneSymbol.libraryItem.name;
+            }
+        }
+    }
+
+    function modifyBoneContentsPonsition(layer, frame, args)
+    {
+        var currentDOM = fl.getDocumentDOM();
+        var modifiedBoneItems = args[1];
+        var bonePositionOffsetDic = args[2];
+        if (!modifiedBoneItems)
+        {
+            modifiedBoneItems = args[1] = [];
+        }
+
+        if (!bonePositionOffsetDic)
+        {
+            bonePositionOffsetDic = args[2] = {};
+        }
+
+        var boneSymbol = Utils.filter(frame.elements, null, ["symbolType", "movie clip", "graphic"])[0];
+
+        if (boneSymbol)
+        {
+            var boneItem = boneSymbol.libraryItem;
+            if (modifiedBoneItems.indexOf(boneItem.name) < 0)
+            {
+                modifiedBoneItems.push(boneItem.name);
+
+                var x = boneSymbol.x;
+                var y = boneSymbol.y;
+                var transformX = boneSymbol.transformX;
+                var transformY = boneSymbol.transformY;
+
+                if (x == transformX && y == transformY)
+                {
+                    return;
+                }
+
+                var offset = {x: transformX, y: transformY};
+                offset = fl.Math.transformPoint(fl.Math.invertMatrix(boneSymbol.matrix), offset);
+                bonePositionOffsetDic[boneItem.name] = offset;
+                offsetContainerContents(boneSymbol, -offset.x, -offset.y);
+
+                boneSymbol.x = boneSymbol.transformX;
+                boneSymbol.y = boneSymbol.transformY;
+                boneSymbol.setTransformationPoint({x:0, y:0});
+            }
+            else
+            {
+                var offset = bonePositionOffsetDic[boneItem.name];
+                offset = fl.Math.transformPoint(boneSymbol.matrix, offset);
+                boneSymbol.x = offset.x;
+                boneSymbol.y = offset.y;
+                //
+                boneSymbol.setTransformationPoint({x:0, y:0});
+            }
+        }
+    }
+
     function modifyBoneTransform(layer, frame, args)
     {
         if (layer.locked || !layer.visible)
@@ -293,7 +392,7 @@ var dragonBonesExtensions;
                     }
                     break;
 
-                case 2:
+                case 1:
                     // offset
                     switch (transformType)
                     {
@@ -314,7 +413,7 @@ var dragonBonesExtensions;
                     }
                     break;
 
-                case 3:
+                case 2:
                     // scale
                     switch (transformType)
                     {
@@ -606,6 +705,28 @@ var dragonBonesExtensions;
         return true;
     }
 
+    dragonBonesExtensions.swapBonesSymbol = function ()
+    {
+        var currentDOM = fl.getDocumentDOM();
+        if (!currentDOM)
+        {
+            return DragonBones.ERROR_NO_ACTIVE_DOM;
+        }
+        Utils.forEachSelected(3, swapBoneSymbol, []);
+    }
+
+    dragonBonesExtensions.modifyBonesContentsPonsition = function ()
+    {
+        var currentDOM = fl.getDocumentDOM();
+        if (!currentDOM)
+        {
+            return DragonBones.ERROR_NO_ACTIVE_DOM;
+        }
+        Utils.forEachSelected(3, modifyBoneContentsPonsition, []);
+
+        return true;
+    }
+
     dragonBonesExtensions.moveBonesToParentPosition = function()
     {
         var currentDOM = fl.getDocumentDOM();
@@ -727,7 +848,7 @@ var dragonBonesExtensions;
         return true;
     }
 
-    dragonBonesExtensions.import3DTextures = function(noFrameChange, noScaleChange)
+    dragonBonesExtensions.import3DTextures = function()
     {
         var currentDOM = fl.getDocumentDOM();
         if (!currentDOM)
@@ -744,11 +865,6 @@ var dragonBonesExtensions;
             if (armatureName)
             {        
                 importArmatureTextures(folderURL, armatureName);
-                if (!noFrameChange || !noScaleChange)
-                {
-                    currentDOM.library.editItem(armatureName);
-                    dragonBonesExtensions.updateArmatureBonesFrameAndScale(!noFrameChange, !noScaleChange);
-                }
                 return true;
             }
         }
