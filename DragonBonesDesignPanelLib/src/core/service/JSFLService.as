@@ -24,7 +24,7 @@
 		public static const LOAD_JSFL_FILE_ERROR:String = "LOAD_JSFL_FILE_ERROR";
 		public static const JSFL_CONNECTION_ERROR:String = "JSFL_CONNECTION_ERROR";
 		
-		private static const JSFLs:Vector.<String> = new <String>[
+		public static const JSFLs:Vector.<String> = new <String>[
 				"DragonBonesDesignPanel/utils.jsfl",
 				"DragonBonesDesignPanel/events.jsfl",
 				"DragonBonesDesignPanel/dragonBones.jsfl",
@@ -193,7 +193,7 @@
 					break;
 				
 				default:
-					light.managers.ErrorManager.getInstance().dispatchErrorEvent(this, LOAD_JSFL_FILE_ERROR, "JSFL文件读取失败！");
+					//light.managers.ErrorManager.getInstance().dispatchErrorEvent(this, LOAD_JSFL_FILE_ERROR, "JSFL文件读取失败！");
 					break;
 			}
 		}

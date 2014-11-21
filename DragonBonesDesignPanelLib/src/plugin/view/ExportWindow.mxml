@@ -144,7 +144,7 @@
 							selectedIndex="@{_settingManager.exportTextureFormatIndex}" 
 							change="changeHandler(event)"
 							/>
-			<s:NumericStepper width="100%" minimum="0.1" maximum="32" snapInterval="0.1" stepSize="0.5" textAlign="right"
+			<s:NumericStepper width="100%" minimum="0.1" maximum="32" snapInterval="0.01" stepSize="0.5" textAlign="right"
 							  value="@{_settingManager.exportScale}" visible="{!_isSWF}" includeInLayout="{!_isSWF}"
 							  />
 			
