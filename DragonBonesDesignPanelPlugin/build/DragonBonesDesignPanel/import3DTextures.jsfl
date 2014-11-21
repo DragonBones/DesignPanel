@@ -140,52 +140,6 @@ var dragonBonesExtensions;
         }
     }
 
-    function importArmatureTextures(textureFolderURL, armatureName)
-    {
-        var currentDOM = fl.getDocumentDOM();
-        
-        if (!currentDOM.library.itemExists(armatureName + "_" + "folder"))
-        {
-            currentDOM.library.newFolder(armatureName + "_" + "folder");
-        }
-
-        if (!currentDOM.library.itemExists(armatureName + "_" + "folder" + "/" + "textures"))
-        {
-            currentDOM.library.newFolder(armatureName + "_" + "folder" + "/" + "textures");
-        }
-
-        var textureFileList = Utils.filterFileList(textureFolderURL, /\.(png)$/i, 1);
-        var boneTextureListMap = {};
-        for each (var textureFile in textureFileList)
-        {
-            var textureName = textureFile.name;
-            if (textureName.indexOf("_offset_") <= 0)
-            {
-                continue;
-            }
-            var paramsList = textureName.split(".")[0].split("_offset_");
-            var moveList = paramsList.pop().split("_");
-            
-            paramsList = paramsList[0].split("_angle_");
-            var angleList = paramsList.pop().split("_");
-            var boneName = paramsList[0];
-            var boneTextureList = boneTextureListMap[boneName];
-            if (!boneTextureList)
-            {
-                boneTextureListMap[boneName] = boneTextureList = [];
-            }
-            textureFile["move"] = moveList;
-            textureFile["angle"] = angleList;
-            boneTextureList.push(textureFile);
-        }
-        
-        for (var boneName in boneTextureListMap)
-        {
-            var boneTextureList = boneTextureListMap[boneName];
-            importBoneTextures(armatureName, boneName, boneTextureList);
-        }
-    }
-
     function updateBoneFrame(boneSymbol, boneRotationList)
     {
         if (!boneSymbol || !boneSymbol.hasPersistentData(DragonBones.FRAME_DATA) || !boneRotationList || boneRotationList.length <= 0)
@@ -449,7 +403,18 @@ var dragonBonesExtensions;
         var boneSymbol = Utils.filter(frame.elements, null, ["instanceType", "symbol"])[0];
         if (boneSymbol)
         {
-            trace(boneSymbol.libraryItem.name, frame.startFrame + 1, boneSymbol.firstFrame + 1);
+            if (args)
+            {
+                //rawFrame, replaceFrame
+                if (boneSymbol.firstFrame == args[0])
+                {
+                    boneSymbol.firstFrame = args[1] || args[0];
+                }
+            }
+            else
+            {
+                trace(boneSymbol.libraryItem.name, frame.startFrame + 1, boneSymbol.firstFrame + 1);
+            }
         }
     }
 
@@ -819,14 +784,14 @@ var dragonBonesExtensions;
         return true;
     }
 
-    dragonBonesExtensions.traceBoneUsedFrame = function ()
+    dragonBonesExtensions.traceBoneUsedFrame = function (rawFrame, replaceFrame)
     {
         var currentDOM = fl.getDocumentDOM();
         if (!currentDOM)
         {
             return DragonBones.ERROR_NO_ACTIVE_DOM;
         }
-        Utils.forEachSelected(3, traceBoneUsedFrame);
+        Utils.forEachSelected(3, traceBoneUsedFrame, [rawFrame, replaceFrame]);
     }
 
     dragonBonesExtensions.updateArmatureBonesFrameAndScale = function (updateFrame, updateScale)
@@ -848,6 +813,58 @@ var dragonBonesExtensions;
         return true;
     }
 
+    dragonBonesExtensions.importArmatureTextures = function (textureFolderURL, armatureName)
+    {
+        var currentDOM = fl.getDocumentDOM();
+        if (!currentDOM)
+        {
+            return DragonBones.ERROR_NO_ACTIVE_DOM;
+        }
+        
+        if (!currentDOM.library.itemExists(armatureName + "_" + "folder"))
+        {
+            currentDOM.library.newFolder(armatureName + "_" + "folder");
+        }
+
+        if (!currentDOM.library.itemExists(armatureName + "_" + "folder" + "/" + "textures"))
+        {
+            currentDOM.library.newFolder(armatureName + "_" + "folder" + "/" + "textures");
+        }
+
+        var textureFileList = Utils.filterFileList(textureFolderURL, /\.(png)$/i, 1);
+        var boneTextureListMap = {};
+        for each (var textureFile in textureFileList)
+        {
+            var textureName = textureFile.name;
+            if (textureName.indexOf("_offset_") <= 0)
+            {
+                continue;
+            }
+            var paramsList = textureName.split(".")[0].split("_offset_");
+            var moveList = paramsList.pop().split("_");
+            
+            paramsList = paramsList[0].split("_angle_");
+            var angleList = paramsList.pop().split("_");
+            var boneName = paramsList[0];
+            var boneTextureList = boneTextureListMap[boneName];
+            if (!boneTextureList)
+            {
+                boneTextureListMap[boneName] = boneTextureList = [];
+            }
+            textureFile["move"] = moveList;
+            textureFile["angle"] = angleList;
+            boneTextureList.push(textureFile);
+        }
+        
+        for (var boneName in boneTextureListMap)
+        {
+            var boneTextureList = boneTextureListMap[boneName];
+            importBoneTextures(armatureName, boneName, boneTextureList);
+        }
+
+        return true;
+    }
+
     dragonBonesExtensions.import3DTextures = function()
     {
         var currentDOM = fl.getDocumentDOM();
@@ -864,7 +881,7 @@ var dragonBonesExtensions;
             armatureName = prompt("Input Armature Name", armatureName);
             if (armatureName)
             {        
-                importArmatureTextures(folderURL, armatureName);
+                dragonBonesExtensions.importArmatureTextures(folderURL, armatureName);
                 return true;
             }
         }

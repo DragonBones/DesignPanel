@@ -39,6 +39,9 @@ var dragonBones;
         DragonBones.COLOR_TRANSFORM = "colorTransform";
         DragonBones.RECTANGLE = "rectangle";
         DragonBones.ELLIPSE = "ellipse";
+        DragonBones.TEXT = "text";
+        DragonBones.COLOR = "color";
+        DragonBones.SCALING_GRID = "scalingGrid";
 
         DragonBones.A_NAME = "name";
         DragonBones.A_PARENT = "parent";
@@ -50,7 +53,6 @@ var dragonBones;
         DragonBones.A_FADE_IN_TIME = "fadeInTime";
         DragonBones.A_LOOP = "loop";
         DragonBones.A_SCALE = "scale";
-        DragonBones.A_OFFSET = "offset";
         DragonBones.A_OFFSET = "offset";
 
         DragonBones.A_X = "x";
@@ -89,14 +91,33 @@ var dragonBones;
         DragonBones.A_RED_MULTIPLIER = "rM";
         DragonBones.A_GREEN_MULTIPLIER = "gM";
         DragonBones.A_BLUE_MULTIPLIER = "bM";
+
+        DragonBones.A_RED = "r";
+        DragonBones.A_GREEN = "g";
+        DragonBones.A_BLUE = "b";
+
+        DragonBones.A_LEFT = "left";
+        DragonBones.A_RIGHT = "right";
+        DragonBones.A_TOP = "top";
+        DragonBones.A_BOTTOM = "bottom";
+
+        DragonBones.A_BOLD = "bold";
+        DragonBones.A_ITALIC = "italic";
+        DragonBones.A_SIZE = "size";
+        DragonBones.A_FACE = "face";
+        DragonBones.A_ALIGN_H = "alignH";
+        DragonBones.A_ALIGN_V = "alignV";
+        DragonBones.A_LINE_TYPE = "lineType";
+        DragonBones.A_TEXT_TYPE = "textType";
+        DragonBones.A_TEXT = "text";
         
         DragonBones.A_Z = "z";
         DragonBones.A_ROTATION_X = "rotationX";
         DragonBones.A_ROTATION_Y = "rotationY";
         DragonBones.A_ROTATION_Z = "rotationZ";
-        DragonBones.A_OFFSET_ROTATION_X = "offsetRotationX"
-        DragonBones.A_OFFSET_ROTATION_Y = "offsetRotationY"
-        DragonBones.A_OFFSET_ROTATION_Z = "offsetRotationZ"
+        DragonBones.A_OFFSET_ROTATION_X = "offsetRotationX";
+        DragonBones.A_OFFSET_ROTATION_Y = "offsetRotationY";
+        DragonBones.A_OFFSET_ROTATION_Z = "offsetRotationZ";
         DragonBones.A_MATRIX3D = "matrix3D";
 
         DragonBones.A_ID = "id";
@@ -106,6 +127,7 @@ var dragonBones;
 
         DragonBones.V_IMAGE = "image";
         DragonBones.V_ARMATURE = "armature";
+        DragonBones.V_TEXT = "text";
 
         DragonBones.DELIM_CHAR = "|";
         DragonBones.EVENT_PREFIX = "@";
@@ -730,6 +752,7 @@ var dragonBones;
                     timeline.deleteLayer(layerID);
                 }
             }
+
             return itemCopy;
         };
 
@@ -1110,15 +1133,15 @@ var dragonBones;
             return slotXML;
         }
 
-        function getDisplayXML(slotXML, displayName, transform, armatureItem, isArmature)
+        function getDisplayXML(slotXML, displayName, transform, armatureItem, displayType)
         {
             var displayXML = slotXML[DragonBones.DISPLAY].(@name == displayName)[0];
             if (!displayXML)
             {
                 displayXML = 
                     <{DragonBones.DISPLAY} 
-                        {DragonBones.A_NAME}={displayName}
-                        {DragonBones.A_TYPE}={isArmature? DragonBones.V_ARMATURE: DragonBones.V_IMAGE}
+                        {DragonBones.A_NAME}={displayName? displayName: ""}
+                        {DragonBones.A_TYPE}={displayType}
                     >
                         <{DragonBones.TRANSFORM}
                             {DragonBones.A_X}={Utils.formatNumber(transform.x) || 0}
@@ -1132,6 +1155,39 @@ var dragonBones;
                 Utils.appendXML(slotXML, displayXML);
             }
             return displayXML;
+        }
+
+        function getTextXML(displayXML, textSymbol)
+        {
+            var textXML = displayXML[DragonBones.TEXT][0];
+            if (!textXML)
+            {
+                var colorString = textSymbol.getTextAttr("fillColor");
+
+                textXML = 
+                    <{DragonBones.TEXT} 
+                        {DragonBones.A_BOLD}={textSymbol.getTextAttr("bold")? 1: 0}
+                        {DragonBones.A_ITALIC}={textSymbol.getTextAttr("italic")? 1: 0}
+                        {DragonBones.A_WIDTH}={textSymbol.width / textSymbol.scaleX}
+                        {DragonBones.A_HEIGHT}={textSymbol.height / textSymbol.scaleY}
+                        {DragonBones.A_SIZE}={textSymbol.getTextAttr("size")}
+                        {DragonBones.A_FACE}={textSymbol.getTextAttr("face")}
+                        {DragonBones.A_ALIGN_H}={textSymbol.getTextAttr("alignment")}
+                        {DragonBones.A_ALIGN_V}={"top"}
+                        {DragonBones.A_LINE_TYPE}={textSymbol.lineType}
+                        {DragonBones.A_TEXT_TYPE}={textSymbol.textType}
+                        {DragonBones.A_TEXT}={textSymbol.getTextString()}
+                    >
+                        <{DragonBones.COLOR}
+                         {DragonBones.A_RED}={parseInt(colorString.substr(1, 2), 16)}
+                         {DragonBones.A_GREEN}={parseInt(colorString.substr(3, 2), 16)}
+                         {DragonBones.A_BLUE}={parseInt(colorString.substr(5, 2), 16)}/>
+                    </{DragonBones.TEXT}>;
+
+                Utils.appendXML(displayXML, textXML);
+            }
+
+            return textXML;
         }
 
 
@@ -1224,7 +1280,7 @@ var dragonBones;
                     frame = keyFrames[j];
                     
                     var elements = frame.elements;
-                    var boneSymbol = Utils.filter(elements, null, ["instanceType", "bitmap", "symbol"])[0];
+                    var boneSymbol = Utils.filter(elements, null, ["instanceType", "bitmap", "symbol"], ["textType", "static", "dynamic", "input"])[0];
                     var itemFolderName = null;
                     var noAutoEasingFrame = noAutoEasing;
                     if (!boneSymbol)
@@ -1389,14 +1445,16 @@ var dragonBones;
             var boneSymbolItem = boneSymbol.libraryItem;
             var transform = boneSymbol.getTransformationPoint();
 
-            var isChildArmature = false;
-            var isArmature = false;
+            var displayType = null;
+            //是否是多帧图形骨骼，TODO: 更完善的检测
             var isGraphicBone = false;
+            //当空元件或空图形时，TODO: 更完善的检测
             var hasDisplay = false;
 
             switch (boneSymbol.instanceType)
             {
                 case "bitmap":
+                    displayType = DragonBones.V_IMAGE;
                     //cs 5.5 cs 6 bug
                     if (
                         transform.x == 0 && 
@@ -1415,6 +1473,7 @@ var dragonBones;
 
                     if (isArmature)
                     {
+                        displayType = DragonBones.V_ARMATURE;
                         hasDisplay = true;
                     }
                     else if (
@@ -1423,16 +1482,28 @@ var dragonBones;
                         (boneSymbol.loop == "single frame" || boneSymbol.loop == "play once")    // TODO: multiply slots
                     )
                     {
+                        displayType = DragonBones.V_IMAGE;
                         isGraphicBone = true;
                         hasDisplay = (boneSymbol.width > 0 || boneSymbol.height > 0);
                     }
                     else
                     {
+                        displayType = DragonBones.V_IMAGE;
                         hasDisplay = (boneSymbol.width > 0 || boneSymbol.height > 0);
                     }
                     break;
 
                 default:
+                    //
+                    if (boneSymbol.textType)
+                    {
+                        displayType = DragonBones.V_TEXT;
+                        hasDisplay = true;
+                        // flash cc bug
+                        transform.x += 2;
+                        transform.y += 2;
+                        break;
+                    }
                     return null;
             }
 
@@ -1443,11 +1514,12 @@ var dragonBones;
                 displayMap = {};
                 this._displayRegistPositionMap[boneName] = displayMap;
             }
-            var displayRegistPosition = displayMap[boneSymbolItem.name];
+            var displayRegistName = boneSymbolItem? boneSymbolItem.name: (boneName + " _default");
+            var displayRegistPosition = displayMap[displayRegistName];
             if (!displayRegistPosition)
             {
                 displayRegistPosition = {x:transform.x, y:transform.y};
-                displayMap[boneSymbolItem.name] = displayRegistPosition;
+                displayMap[displayRegistName] = displayRegistPosition;
             }
             transform.pivotOffsetX = displayRegistPosition.x - transform.x;
             transform.pivotOffsetY = displayRegistPosition.y - transform.y;
@@ -1485,6 +1557,17 @@ var dragonBones;
                     this._generateArea(boneXML, boneSymbolItem);
                 }
 
+                if (boneSymbolItem && boneSymbolItem.scalingGrid)
+                {
+                    var scalingGridXML = 
+                        <{DragonBones.SCALING_GRID}
+                            {DragonBones.A_LEFT}={boneSymbolItem.scalingGridRect.left}
+                            {DragonBones.A_RIGHT}={boneSymbolItem.scalingGridRect.right}
+                            {DragonBones.A_TOP}={boneSymbolItem.scalingGridRect.top}
+                            {DragonBones.A_BOTTOM}={boneSymbolItem.scalingGridRect.bottom}/>;
+                    boneXML.appendChild(scalingGridXML);
+                }
+
                 if (this.hasEventListener(DragonBones.BONE))
                 {
                     this.dispatchEvent(new events.Event(DragonBones.BONE, [this._currentArmatureItem, boneSymbol, boneXML]));
@@ -1493,7 +1576,7 @@ var dragonBones;
 
             //
             var slotXML = getSlotXML(this._currentArmatureXML, boneXML, boneName, this._currentArmatureItem, zOrder);
-            if (boneSymbol.blendMode != "normal")
+            if (boneSymbol.blendMode && boneSymbol.blendMode != "normal")
             {
                 slotXML.@[DragonBones.A_BLEND_MODE] = boneSymbol.blendMode;
             }
@@ -1501,7 +1584,7 @@ var dragonBones;
             //
             if (hasDisplay)
             {
-                if (boneSymbol.instanceType != "bitmap")
+                if (boneSymbol.instanceType == "symbol")
                 {
                     var aO = boneSymbol.colorAlphaAmount;
                     var rO = boneSymbol.colorRedAmount;
@@ -1552,30 +1635,41 @@ var dragonBones;
                 }
 
                 //
-                var symbolNameList = DragonBones.formatObjectName(boneSymbolItem, true);
-                var displayName = symbolNameList[2];
                 var displayXML = null;
-                if (isGraphicBone)
+                var textXML = null;
+                if (boneSymbolItem)
                 {
-                    if (symbolNameList[1] != DragonBones.NO_EASING)
+                    var symbolNameList = DragonBones.formatObjectName(boneSymbolItem, true);
+                    var displayName = symbolNameList[2];
+                    if (isGraphicBone)
                     {
-                        displayXML = this._generateMultipleSlot(boneSymbol, boneXML, slotXML);
+                        if (symbolNameList[1] != DragonBones.NO_EASING)
+                        {
+                            displayXML = this._generateMultipleSlot(boneSymbol, boneXML, slotXML);
+                        }
+                    }
+                    else
+                    {
+                        var displayTransform = {x:-transform.x, y:-transform.y};
+
+                        displayXML = getDisplayXML(slotXML, displayName, displayTransform, this._currentArmatureItem, displayType);
+
+                        if (displayType == DragonBones.V_ARMATURE && symbolNameList[1] != DragonBones.NO_EASING)
+                        {
+                            if (this._armatureList.indexOf(displayName) < 0)
+                            {
+                                this._armatureList.push(displayName);
+                                this._armatureList.push(true);
+                            }
+                        }
                     }
                 }
                 else
                 {
+                    // text
                     var displayTransform = {x:-transform.x, y:-transform.y};
-
-                    displayXML = getDisplayXML(slotXML, displayName, displayTransform, this._currentArmatureItem, isArmature);
-
-                    if (isArmature && symbolNameList[1] != DragonBones.NO_EASING)
-                    {
-                        if (this._armatureList.indexOf(displayName) < 0)
-                        {
-                            this._armatureList.push(displayName);
-                            this._armatureList.push(true);
-                        }
-                    }
+                    displayXML = getDisplayXML(slotXML, "text", displayTransform, this._currentArmatureItem, displayType);
+                    textXML = getTextXML(displayXML, boneSymbol);
                 }
                 
                 if (displayXML)
@@ -1654,13 +1748,39 @@ var dragonBones;
                 if (frameNameList[1] == DragonBones.SET_PREFIX && frameNameList[3])
                 {
                     var jsonData = Utils.decodeJSON(frameNameList[3]);
-                    if (frameNameList[2] == DragonBones.SLOT)
+
+                    switch (frameNameList[2])
                     {
-                        var blendMode = jsonData[DragonBones.A_BLEND_MODE];
-                        if (blendMode)
-                        {
-                            slotXML.@[DragonBones.A_BLEND_MODE] = blendMode;
-                        }
+                        case DragonBones.SLOT:
+                            for (var key in jsonData)
+                            {
+                                var value = jsonData[key];
+                                switch (key)
+                                {
+                                    case DragonBones.A_BLEND_MODE:
+                                        slotXML.@[DragonBones.A_BLEND_MODE] = value;
+                                        break;
+                                }
+                            }
+                            break;
+
+                        case DragonBones.TEXT:
+                            if (!textXML)
+                            {
+                                break;
+                            }
+
+                            for (var key in jsonData)
+                            {
+                                var value = jsonData[key];
+                                switch (key)
+                                {
+                                    case DragonBones.A_ALIGN_V:
+                                        textXML.@[DragonBones.A_ALIGN_V] = value;
+                                        break;
+                                }
+                            }
+                            break;
                     }
                 }
             }
@@ -1732,8 +1852,8 @@ var dragonBones;
                                 {DragonBones.A_SKEW_Y}={Utils.formatNumber(areaShape.skewY)}
                                 {DragonBones.A_SCALE_X}={Utils.formatNumber(areaShape.scaleX)}
                                 {DragonBones.A_SCALE_Y}={Utils.formatNumber(areaShape.scaleY)}
-                                {DragonBones.A_PIVOT_X}={-Utils.formatNumber(areaShape.transformX - (x - width * 0.5))}
-                                {DragonBones.A_PIVOT_Y}={-Utils.formatNumber(areaShape.transformY - (y - height * 0.5))}/>
+                                {DragonBones.A_PIVOT_X}={Utils.formatNumber(areaShape.transformX - (x - width * 0.5))}
+                                {DragonBones.A_PIVOT_Y}={Utils.formatNumber(areaShape.transformY - (y - height * 0.5))}/>
 
                         areaXML.appendChild(transformXML);
 
@@ -1817,7 +1937,7 @@ var dragonBones;
                 if (frame)
                 {
                     elements = frame.elements;
-                    displaySymbol = Utils.filter(elements, null, ["instanceType", "bitmap", "symbol"])[0];
+                    displaySymbol = Utils.filter(elements, null, ["instanceType", "bitmap", "symbol"], ["textType", "static", "dynamic", "input"])[0];
                 }
                 
                 var itemFolderName = null;
@@ -1829,40 +1949,45 @@ var dragonBones;
                 if (displaySymbol)
                 {
                     var displaySymbolItem = displaySymbol.libraryItem;
-                    var symbolNameList = DragonBones.formatObjectName(displaySymbolItem, true);
-                    var displayName = symbolNameList[2];
-
-                    var isArmature = Boolean(DragonBones.isArmatureItem(displaySymbolItem, true));
-
-                    var transform = displayContainer.getTransformationPoint();
-                    transform.x = displaySymbol.x - transform.x;
-                    transform.y = displaySymbol.y - transform.y;
-                    transform.skewX = displaySymbol.skewX;
-                    transform.skewY = displaySymbol.skewY;
-                    transform.scaleX = displaySymbol.scaleX;
-                    transform.scaleY = displaySymbol.scaleY;
-
-                    if (layersFiltered.length > 1 && layer.name != mainSlotName)
+                    if (displaySymbolItem)
                     {
-                        var slotXML = getSlotXML(this._currentArmatureXML, boneXML, layer.name, this._currentArmatureItem, mainSlotZOrder + layerIndex * 0.05);
-                        if (displaySymbol.blendMode != "normal")
+                        var symbolNameList = DragonBones.formatObjectName(displaySymbolItem, true);
+                        var displayName = symbolNameList[2];
+                        var isArmature = Boolean(DragonBones.isArmatureItem(displaySymbolItem, true));
+                        var transform = displayContainer.getTransformationPoint();
+                        transform.x = displaySymbol.x - transform.x;
+                        transform.y = displaySymbol.y - transform.y;
+                        transform.skewX = displaySymbol.skewX;
+                        transform.skewY = displaySymbol.skewY;
+                        transform.scaleX = displaySymbol.scaleX;
+                        transform.scaleY = displaySymbol.scaleY;
+
+                        if (layersFiltered.length > 1 && layer.name != mainSlotName)
                         {
-                            slotXML.@[DragonBones.A_BLEND_MODE] = displaySymbol.blendMode;
+                            var slotXML = getSlotXML(this._currentArmatureXML, boneXML, layer.name, this._currentArmatureItem, mainSlotZOrder + layerIndex * 0.05);
+                            if (displaySymbol.blendMode && displaySymbol.blendMode != "normal")
+                            {
+                                slotXML.@[DragonBones.A_BLEND_MODE] = displaySymbol.blendMode;
+                            }
+                            getDisplayXML(slotXML, displayName, transform, this._currentArmatureItem, isArmature? DragonBones.V_ARMATURE: DragonBones.V_IMAGE);
                         }
-                        getDisplayXML(slotXML, displayName, transform, this._currentArmatureItem, isArmature);
-                    }
-                    else
-                    {
-                        mainDisplayXML = getDisplayXML(mainSlotXML, displayName, transform, this._currentArmatureItem, isArmature);
-                    }
-
-                    if (isArmature && symbolNameList[1] != DragonBones.NO_EASING)
-                    {
-                        if (this._armatureList.indexOf(displayName) < 0)
+                        else
                         {
-                            this._armatureList.push(displayName);
-                            this._armatureList.push(true);
+                            mainDisplayXML = getDisplayXML(mainSlotXML, displayName, transform, this._currentArmatureItem, isArmature? DragonBones.V_ARMATURE: DragonBones.V_IMAGE);
                         }
+
+                        if (isArmature && symbolNameList[1] != DragonBones.NO_EASING)
+                        {
+                            if (this._armatureList.indexOf(displayName) < 0)
+                            {
+                                this._armatureList.push(displayName);
+                                this._armatureList.push(true);
+                            }
+                        }
+                    }
+                    else if (displaySymbol.textType)
+                    {
+                        // TODO:
                     }
                 }
                 

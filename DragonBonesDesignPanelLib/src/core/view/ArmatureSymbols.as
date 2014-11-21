@@ -103,7 +103,7 @@ package core.view
 					areaShape = new Sprite();
 					areaShape.name = rectangleData.name;
 					areaShape.graphics.beginFill(0xFF00FF, 0.3);
-					areaShape.graphics.drawRect(rectangleData.pivot.x, rectangleData.pivot.y, rectangleData.width, rectangleData.height);
+					areaShape.graphics.drawRect(-rectangleData.pivot.x, -rectangleData.pivot.y, rectangleData.width, rectangleData.height);
 					TransformUtil.transformToMatrix(rectangleData.transform, helpMatrix, true);
 					areaShape.transform.matrix = helpMatrix;
 					areaContainer.addChild(areaShape);
@@ -119,7 +119,7 @@ package core.view
 					areaShape = new Sprite();
 					areaShape.name = ellipseData.name;
 					areaShape.graphics.beginFill(0xFF00FF, 0.3);
-					areaShape.graphics.drawEllipse(ellipseData.pivot.x, ellipseData.pivot.y, ellipseData.width, ellipseData.height);
+					areaShape.graphics.drawEllipse(-ellipseData.pivot.x, -ellipseData.pivot.y, ellipseData.width, ellipseData.height);
 					TransformUtil.transformToMatrix(ellipseData.transform, helpMatrix, true);
 					areaShape.transform.matrix = helpMatrix;
 					areaContainer.addChild(areaShape);

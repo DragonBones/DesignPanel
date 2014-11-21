@@ -35,7 +35,7 @@
 					<s:HGroup width="100%" verticalAlign="middle">
 						<s:NumericStepper width="100%" height="24" cornerRadius="0" textAlign="left"
 										  id="numScale" 
-										  maximum="5000" minimum="0" snapInterval="5"
+										  maximum="5000" minimum="0" snapInterval="1"
 										  />
 						
 					</s:HGroup>
@@ -45,7 +45,7 @@
 					<s:HGroup width="100%" verticalAlign="middle">
 						<s:NumericStepper width="100%" height="24" cornerRadius="0" textAlign="left"
 										  id="numOffset" 
-										  maximum="100" minimum="-100" snapInterval="5"
+										  maximum="100" minimum="-100" snapInterval="1"
 										  />
 						
 					</s:HGroup>
