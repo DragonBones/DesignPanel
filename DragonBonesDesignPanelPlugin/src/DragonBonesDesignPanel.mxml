@@ -15,10 +15,14 @@
 	</fx:Metadata>
 	<fx:Script>
 		<![CDATA[
+			import cloud.GA.DBGATrackerManager;
+			
 			import core.SettingManager;
 			import core.events.ControllerEvent;
 			import core.model.vo.ImportVO;
 			import core.utils.GlobalConstValues;
+			
+			import dragonBones.core.DragonBones;
 			
 			import plugin.view.ExportWindow;
 			import plugin.view.ImportWindow;
@@ -31,6 +35,10 @@
 			private function applicationCompleteHandler():void
 			{
 				this.stage.frameRate = 60;
+				
+				DBGATrackerManager.createDBGATracker(this);
+				DBGATrackerManager.trackPageview("/");
+				DBGATrackerManager.trackEvent("Version", "Version:" + String(getVersionNumber()));
 				
 				var data:String = this.stage.loaderInfo.parameters["data"];
 				if(data)
@@ -80,6 +88,19 @@
 				armaturesPanel.shareConfig.dispatcher.dispatchEvent(e);
 			}
 			
+			private function getVersionNumber():Number
+			{
+				var outputVersionNumber:int = 0;
+				var versionArray:Array = DragonBones.VERSION.split(".");
+				
+				for(var i:int=0; i < versionArray.length; i++)
+				{
+					outputVersionNumber += versionArray[i] * Math.pow(100, versionArray.length - i - 1);
+				}
+				
+				return outputVersionNumber;
+			}
+			
 		]]>
 	</fx:Script>
 	
@@ -99,10 +120,6 @@
 					  />
 			<s:Button id="buttonXML" height="24" cornerRadius="0" 
 					  label="{resourceManager.getString('resources', 'xml')}" 
-					  click="menuClickHandler(event)"
-					  />
-			<s:Button height="24" cornerRadius="0" 
-					  label="{resourceManager.getString('resources', 'about')}" 
 					  click="menuClickHandler(event)"
 					  />
 			
