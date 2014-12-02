@@ -76,7 +76,7 @@
 						</s:HGroup>
 						
 						<s:HGroup width="100%" verticalAlign="middle">
-							<s:CheckBox label="Auto Tween"
+							<s:CheckBox label="{resourceManager.getString('resources','autotween')}"
 										id="checkAutoTween"
 										/>
 							
