@@ -113,23 +113,22 @@
 			<s:Label height="24" textAlign="right" verticalAlign="middle" text="{resourceManager.getString('resources','backgroundColor')}"
 					 visible="{!_isSWF}" includeInLayout="{!_isSWF}"
 					 />
-			
+			<s:Label height="24" textAlign="right" verticalAlign="middle" text="{resourceManager.getString('resources','skeletonDataName')}"/>
 			<s:Label height="24" textAlign="right" verticalAlign="middle" text="{resourceManager.getString('resources','skeletonDataFileName')}"
 					 visible="{!_isMerged}" includeInLayout="{!_isMerged}"
 					 />
 			<s:Label height="24" textAlign="right" verticalAlign="middle" text="{resourceManager.getString('resources','textureDataFileName')}"
-					 visible="{!_isMerged &amp;&amp; !_isPNGs}" includeInLayout="{!_isMerged &amp;&amp; !_isPNGs}"
+					 visible="{!(_isMerged || _isPNGs)}" includeInLayout="{!(_isMerged || _isPNGs)}"
 					 />
 			<s:Label height="24" textAlign="right" verticalAlign="middle" text="{resourceManager.getString('resources','textureFileName')}"
-					 visible="{!_isMerged &amp;&amp; !_isPNGs}" includeInLayout="{!_isMerged &amp;&amp; !_isPNGs}"
+					 visible="{!(_isMerged || _isPNGs)}" includeInLayout="{!(_isMerged || _isPNGs)}"
 					 />
 			<s:Label height="24" textAlign="right" verticalAlign="middle" text="{resourceManager.getString('resources','subTextureFolderName')}"
 					 visible="{_isPNGs}" includeInLayout="{_isPNGs}"
 					 />
 			<s:Label height="24" textAlign="right" verticalAlign="middle" text="{resourceManager.getString('resources','textureAtlasPath')}"
-					 visible="{!_isMerged &amp;&amp; !_isPNGs}" includeInLayout="{!_isMerged &amp;&amp; !_isPNGs}"
+					 visible="{!(_isMerged || _isPNGs)}" includeInLayout="{!(_isMerged || _isPNGs)}"
 					 />
-			<s:Label height="24" textAlign="right" verticalAlign="middle" text="{resourceManager.getString('resources','skeletonDataName')}"/>
 		</s:VGroup>
 		
 		<s:VGroup width="100%" gap="6">
@@ -158,6 +157,9 @@
 								/>
 			</s:HGroup>
 			
+			<s:TextInput id="skeletonDataNameTextInput" width="100%" height="24" textAlign="right"
+						 />
+			
 			<s:TextInput width="100%" height="24" textAlign="right" 
 						 text="@{_settingManager.dragonBonesFileName}"
 						 visible="{!_isMerged}" includeInLayout="{!_isMerged}"
@@ -183,8 +185,7 @@
 						 visible="{!_isMerged &amp;&amp; !_isPNGs}" includeInLayout="{!_isMerged &amp;&amp; !_isPNGs}"
 						 />
 			
-			<s:TextInput id="skeletonDataNameTextInput" width="100%" height="24" textAlign="right"
-						 />
+			
 			
 		</s:VGroup>
 	</s:HGroup>
