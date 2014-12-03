@@ -6,9 +6,10 @@
 			   xmlns:designPanel="designPanel.*"
 			   xmlns:designPanelView="designPanelPlugin.view.*"
 			   xmlns:component="designPanelPlugin.view.component.*"
+			   xmlns:view="plugin.view.*"
 			   xmlns:local="*"
 			   fontSize="12"
-			   applicationComplete="applicationCompleteHandler()" xmlns:view="plugin.view.*"
+			   applicationComplete="applicationCompleteHandler()" 
 			   >
 	<fx:Metadata>
 		[ResourceBundle("resources")]
@@ -23,11 +24,19 @@
 			import core.utils.GlobalConstValues;
 			
 			import dragonBones.core.DragonBones;
+			import dragonBones.utils.ConstValues;
+			
+			import dragonbones.cloud.DBCloud;
+			import dragonbones.cloud.DBNetworkUtils;
+			import dragonbones.cloud.events.DBCloudEvent;
+			import dragonbones.cloud.events.DBNetworkEvent;
 			
 			import plugin.view.ExportWindow;
 			import plugin.view.ImportWindow;
 			import plugin.view.TextureAtlasWindow;
 			import plugin.view.XMLWindow;
+			
+			import view.AboutWindow;
 			
 			[Bindable]
 			private var _settingManager:SettingManager = SettingManager.getInstance();
@@ -38,7 +47,11 @@
 				
 				DBGATrackerManager.createDBGATracker(this);
 				DBGATrackerManager.trackPageview("/");
-				DBGATrackerManager.trackEvent("Version", "Version:" + String(getVersionNumber()));
+				DBGATrackerManager.trackEvent("Version", "Version:" + String(GlobalConstValues.versionNumber));
+				
+				DBCloud.instance.addEventListener(DBCloudEvent.INITED, cloud_onInited);
+				DBNetworkUtils.instance.addEventListener(DBNetworkEvent.STATUS_CHANGED, network_onStatusChanged);
+				DBCloud.instance.init();
 				
 				var data:String = this.stage.loaderInfo.parameters["data"];
 				if(data)
@@ -50,6 +63,38 @@
 					importVO.isToMerge = false;
 					
 					armaturesPanelDispatchEvent(new ControllerEvent(ControllerEvent.IMPORT_FILE, importVO));
+				}
+			}
+			
+			private function cloud_onInited(event:DBCloudEvent):void
+			{
+				DBCloud.instance.removeEventListener(DBCloudEvent.INITED, cloud_onInited);
+			}
+			
+			private function network_onStatusChanged(event:DBNetworkEvent):void
+			{
+				trace("network_onStatusChanged");
+				onlineStatus.selectedIndex = DBNetworkUtils.instance.isNetworkAvailable ? 1 : 0;
+				if(DBNetworkUtils.instance.isNetworkAvailable)
+				{
+					DBCloud.instance.addEventListener(DBCloudEvent.LOAD_LATESTVERSION_SUCCESS, cloud_onLoadLatestVersionSuccess);
+					DBCloud.instance.loadLatestVersion();
+				}
+			}
+			
+			private function cloud_onLoadLatestVersionSuccess(event:DBCloudEvent):void
+			{
+				trace("cloud_onLoadLatestVersionSuccess");
+				var latestVersion:Number = Number(event.data.outputData);
+				if(latestVersion > GlobalConstValues.versionNumber)
+				{
+					DBCloud.instance.ifNeedUpdate = 1;
+					upgradeBtn.visible = true; 
+				}
+				else
+				{
+					DBCloud.instance.ifNeedUpdate = -1;
+					upgradeBtn.visible = false; 
 				}
 			}
 			
@@ -80,6 +125,11 @@
 						xmlWindow.shareConfig = armaturesPanel.shareConfig;
 						xmlWindow.showWindow(this, true);
 						break;
+					
+					case buttonAbout:
+						var aboutWindow:AboutWindow = new AboutWindow();
+						aboutWindow.showWindow(this, true);
+						break;
 				}
 			}
 			
@@ -88,17 +138,15 @@
 				armaturesPanel.shareConfig.dispatcher.dispatchEvent(e);
 			}
 			
-			private function getVersionNumber():Number
+			private function checkOnlineStatus():void
 			{
-				var outputVersionNumber:int = 0;
-				var versionArray:Array = DragonBones.VERSION.split(".");
-				
-				for(var i:int=0; i < versionArray.length; i++)
-				{
-					outputVersionNumber += versionArray[i] * Math.pow(100, versionArray.length - i - 1);
-				}
-				
-				return outputVersionNumber;
+				DBNetworkUtils.instance.testNetwork();
+			}
+			
+			private function downloadNewVersion():void
+			{
+				DBGATrackerManager.trackEvent("/:DownloadNewVersion", "/:DownloadNewVersion. CurrentVersion:" + String(DragonBones.VERSION));
+				navigateToURL(new URLRequest("http://dragonbones.github.io/download.html"));
 			}
 			
 		]]>
@@ -122,8 +170,25 @@
 					  label="{resourceManager.getString('resources', 'xml')}" 
 					  click="menuClickHandler(event)"
 					  />
+			<s:Button id="buttonAbout" height="24" cornerRadius="0" 
+					  label="{resourceManager.getString('resources', 'about')}" 
+					  click="menuClickHandler(event)"
+					  />
 			
 			<s:Spacer width="100%"/>
+			
+			<mx:ViewStack id="onlineStatus" height="100%">
+				<s:NavigatorContent height="100%">
+					<s:Label id="offlineLabel" height="100%" verticalAlign="middle" color="#999999" text="offline" 
+							 buttonMode="true" useHandCursor="true" toolTip="click to check internet again"
+							 click="checkOnlineStatus()"/>
+				</s:NavigatorContent>
+				<s:NavigatorContent height="100%">
+					<s:Label id="upgradeBtn" width="24" right="0" color="#03E2EA"  text="&lt;&lt;" rotation="90" visible="false"
+							 verticalAlign="middle" textAlign="center" buttonMode="true" useHandCursor="true" toolTip="new version detected"
+							 click="downloadNewVersion()"/>
+				</s:NavigatorContent>
+			</mx:ViewStack>
 			
 			<s:DropDownList width="100" height="24" cornerRadius="0" textAlign="right" 
 							dataProvider="{_settingManager.languageAC}" 

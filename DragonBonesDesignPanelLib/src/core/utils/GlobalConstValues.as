@@ -1,9 +1,10 @@
 ﻿package core.utils
 {
+	import dragonBones.core.DragonBones;
+	import dragonBones.utils.ConstValues;
+	
 	import flash.net.FileFilter;
 	import flash.utils.ByteArray;
-	
-	import dragonBones.utils.ConstValues;
 	
 	public class GlobalConstValues 
 	{
@@ -96,6 +97,23 @@
 			}
 			
 			return type;
+		}
+		
+		private static var _versionNumber:int = -1;
+		public static function get versionNumber():Number
+		{
+			if(_versionNumber == -1)
+			{
+				_versionNumber = 0;
+				var versionArray:Array = DragonBones.VERSION.split(".");
+				
+				for(var i:int=0; i < versionArray.length; i++)
+				{
+					_versionNumber += versionArray[i] * Math.pow(100, versionArray.length - i - 1);
+				}
+			}
+			
+			return _versionNumber;
 		}
 	}
 }
