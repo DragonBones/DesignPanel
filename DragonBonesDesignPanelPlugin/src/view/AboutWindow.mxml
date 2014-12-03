@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="utf-8"?>
+<view:BaseWindow xmlns:fx="http://ns.adobe.com/mxml/2009" 
+				 xmlns:s="library://ns.adobe.com/flex/spark" 
+				 xmlns:mx="library://ns.adobe.com/flex/mx" 
+				 xmlns:view="plugin.view.*"
+				 title="{resourceManager.getString('resources', 'about')}"
+				 creationComplete="this_creationCompleteHandler(event)"
+				 removedFromStage="removeFromStageHandler(event)"
+				 >
+	<fx:Script>
+		<![CDATA[
+			import core.utils.GlobalConstValues;
+			
+			import dragonBones.core.DragonBones;
+			
+			import dragonbones.cloud.DBCloud;
+			import dragonbones.cloud.events.DBCloudEvent;
+			
+			import mx.events.FlexEvent;
+			
+			[Bindable]
+			private var _about:String = "";
+			
+			protected function this_creationCompleteHandler(event:FlexEvent):void
+			{
+				DBCloud.instance.addEventListener(DBCloudEvent.LOAD_ABOUT_SUCCESS, cloud_onLoadAboutSuccess);
+				DBCloud.instance.loadAbout();
+				
+				stage.addEventListener(Event.RESIZE, stageResizeHandler);
+				updateSize();
+			}
+			
+			private function removeFromStageHandler(event:Event):void
+			{
+				this.stage.removeEventListener(Event.RESIZE, stageResizeHandler);
+			}
+			
+			private function stageResizeHandler(e:Event):void
+			{
+				updateSize();
+			}
+			
+			private function updateSize():void
+			{
+				this.x = 20;
+				this.y = 20;
+				this.width = this.stage.stageWidth - 40;
+				this.height = this.stage.stageHeight - 40;
+			}
+			
+			private function cloud_onLoadAboutSuccess(event:DBCloudEvent):void
+			{
+				DBCloud.instance.removeEventListener(DBCloudEvent.LOAD_ABOUT_SUCCESS, cloud_onLoadAboutSuccess);
+				_about = String(event.data.outputData);
+			}
+			
+			protected function copyright_clickHandler(event:MouseEvent):void
+			{
+				navigateToURL(new URLRequest("http://dragonbones.github.io/about_us.html"));
+			}
+		]]>
+	</fx:Script>
+	
+	<s:VGroup width="100%" height="100%" gap="10" paddingLeft="10" paddingRight="10" paddingTop="10" paddingBottom="30">
+		<s:Label width="100%" fontSize="14" fontWeight="bold" textAlign="center"
+				 text="DragonBones V{DragonBones.VERSION}"/>
+		<s:Line width="100%">
+			<s:stroke>
+				<s:SolidColorStroke color="0x000000" weight="1" caps="square"/>
+			</s:stroke>
+		</s:Line>
+		<mx:TextArea id="aboutText" width="100%" height="100%" fontSize="14"
+					 contentBackgroundAlpha="0.0" borderVisible="false" editable="false"
+					 htmlText="{_about}" />
+		<s:Line width="100%">
+			<s:stroke>
+				<s:SolidColorStroke color="0x000000" weight="1" caps="square"/>
+			</s:stroke>
+		</s:Line>
+		<s:Label width="100%" fontSize="14" fontWeight="bold" textAlign="center"
+				 buttonMode="true" useHandCursor="true" click="copyright_clickHandler(event)"
+				 text="{resourceManager.getString('resources', 'copyright')}" />
+	</s:VGroup>
+		
+</view:BaseWindow>
