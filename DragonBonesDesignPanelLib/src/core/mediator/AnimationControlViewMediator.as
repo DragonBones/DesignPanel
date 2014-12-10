@@ -1,13 +1,14 @@
 package core.mediator
 {
-	import flash.events.Event;
-	
-	import mx.binding.utils.BindingUtils;
-	
 	import core.events.ModelEvent;
 	import core.model.ParsedModel;
+	import core.suppotClass._BaseMediator;
 	import core.view.AnimationControlView;
-	import core.suppotClass._BaseMediator
+	
+	import flash.events.Event;
+	import flash.events.MouseEvent;
+	
+	import mx.binding.utils.BindingUtils;
 	
 	public final class AnimationControlViewMediator extends _BaseMediator
 	{
@@ -90,6 +91,7 @@ package core.mediator
 						{
 							view.numAnimationScale.value = parsedModel.animationScale * 100;
 							view.numAnimationScale.enabled = true;
+							view.numAnimationTotalTime.text = parsedModel.durationScaled.toString();
 							view.numLoop.enabled = true;
 							view.numLoop.value = parsedModel.playTimes;
 							
@@ -113,6 +115,7 @@ package core.mediator
 						else
 						{
 							view.numAnimationScale.enabled = false;
+							view.numAnimationTotalTime.text = "0";
 							view.numLoop.enabled = false;
 							view.checkAutoTween.enabled = false;
 							//view.checkTweenEasing.enabled = false;
@@ -139,6 +142,7 @@ package core.mediator
 				case view.numAnimationScale:
 					parsedModel.animationScale = view.numAnimationScale.value * 0.01;
 					view.numAnimationScale.value = parsedModel.animationScale * 100;
+					view.numAnimationTotalTime.text = parsedModel.durationScaled.toString();;
 					break;
 				
 				case view.numLoop:

@@ -38,6 +38,9 @@ package core
 		private static const TEXTURE_ATLAS_CONFIG_FILE_NAME:String = "textureAtlasConfigFileName";
 		private static const SUB_TEXTURE_FOLDER_NAME:String = "subTextureFolderName";
 		
+		private static const ANIMATION_ADVANCED_EXPAND:String = "animationAdvancedExpand";
+		private static const SKELETON_ADVANCED_EXPAND:String = "skeletonAdvancedExpand";
+		
 		private static const USER_NAME:String = "userName";
 		private static const USERE_MAIL:String = "userEmail";
 		
@@ -288,6 +291,26 @@ package core
 		public function set subTextureFolderName(value:String):void
 		{
 			setData(SUB_TEXTURE_FOLDER_NAME, value);
+		}
+		
+		public function get animationAdvancedExpand():Boolean
+		{
+			return hasData(ANIMATION_ADVANCED_EXPAND)?getData(ANIMATION_ADVANCED_EXPAND):false;	
+		}
+		
+		public function set animationAdvancedExpand(value:Boolean):void
+		{
+			setData(ANIMATION_ADVANCED_EXPAND, value);
+		}
+		
+		public function get skeletonAdvancedExpand():Boolean
+		{
+			return hasData(SKELETON_ADVANCED_EXPAND)?getData(SKELETON_ADVANCED_EXPAND):false;	
+		}
+		
+		public function set skeletonAdvancedExpand(value:Boolean):void
+		{
+			setData(SKELETON_ADVANCED_EXPAND, value);
 		}
 		
 		public function get userName():String
