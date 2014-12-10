@@ -90,6 +90,13 @@
 				
 				this.closeWindow();
 			}
+			
+			protected function advanceBtn_clickHandler(event:MouseEvent):void
+			{
+				_settingManager.exportAdvancedExpanded = !_settingManager.exportAdvancedExpanded;
+				
+			}
+			
 		]]>
 	</fx:Script>
 	
@@ -113,22 +120,7 @@
 			<s:Label height="24" textAlign="right" verticalAlign="middle" text="{resourceManager.getString('resources','backgroundColor')}"
 					 visible="{!_isSWF}" includeInLayout="{!_isSWF}"
 					 />
-			<s:Label height="24" textAlign="right" verticalAlign="middle" text="{resourceManager.getString('resources','skeletonDataName')}"/>
-			<s:Label height="24" textAlign="right" verticalAlign="middle" text="{resourceManager.getString('resources','skeletonDataFileName')}"
-					 visible="{!_isMerged}" includeInLayout="{!_isMerged}"
-					 />
-			<s:Label height="24" textAlign="right" verticalAlign="middle" text="{resourceManager.getString('resources','textureDataFileName')}"
-					 visible="{!(_isMerged || _isPNGs)}" includeInLayout="{!(_isMerged || _isPNGs)}"
-					 />
-			<s:Label height="24" textAlign="right" verticalAlign="middle" text="{resourceManager.getString('resources','textureFileName')}"
-					 visible="{!(_isMerged || _isPNGs)}" includeInLayout="{!(_isMerged || _isPNGs)}"
-					 />
-			<s:Label height="24" textAlign="right" verticalAlign="middle" text="{resourceManager.getString('resources','subTextureFolderName')}"
-					 visible="{_isPNGs}" includeInLayout="{_isPNGs}"
-					 />
-			<s:Label height="24" textAlign="right" verticalAlign="middle" text="{resourceManager.getString('resources','textureAtlasPath')}"
-					 visible="{!(_isMerged || _isPNGs)}" includeInLayout="{!(_isMerged || _isPNGs)}"
-					 />
+			
 		</s:VGroup>
 		
 		<s:VGroup width="100%" gap="6">
@@ -157,6 +149,39 @@
 								/>
 			</s:HGroup>
 			
+		</s:VGroup>
+	</s:HGroup>
+		
+	<s:HGroup width="100%" verticalAlign="middle">
+		<s:Label id="advanceBtn" textAlign="right" 
+				 text="{(_settingManager.exportAdvancedExpanded ? 'V ' : '> ') + resourceManager.getString('resources','advanceOption')}" useHandCursor="true" buttonMode="true" click="advanceBtn_clickHandler(event)"/>
+		<s:Line width="100%">
+			<s:stroke>
+				<s:SolidColorStroke color="#999999"/>
+			</s:stroke>
+		</s:Line>
+	</s:HGroup>
+	
+	<s:HGroup id="advanceContainer" width="100%" visible="{_settingManager.exportAdvancedExpanded}" includeInLayout="{_settingManager.exportAdvancedExpanded}">
+		<s:VGroup  minWidth="100" gap="6" horizontalAlign="right">
+			<s:Label height="24" textAlign="right" verticalAlign="middle" text="{resourceManager.getString('resources','skeletonDataName')}"/>
+			<s:Label height="24" textAlign="right" verticalAlign="middle" text="{resourceManager.getString('resources','skeletonDataFileName')}"
+					 visible="{!_isMerged}" includeInLayout="{!_isMerged}"
+					 />
+			<s:Label height="24" textAlign="right" verticalAlign="middle" text="{resourceManager.getString('resources','textureDataFileName')}"
+					 visible="{!(_isMerged || _isPNGs)}" includeInLayout="{!(_isMerged || _isPNGs)}"
+					 />
+			<s:Label height="24" textAlign="right" verticalAlign="middle" text="{resourceManager.getString('resources','textureFileName')}"
+					 visible="{!(_isMerged || _isPNGs)}" includeInLayout="{!(_isMerged || _isPNGs)}"
+					 />
+			<s:Label height="24" textAlign="right" verticalAlign="middle" text="{resourceManager.getString('resources','subTextureFolderName')}"
+					 visible="{_isPNGs}" includeInLayout="{_isPNGs}"
+					 />
+			<s:Label height="24" textAlign="right" verticalAlign="middle" text="{resourceManager.getString('resources','textureAtlasPath')}"
+					 visible="{!(_isMerged || _isPNGs)}" includeInLayout="{!(_isMerged || _isPNGs)}"
+					 />
+		</s:VGroup>
+		<s:VGroup width="100%" gap="6">
 			<s:TextInput id="skeletonDataNameTextInput" width="100%" height="24" textAlign="right"
 						 />
 			
@@ -184,12 +209,8 @@
 						 text="@{_settingManager.textureAtlasPath}"
 						 visible="{!_isMerged &amp;&amp; !_isPNGs}" includeInLayout="{!_isMerged &amp;&amp; !_isPNGs}"
 						 />
-			
-			
-			
 		</s:VGroup>
 	</s:HGroup>
-		
 	<s:Spacer height="10"/>
 	
 	<s:HGroup width="100%" horizontalAlign="center">

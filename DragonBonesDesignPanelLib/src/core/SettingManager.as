@@ -1,14 +1,14 @@
 package core
 {
+	import core.model.vo.ExportVO;
+	import core.model.vo.ImportVO;
+	import core.utils.GlobalConstValues;
+	
 	import flash.errors.IllegalOperationError;
 	import flash.net.SharedObject;
 	
 	import mx.collections.ArrayCollection;
 	import mx.resources.ResourceManager;
-	
-	import core.model.vo.ImportVO;
-	import core.model.vo.ExportVO;
-	import core.utils.GlobalConstValues;
 	
 	[Bindable]
 	public class SettingManager
@@ -26,6 +26,7 @@ package core
 		
 		private static const EXPORT_SCALE:String = "exportScale";
 		private static const EXPORT_BACKGROUND_COLOR:String = "exportBackgoundColor";
+		private static const EXPORT_ADVANCED_EXPANDED:String = "exportAdvancedExpanded";
 		
 		private static const BONE_HIGHLIGHT_ENABLED:String = "boneHighlightEnabled";
 		private static const BONE_HIGHLIGHT_COLOR:String = "boneHighlightColor";
@@ -233,6 +234,15 @@ package core
 		public function set exportBackgroundColor(value:uint):void
 		{
 			setData(EXPORT_BACKGROUND_COLOR, value);
+		}
+		
+		public function get exportAdvancedExpanded():Boolean
+		{
+			return hasData(EXPORT_ADVANCED_EXPANDED)?getData(EXPORT_ADVANCED_EXPANDED):false;
+		}
+		public function set exportAdvancedExpanded(value:Boolean):void
+		{
+			setData(EXPORT_ADVANCED_EXPANDED, value);
 		}
 		
 		public function get textureAtlasPath():String
