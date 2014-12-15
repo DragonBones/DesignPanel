@@ -21,15 +21,15 @@ DragonBones DesignPanel V3.0.0 是V2.4.1之后的一个大版本。在这个版�
 ##### 导出面板增加高级选项
 * 增加高级选项，目的在于为导出功能提供了更灵活的配置，一般情况下是不用修改的，因为默认值已经可以保证导出功能的正常工作。
 * 增加如下5个高级设置项目  
-1)骨架数据名  
+1) 骨架数据名  
 骨架数据名用于当骨架数据被添加到工厂时提供的用于数据索引的默认名称。该名称也可在数据被添加到工厂的代码中修改。默认情况下，骨架数据名等于FLA文件名。  
 2)骨架数据文件名  
 导出的骨架数据文件的文件名，默认值为“skeleton”。该选项只有在数据格式不为集成数据时才有效，因为导出集成数据时，骨架数据是集成到纹理文件中的，没有独立的骨架数据文件导出。  
-3)纹理数据文件名  
+3) 纹理数据文件名  
 导出的纹理数据文件名，默认值为“texture”。该选项只有在数据格式不为集成数据时才有效，因为导出集成数据时，纹理数据是集成到纹理文件中的，没有独立的纹理数据文件导出。  
-4)纹理文件名  
+4) 纹理文件名  
 导出的纹理文件名，默认值为“texture”。该选项只有在数据格式不为集成数据时才有效，因为导出集成数据时，文件名是在保存对话框中设置的。  
-5)纹理集路径  
+5) 纹理集路径  
 纹理集路径可以用于记录纹理文件的相对路径，默认值为空。这个选项只有在纹理集很多，需要动态加载，并且放在不同的目录时才会有用，可以帮助开发者记录纹理集的相对路径。  
 
 ##### 骨架预览区域支持拖拽修改骨架关系
@@ -61,10 +61,10 @@ DragonBones DesignPanel V3.0.0 是V2.4.1之后的一个大版本。在这个版�
 如果使用以上方法安装失败，请检查您Extension Manager 左侧应用栏中能否招到Flash Pro的图标。如果Extension Manager 左侧应用栏中没有Flash Pro的图标，说明您的Flash Pro没有被系统检测到（Flash Pro 绿色版）必须使用终极安装方法。  
 
 ##### 终极安装方法
-* 找到下面的目录："C:\Users\<用户>\AppData\Local\Adobe\<Flash Pro 版本>\<语言>\Configuration\WindowSWF" (Windows 用户)
+* 找到下面的目录：_"C:\Users\<用户>\AppData\Local\Adobe\<Flash Pro 版本>\<语言>\Configuration\WindowSWF"_ (Windows 用户)
 * 将DragonBonesDesignPanel.zxp 改名为DragonBonesDesignPanel.zip 并解压缩。
 * 将解压缩出来的文件拷贝至第1步找到的目录中，形成如下目录结构：  
-第1步找到的目录\DragonBonesDesignPanel.swf  
-第1步找到的目录\DragonBonesDesignPanel\xxx.jsfl  
+_第1步找到的目录\DragonBonesDesignPanel.swf_  
+"第1步找到的目录\DragonBonesDesignPanel\xxx.jsfl"  
 * 重启Flash Pro  
 
