@@ -64,7 +64,7 @@ DragonBones DesignPanel V3.0.0 是V2.4.1之后的一个大版本。在这个版�
 * 找到下面的目录：_"C:\Users\<用户>\AppData\Local\Adobe\<Flash Pro 版本>\<语言>\Configuration\WindowSWF"_ (Windows 用户)
 * 将DragonBonesDesignPanel.zxp 改名为DragonBonesDesignPanel.zip 并解压缩。
 * 将解压缩出来的文件拷贝至第1步找到的目录中，形成如下目录结构：  
-_第1步找到的目录\DragonBonesDesignPanel.swf_  
-"第1步找到的目录\DragonBonesDesignPanel\xxx.jsfl"  
+_"第1步找到的目录\DragonBonesDesignPanel.swf"_  
+_"第1步找到的目录\DragonBonesDesignPanel\xxx.jsfl"_  
 * 重启Flash Pro  
 
