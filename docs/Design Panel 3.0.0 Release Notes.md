@@ -1,5 +1,59 @@
 ﻿DragonBones DesignPanel V3.0.0 Release Notes
 ======================
+中文版往后看
+
+Dec 15th, 2014
+
+DragonBones DesignPanel V3.0.0 is a big version after V2.4.1. In this version, we primary focused on customer experience improvement and bug fixing. 
+All new features and improvements are based on customer feedback. If you have any ideas or suggestions, please email us dragonbonesteam@gmail.com.  
+
+### New Features and Improvements
+##### Add Animation Blending Time Settings in Import Panel.
+* Animation blending time means: When armature switch animations, DragonBones can automatic generate tweens between animations.
+* This setting item will work only if the original blending time haven't been set. If designer have set the blending time value before, the value will not be overrided.
+* In previous version, the default blending time is 0.3 seconds. If you want it be 0 second, you need to manually set it for every animations one by one. In this version, you can conveniently set it in import panel with one time.
+
+##### Separate the data format and texture format setting to two items in export panel
+* In previous version, export format is one setting item. Along with the increase of supported data format and texture format, the list will blow up. So we separate it to two.
+* Suggest user set these two items from up to down. Data format first, then texture format.
+
+##### Support export AMF data format
+* AMF(Action Message Format)is a Binary data format based on Flash technology. Because DragonBones can not encode or decode AMF itself, only Flash app makers are suggested use this format.
+
+##### Add advanced setting items in export panel.
+* The purpose of add advanced setting items is to provide more flexible configure for export. Usually the advanced settings are not necessary to be modified, because the default value can also ensure export successful. 
+* Add 5 advanced setting items as following
+1) Skeleton Data Name  
+Skeleton data name is used as the default key to index skeleton data when it is added to factory. By default skeleton data name equals to FLA file name.  
+2) Skeleton Data File Name  
+The exported skeleton data file name. The default value is "skeleton". This setting item is available only if the data format is not Data Merged.
+3) Texture Data File Name  
+The exported texture data file name. The default value is "texture". This setting item is available only if the data format is not Data Merged.
+4) Texture File Name  
+The exported texture file name. The default value is "texture" This setting item is available only if the data format is not Data Merged.
+5) Texture Atlas Path  
+The texture atlas path is used to record the texture atlas' relative path. The default value is null. This setting item is useful only if there are a lot of texture atlas need to be dynamically load and they are located in different folder.
+
+##### Armature view support drag to modify skeleton hierarchy.
+* Click character in armature view to review the skeleton hierarchy.
+* Click a bone in armature and drag to another bone to set its child.
+
+##### Add Key Frame Auto Tween Switch in Animation Panel
+* In previous version, DragonBones generate tweens between key frames automaticly unless there is a ^ in frame label. If you want to remove tweens in the whole animation, you need to add ^ in each key frame. 
+* Key Frame Auto Tween Switch is open by default. If you close it, all tweens between key frames will be removed.
+
+##### Improve Performance of Importing data from Flash Pro about 40%  
+* Modify the mechanism of importing data from Flash Pro. There will be no Movie Clip generated in Flash Pro Library. 40% time will be reduced compared with previous version.
+
+##### Don't support 2.2 or older data format any more
+* Design Panel cannot open file with 2.2 or older data format.
+* For projects using 2.2 data format, if you want to using DragonBones 3.0, you need to find the fla file and use DesignPanel 3.0 you export them. If your project have lots of assets, please be careful to make the decision.
+* For files with 2.3 or later data formate, DesignPanel 3.0 can perfectly support them.
+
+##### Pause support spine data format
+* Considering the Spine data format has been changed for times. DesignPanel 3.0 cannot support it very well. So we decide to close it temporary. In future, along with DragonBones's upgrade, it may be added back. 
+
+
 最近更新时间：2014年12月15日
 ### 概述
 DragonBones DesignPanel V3.0.0 是V2.4.1之后的一个大版本。在这个版本中，我们主要聚焦于对用户体验的提升和bug的修复。  
@@ -7,7 +61,7 @@ DragonBones DesignPanel V3.0.0 是V2.4.1之后的一个大版本。在这个版�
 
 ### 更新内容
 ##### 导入面板增加设置默认动画混合时间项目  
-* 动画混合时间指：角色在切换动画时，DragonBones自动为角色生成的用于动画间动作过度的时间。时间越长过度越平滑，时间设为0则没有过度。  
+* 动画混合时间指：角色在切换动画时，DragonBones自动为角色生成的用于动画间动作过渡的时间。时间越长过度越平滑，时间设为0则没有过度。  
 * 该设置项只会在混合时间没有设置的情况下起作用。如果设计师在导入前已经设置过某个动作的混合时间，则该设置项目不会在导入时覆盖原有的值。  
 * 这个改动是基于大量的用户反馈，老版本默认动画混合时间是0.3秒，是不可设置的，很多用户希望动画间混合时间为0，则需要一个个的修改动作的混合时间，很麻烦。新版本就可以很方便的在导入时设置这个值了。  
 
