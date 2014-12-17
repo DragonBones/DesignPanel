@@ -22,17 +22,17 @@ All new features and improvements are based on customer feedback. If you have an
 
 ##### Add advanced setting items in export panel.
 * The purpose of add advanced setting items is to provide more flexible configure for export. Usually the advanced settings are not necessary to be modified, because the default value can also ensure export successful. 
-* Add 5 advanced setting items as following
+* Add 5 advanced setting items as following  
 1) Skeleton Data Name  
 Skeleton data name is used as the default key to index skeleton data when it is added to factory. By default skeleton data name equals to FLA file name.  
 2) Skeleton Data File Name  
-The exported skeleton data file name. The default value is "skeleton". This setting item is available only if the data format is not Data Merged.
+The exported skeleton data file name. The default value is "skeleton". This setting item is available only if the data format is not Data Merged.  
 3) Texture Data File Name  
-The exported texture data file name. The default value is "texture". This setting item is available only if the data format is not Data Merged.
+The exported texture data file name. The default value is "texture". This setting item is available only if the data format is not Data Merged.  
 4) Texture File Name  
-The exported texture file name. The default value is "texture" This setting item is available only if the data format is not Data Merged.
+The exported texture file name. The default value is "texture" This setting item is available only if the data format is not Data Merged.  
 5) Texture Atlas Path  
-The texture atlas path is used to record the texture atlas' relative path. The default value is null. This setting item is useful only if there are a lot of texture atlas need to be dynamically load and they are located in different folder.
+The texture atlas path is used to record the texture atlas' relative path. The default value is null. This setting item is useful only if there are a lot of texture atlas need to be dynamically load and they are located in different folder.  
 
 ##### Armature view support drag to modify skeleton hierarchy.
 * Click character in armature view to review the skeleton hierarchy.
