@@ -263,7 +263,7 @@ package core.utils
 						parentBoneData = findBoneData(armatureData, parentBoneData.parent);
 						if(parentBoneData)
 						{
-							findTimelineData(animationData, parentBoneData.name);
+							parentTimelineData = findTimelineData(animationData, parentBoneData.name);
 						}
 						else
 						{
