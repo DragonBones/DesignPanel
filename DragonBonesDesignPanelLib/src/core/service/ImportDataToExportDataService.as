@@ -2,25 +2,25 @@ package core.service
 {
 	import com.adobe.serialization.json.JSON;
 	
-	import flash.display.BitmapData;
-	import flash.display.DisplayObject;
-	import flash.display.MovieClip;
-	import flash.geom.Matrix;
-	import flash.geom.Rectangle;
-	import flash.utils.ByteArray;
-	
 	import core.events.ServiceEvent;
 	import core.model.ImportModel;
 	import core.model.vo.ExportVO;
 	import core.model.vo.ImportVO;
 	import core.suppotClass._BaseService;
 	import core.utils.BitmapDataUtil;
+	import core.utils.DataUtils;
 	import core.utils.GlobalConstValues;
 	import core.utils.PNGEncoder;
-	import core.utils.xmlToObject;
 	
 	import dragonBones.objects.DataParser;
 	import dragonBones.utils.ConstValues;
+	
+	import flash.display.BitmapData;
+	import flash.display.DisplayObject;
+	import flash.display.MovieClip;
+	import flash.geom.Matrix;
+	import flash.geom.Rectangle;
+	import flash.utils.ByteArray;
 	
 	import light.managers.ErrorManager;
 	
@@ -169,8 +169,8 @@ package core.service
 			}
 			exportSave(
 				DataParser.compressData(
-					xmlToObject(importModel.vo.skeleton, GlobalConstValues.XML_LIST_NAMES), 
-					xmlToObject(importModel.vo.textureAtlasConfig, GlobalConstValues.XML_LIST_NAMES), 
+					DataUtils.xmlToObject(importModel.vo.skeleton, GlobalConstValues.XML_LIST_NAMES), 
+					DataUtils.xmlToObject(importModel.vo.textureAtlasConfig, GlobalConstValues.XML_LIST_NAMES), 
 					textureAtlasBytes
 				)
 			);
@@ -228,13 +228,19 @@ package core.service
 					break;
 				
 				case GlobalConstValues.CONFIG_TYPE_JSON:
+					
+					
+					var obj:Object = DataUtils.xmlToObject(importModel.vo.skeleton, GlobalConstValues.XML_LIST_NAMES);
+					trace(com.adobe.serialization.json.JSON.encode(obj));
+					DataUtils.convertDragonBonesDataToRelativeObject(obj);
+					trace(com.adobe.serialization.json.JSON.encode(obj));
 					zip.add(
-						com.adobe.serialization.json.JSON.encode(xmlToObject(importModel.vo.skeleton, GlobalConstValues.XML_LIST_NAMES)), 
+						com.adobe.serialization.json.JSON.encode(DataUtils.xmlToObject(importModel.vo.skeleton, GlobalConstValues.XML_LIST_NAMES)), 
 						_exportVO.dragonBonesFileName + "." + GlobalConstValues.JSON_SUFFIX, 
 						date
 					);
 					zip.add(
-						com.adobe.serialization.json.JSON.encode(xmlToObject(importModel.vo.textureAtlasConfig, GlobalConstValues.XML_LIST_NAMES)), 
+						com.adobe.serialization.json.JSON.encode(DataUtils.xmlToObject(importModel.vo.textureAtlasConfig, GlobalConstValues.XML_LIST_NAMES)), 
 						_exportVO.textureAtlasConfigFileName + "." + GlobalConstValues.JSON_SUFFIX, 
 						date
 					);
@@ -242,7 +248,7 @@ package core.service
 				
 				case GlobalConstValues.CONFIG_TYPE_AMF3:
 					var bytes:ByteArray = new ByteArray();
-					bytes.writeObject(xmlToObject(importModel.vo.skeleton, GlobalConstValues.XML_LIST_NAMES));
+					bytes.writeObject(DataUtils.xmlToObject(importModel.vo.skeleton, GlobalConstValues.XML_LIST_NAMES));
 					bytes.compress();
 					zip.add(
 						bytes, 
@@ -251,7 +257,7 @@ package core.service
 					);
 					
 					bytes = new ByteArray();
-					bytes.writeObject(xmlToObject(importModel.vo.textureAtlasConfig, GlobalConstValues.XML_LIST_NAMES));
+					bytes.writeObject(DataUtils.xmlToObject(importModel.vo.textureAtlasConfig, GlobalConstValues.XML_LIST_NAMES));
 					bytes.compress();
 					zip.add(
 						bytes, 
@@ -307,7 +313,7 @@ package core.service
 				
 				case GlobalConstValues.CONFIG_TYPE_JSON:
 					zip.add(
-						com.adobe.serialization.json.JSON.encode(xmlToObject(importModel.vo.skeleton, GlobalConstValues.XML_LIST_NAMES)), 
+						com.adobe.serialization.json.JSON.encode(DataUtils.xmlToObject(importModel.vo.skeleton, GlobalConstValues.XML_LIST_NAMES)), 
 						_exportVO.dragonBonesFileName + "." + GlobalConstValues.JSON_SUFFIX, 
 						date
 					);
@@ -315,7 +321,7 @@ package core.service
 				
 				case GlobalConstValues.CONFIG_TYPE_AMF3:
 					var bytes:ByteArray = new ByteArray();
-					bytes.writeObject(xmlToObject(importModel.vo.skeleton, GlobalConstValues.XML_LIST_NAMES));
+					bytes.writeObject(DataUtils.xmlToObject(importModel.vo.skeleton, GlobalConstValues.XML_LIST_NAMES));
 					bytes.compress();
 					zip.add(
 						bytes, 
