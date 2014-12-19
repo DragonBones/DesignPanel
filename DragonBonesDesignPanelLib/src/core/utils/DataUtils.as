@@ -2,6 +2,7 @@ package core.utils
 {
 	import dragonBones.animation.TimelineState;
 	import dragonBones.objects.DBTransform;
+	import dragonBones.utils.ConstValues;
 	import dragonBones.utils.TransformUtil;
 	
 	import flash.geom.Matrix;
@@ -11,9 +12,6 @@ package core.utils
 
 	public class DataUtils
 	{
-		private static const HALF_PI:Number = Math.PI * 0.5;
-		private static const DOUBLE_PI:Number = Math.PI * 2;
-		
 		private static const _helpMatrix:Matrix = new Matrix();
 		
 		public static function xmlToObject(xml:XML, listNames:Vector.<String> = null):Object
@@ -245,6 +243,7 @@ package core.utils
 			}
 		}
 		
+		// 计算相对父节点的相对Transform
 		private static function calculateFrameTransform(animationData:Object, armatureData:Object, boneData:Object, frameData:Object):void
 		{
 			var parentBoneData:Object = findBoneData(armatureData, boneData.parent);
@@ -458,19 +457,19 @@ package core.utils
 		{
 			if(keepScale)
 			{
-				matrix.a = transform.scX * Math.cos(transform.skY)
-				matrix.b = transform.scX * Math.sin(transform.skY)
-				matrix.c = -transform.scY * Math.sin(transform.skX);
-				matrix.d = transform.scY * Math.cos(transform.skX);
+				matrix.a = transform.scX * Math.cos(transform.skY*ConstValues.ANGLE_TO_RADIAN)
+				matrix.b = transform.scX * Math.sin(transform.skY*ConstValues.ANGLE_TO_RADIAN)
+				matrix.c = -transform.scY * Math.sin(transform.skX*ConstValues.ANGLE_TO_RADIAN);
+				matrix.d = transform.scY * Math.cos(transform.skX*ConstValues.ANGLE_TO_RADIAN);
 				matrix.tx = transform.x;
 				matrix.ty = transform.y;
 			}
 			else
 			{
-				matrix.a = Math.cos(transform.skY)
-				matrix.b = Math.sin(transform.skY)
-				matrix.c = -Math.sin(transform.skX);
-				matrix.d = Math.cos(transform.skX);
+				matrix.a = Math.cos(transform.skY*ConstValues.ANGLE_TO_RADIAN)
+				matrix.b = Math.sin(transform.skY*ConstValues.ANGLE_TO_RADIAN)
+				matrix.c = -Math.sin(transform.skX*ConstValues.ANGLE_TO_RADIAN);
+				matrix.d = Math.cos(transform.skX*ConstValues.ANGLE_TO_RADIAN);
 				matrix.tx = transform.x;
 				matrix.ty = transform.y;
 			}
