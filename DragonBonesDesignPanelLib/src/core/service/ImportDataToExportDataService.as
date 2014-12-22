@@ -235,7 +235,7 @@ package core.service
 					DataUtils.convertDragonBonesDataToRelativeObject(obj);
 					trace(com.adobe.serialization.json.JSON.encode(obj));
 					zip.add(
-						com.adobe.serialization.json.JSON.encode(DataUtils.xmlToObject(importModel.vo.skeleton, GlobalConstValues.XML_LIST_NAMES)), 
+						com.adobe.serialization.json.JSON.encode(obj), 
 						_exportVO.dragonBonesFileName + "." + GlobalConstValues.JSON_SUFFIX, 
 						date
 					);
