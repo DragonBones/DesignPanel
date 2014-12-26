@@ -9,6 +9,7 @@ package core.service
 	import flash.geom.Rectangle;
 	import flash.utils.ByteArray;
 	
+	import core.SettingManager;
 	import core.events.ServiceEvent;
 	import core.model.ImportModel;
 	import core.model.vo.ExportVO;
@@ -49,6 +50,9 @@ package core.service
 			//更新skeleton,textureAtalsConfig的name
 			importModel.name = _exportVO.name || importModel.name;
 			_exportVO.name = importModel.name;
+			
+			// set export vo values
+			SettingManager.getInstance().setExportVOValues(_exportVO);
 			
 			// only skeleton
 			if(importModel.vo.skeleton && !importModel.vo.textureAtlasConfig)
