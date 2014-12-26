@@ -17,7 +17,7 @@ var dragonBones;
             this._currentFrameBackup = null;
             this._librarySelectItemsBackup = null;
             this._isMergeLayersInFolder = false;
-            this._defaultFadeInTime = 0.3;
+            this._defaultFadeInTime = 0;
 
             this._xml = null;
             this._armatureList = null;
@@ -92,6 +92,7 @@ var dragonBones;
         DragonBones.A_GREEN_MULTIPLIER = "gM";
         DragonBones.A_BLUE_MULTIPLIER = "bM";
 
+        DragonBones.A_ALPHA = "a";
         DragonBones.A_RED = "r";
         DragonBones.A_GREEN = "g";
         DragonBones.A_BLUE = "b";
@@ -931,6 +932,7 @@ var dragonBones;
                 var playTimes = 1;
                 var scale = 1;
                 var tweenEasing = NaN;
+                //var autoTween = this._defaultAutoTween;
                 var autoTween = 1;
                 
                 var animationXMLInItem;
@@ -986,9 +988,9 @@ var dragonBones;
                 animationXML = 
                     <{DragonBones.ANIMATION} 
                         {DragonBones.A_NAME}={animationName}
-                        {DragonBones.A_FADE_IN_TIME}={fadeInTime}
+                        {DragonBones.A_FADE_IN_TIME}={fadeInTime || 0}
                         {DragonBones.A_DURATION}={duration}
-                        {DragonBones.A_SCALE}={Utils.formatNumber(scale)}
+                        {DragonBones.A_SCALE}={Utils.formatNumber(scale) || 1}
                         {DragonBones.A_LOOP}={playTimes}
                         {DragonBones.A_AUTO_TWEEN}={Utils.formatNumber(autoTween)}
                         {DragonBones.A_TWEEN_EASING}={Utils.formatNumber(tweenEasing)}/>;
@@ -1164,12 +1166,17 @@ var dragonBones;
             {
                 var colorString = textSymbol.getTextAttr("fillColor");
 
+                if (colorString.length < 9)
+                {
+                    colorString += "FF";
+                }
+
                 textXML = 
                     <{DragonBones.TEXT} 
                         {DragonBones.A_BOLD}={textSymbol.getTextAttr("bold")? 1: 0}
                         {DragonBones.A_ITALIC}={textSymbol.getTextAttr("italic")? 1: 0}
-                        {DragonBones.A_WIDTH}={textSymbol.width / textSymbol.scaleX}
-                        {DragonBones.A_HEIGHT}={textSymbol.height / textSymbol.scaleY}
+                        {DragonBones.A_WIDTH}={Math.ceil(textSymbol.width / textSymbol.scaleX)}
+                        {DragonBones.A_HEIGHT}={Math.ceil(textSymbol.height / textSymbol.scaleY)}
                         {DragonBones.A_SIZE}={textSymbol.getTextAttr("size")}
                         {DragonBones.A_FACE}={textSymbol.getTextAttr("face")}
                         {DragonBones.A_ALIGN_H}={textSymbol.getTextAttr("alignment")}
@@ -1179,6 +1186,7 @@ var dragonBones;
                         {DragonBones.A_TEXT}={textSymbol.getTextString()}
                     >
                         <{DragonBones.COLOR}
+                         {DragonBones.A_ALPHA}={parseInt(colorString.substr(7, 2), 16)}
                          {DragonBones.A_RED}={parseInt(colorString.substr(1, 2), 16)}
                          {DragonBones.A_GREEN}={parseInt(colorString.substr(3, 2), 16)}
                          {DragonBones.A_BLUE}={parseInt(colorString.substr(5, 2), 16)}/>
@@ -1479,7 +1487,7 @@ var dragonBones;
                     else if (
                         boneSymbol.symbolType == "graphic" &&
                         boneSymbolItem.timeline.frameCount > 1 &&
-                        (boneSymbol.loop == "single frame" || boneSymbol.loop == "play once")    // TODO: multiply slots
+                        (boneSymbol.loop == "single frame" || boneSymbol.loop == "loop" || boneSymbol.loop == "play once")    // TODO: multiply slots
                     )
                     {
                         displayType = DragonBones.V_IMAGE;
@@ -1557,17 +1565,6 @@ var dragonBones;
                     this._generateArea(boneXML, boneSymbolItem);
                 }
 
-                if (boneSymbolItem && boneSymbolItem.scalingGrid)
-                {
-                    var scalingGridXML = 
-                        <{DragonBones.SCALING_GRID}
-                            {DragonBones.A_LEFT}={boneSymbolItem.scalingGridRect.left}
-                            {DragonBones.A_RIGHT}={boneSymbolItem.scalingGridRect.right}
-                            {DragonBones.A_TOP}={boneSymbolItem.scalingGridRect.top}
-                            {DragonBones.A_BOTTOM}={boneSymbolItem.scalingGridRect.bottom}/>;
-                    boneXML.appendChild(scalingGridXML);
-                }
-
                 if (this.hasEventListener(DragonBones.BONE))
                 {
                     this.dispatchEvent(new events.Event(DragonBones.BONE, [this._currentArmatureItem, boneSymbol, boneXML]));
@@ -1584,42 +1581,6 @@ var dragonBones;
             //
             if (hasDisplay)
             {
-                if (boneSymbol.instanceType == "symbol")
-                {
-                    var aO = boneSymbol.colorAlphaAmount;
-                    var rO = boneSymbol.colorRedAmount;
-                    var gO = boneSymbol.colorGreenAmount;
-                    var bO = boneSymbol.colorBlueAmount;
-                    var aM = boneSymbol.colorAlphaPercent;
-                    var rM = boneSymbol.colorRedPercent;
-                    var gM = boneSymbol.colorGreenPercent;
-                    var bM = boneSymbol.colorBluePercent;
-                    if (
-                        aO != 0 ||
-                        rO != 0 || 
-                        gO != 0 || 
-                        bO != 0 || 
-                        aM != 100 || 
-                        rM != 100 || 
-                        gM != 100 || 
-                        bM != 100
-                    )
-                    {
-                        var colorTransformXML = 
-                            <{DragonBones.COLOR_TRANSFORM}
-                                {DragonBones.A_ALPHA_OFFSET}={aO}
-                                {DragonBones.A_RED_OFFSET}={rO}
-                                {DragonBones.A_GREEN_OFFSET}={gO}
-                                {DragonBones.A_BLUE_OFFSET}={bO}
-                                {DragonBones.A_ALPHA_MULTIPLIER}={aM}
-                                {DragonBones.A_RED_MULTIPLIER}={rM}
-                                {DragonBones.A_GREEN_MULTIPLIER}={gM}
-                                {DragonBones.A_BLUE_MULTIPLIER}={bM}/>;
-
-                        frameXML.appendChild(colorTransformXML);
-                    }
-                }
-
                 //
                 if (boneSymbol.visible === false)
                 {
@@ -1637,6 +1598,13 @@ var dragonBones;
                 //
                 var displayXML = null;
                 var textXML = null;
+
+                var parseTextColorToAnimation = false;
+                var textAlpah = 0;
+                var textRed = 0;
+                var textGreen = 0;
+                var textBlue = 0;
+
                 if (boneSymbolItem)
                 {
                     var symbolNameList = DragonBones.formatObjectName(boneSymbolItem, true);
@@ -1663,12 +1631,48 @@ var dragonBones;
                             }
                         }
                     }
+
+                    if (boneSymbolItem && boneSymbolItem.scalingGrid)
+                    {
+                        var scalingGridXML = 
+                            <{DragonBones.SCALING_GRID}
+                                {DragonBones.A_LEFT}={Math.round(boneSymbolItem.scalingGridRect.left)}
+                                {DragonBones.A_RIGHT}={Math.round(boneSymbolItem.scalingGridRect.right)}
+                                {DragonBones.A_TOP}={Math.round(boneSymbolItem.scalingGridRect.top)}
+                                {DragonBones.A_BOTTOM}={Math.round(boneSymbolItem.scalingGridRect.bottom)}/>;
+                        displayXML.appendChild(scalingGridXML);
+                    }
                 }
                 else
                 {
                     // text
                     var displayTransform = {x:-transform.x, y:-transform.y};
                     displayXML = getDisplayXML(slotXML, "text", displayTransform, this._currentArmatureItem, displayType);
+                    textXML = displayXML[DragonBones.TEXT][0];
+                    if (textXML)
+                    {
+                        var colorString = boneSymbol.getTextAttr("fillColor");
+                        if (colorString.length < 9)
+                        {
+                            colorString += "FF";
+                        }
+                        textAlpah = parseInt(colorString.substr(7, 2), 16);
+                        textRed = parseInt(colorString.substr(1, 2), 16);
+                        textGreen = parseInt(colorString.substr(3, 2), 16);
+                        textBlue = parseInt(colorString.substr(5, 2), 16);
+
+                        var colorXML = textXML[DragonBones.COLOR][0];
+                        if (
+                            String(textAlpah) != colorXML.@[DragonBones.A_ALPHA] ||
+                            String(textRed) != colorXML.@[DragonBones.A_RED] ||
+                            String(textGreen) != colorXML.@[DragonBones.A_GREEN] ||
+                            String(textBlue) != colorXML.@[DragonBones.A_BLUE]
+                            )
+                        {
+                            parseTextColorToAnimation = true;
+                        }
+                    }
+
                     textXML = getTextXML(displayXML, boneSymbol);
                 }
                 
@@ -1683,6 +1687,63 @@ var dragonBones;
                 else
                 {
                     //frameXML.@[DragonBones.A_DISPLAY_INDEX] = -1;
+                }
+            }
+
+            //
+            if (boneSymbol.instanceType == "symbol" || parseTextColorToAnimation)
+            {
+                var aO = 0;
+                var rO = 0;
+                var gO = 0;
+                var bO = 0;
+                var aM = 100;
+                var rM = 100;
+                var gM = 100;
+                var bM = 100;
+
+                if (parseTextColorToAnimation)
+                {
+                    aM = Math.ceil(textAlpah / 255 * 100);
+                    rM = Math.ceil(textRed / 255 * 100);
+                    gM = Math.ceil(textGreen / 255 * 100);
+                    bM = Math.ceil(textBlue / 255 * 100);
+                }
+                else
+                {
+                    aO = boneSymbol.colorAlphaAmount;
+                    rO = boneSymbol.colorRedAmount;
+                    gO = boneSymbol.colorGreenAmount;
+                    bO = boneSymbol.colorBlueAmount;
+                    aM = boneSymbol.colorAlphaPercent;
+                    rM = boneSymbol.colorRedPercent;
+                    gM = boneSymbol.colorGreenPercent;
+                    bM = boneSymbol.colorBluePercent;
+                }
+
+                if (
+                    aO != 0 ||
+                    rO != 0 || 
+                    gO != 0 || 
+                    bO != 0 || 
+                    aM != 100 || 
+                    rM != 100 || 
+                    gM != 100 || 
+                    bM != 100
+                )
+                {
+                    var colorTransformXML = 
+                        <{DragonBones.COLOR_TRANSFORM}
+                            {DragonBones.A_ALPHA_OFFSET}={aO}
+                            {DragonBones.A_RED_OFFSET}={rO}
+                            {DragonBones.A_GREEN_OFFSET}={gO}
+                            {DragonBones.A_BLUE_OFFSET}={bO}
+                            {DragonBones.A_ALPHA_MULTIPLIER}={aM}
+                            {DragonBones.A_RED_MULTIPLIER}={rM}
+                            {DragonBones.A_GREEN_MULTIPLIER}={gM}
+                            {DragonBones.A_BLUE_MULTIPLIER}={bM}/>;
+
+                    frameXML.appendChild(colorTransformXML);
                 }
             }
 
@@ -2142,7 +2203,7 @@ var dragonBones;
             return DragonBones.ERROR_NO_ARMATURE_IN_DOM;
         };
 
-        DragonBones.prototype.getArmature = function (domID, armatureName, dragonBonesData, defaultFadeInTime, isMergeLayersInFolder)
+        DragonBones.prototype.getArmature = function (domID, armatureName, dragonBonesData, defaultFadeInTime, isMergeLayersInFolder, defaultAutoTween)
         {
             var currentDOM = Utils.getDOM(domID, true);
             if (!currentDOM)
@@ -2156,6 +2217,7 @@ var dragonBones;
             dragonBonesData = XML(dragonBonesData);
 
             this._defaultFadeInTime = defaultFadeInTime || 0;
+            this._defaultAutoTween = defaultAutoTween || 1;
             this._isMergeLayersInFolder = Boolean(isMergeLayersInFolder);
             this._xml = <{DragonBones.DRAGON_BONES}/>;
             this._armatureList = [armatureName, false];
