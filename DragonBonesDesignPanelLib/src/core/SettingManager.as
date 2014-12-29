@@ -355,6 +355,12 @@ package core
 		
 		public function setExportVOValues(exportVO:ExportVO):void
 		{
+			exportVO.dragonBonesFileName = this.dragonBonesFileName;
+			exportVO.textureAtlasConfigFileName = this.textureAtlasConfigFileName;
+			exportVO.textureAtlasFileName = this.textureAtlasFileName;
+			exportVO.textureAtlasPath = this.textureAtlasPath;
+			exportVO.subTextureFolderName = this.subTextureFolderName;
+			
 			exportVO.backgroundColor = exportBackgroundColor;
 			exportVO.scale = exportScale;
 			exportVO.textureAtlasPath = textureAtlasPath;

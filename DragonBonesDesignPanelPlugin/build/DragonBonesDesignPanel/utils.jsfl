@@ -298,7 +298,7 @@ var utils;
                     var selectedLayers = currentDOM.getTimeline().getSelectedLayers().concat();
                     for each (var layer in selectedLayers)
                     {
-                        if (callback(layer, args) === false)
+                        if (callback(currentDOM.getTimeline().layers[layer], args) === false)
                         {
                             break;
                         }
