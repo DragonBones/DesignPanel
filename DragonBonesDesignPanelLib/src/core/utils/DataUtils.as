@@ -3,7 +3,6 @@ package core.utils
 	import dragonBones.animation.TimelineState;
 	import dragonBones.objects.DBTransform;
 	import dragonBones.utils.ConstValues;
-	import dragonBones.utils.TransformUtil;
 	
 	import flash.geom.Matrix;
 	import flash.geom.Point;
@@ -13,6 +12,9 @@ package core.utils
 	public class DataUtils
 	{
 		private static const _helpMatrix:Matrix = new Matrix();
+		
+		private static const _helpTransformMatrix:Matrix = new Matrix();
+		private static const _helpParentTransformMatrix:Matrix = new Matrix();
 		
 		public static function xmlToObject(xml:XML, listNames:Vector.<String> = null):Object
 		{
@@ -170,27 +172,41 @@ package core.utils
 				
 				var slotData:Object = findSlotData(skinData, boneData.name);
 				
-				
-				var originPivot:Point = null;
 				var prevFrameData:Object = null;
 				
 				for each(frameData in frameDataList)
 				{
+					//空帧的情况
+					if(frameData.transform == null)
+					{
+						if(timelineData.originPivot == null)
+						{
+							timelineData.originPivot = {};
+							timelineData.originPivot.x = 0;
+							timelineData.originPivot.y = 0;
+						}
+
+						continue;
+					}
 					calculateFrameTransform(animationData, armatureData, boneData, frameData);
 					
 					frameData.transform.x -= boneData.transform.x;
 					frameData.transform.y -= boneData.transform.y;
 					frameData.transform.skX = formatAngle(frameData.transform.skX - boneData.transform.skX);
 					frameData.transform.skY = formatAngle(frameData.transform.skY - boneData.transform.skY);
-					frameData.transform.scX -= boneData.transform.scX;
-					frameData.transform.scY -= boneData.transform.scY;
+					frameData.transform.scX /= boneData.transform.scX;
+					frameData.transform.scY /= boneData.transform.scY;
 					
-					if(originPivot == null)
+					if(timelineData.originPivot == null)
 					{
-						originPivot = new Point(frameData.transform.pX, frameData.transform.pY);
+						timelineData.originPivot = {};
+						timelineData.originPivot.x = frameData.transform.pX;
+						timelineData.originPivot.y = frameData.transform.pY;
 					}
-					frameData.transform.pX -= originPivot.x;
-					frameData.transform.pY -= originPivot.y;
+					
+					frameData.transform.pX -= timelineData.originPivot.x;
+					frameData.transform.pY -= timelineData.originPivot.y;
+					
 					if(slotData)
 					{
 						frameData.z -= slotData.z;
@@ -207,28 +223,28 @@ package core.utils
 							{
 								if(dLX < 0)
 								{
-									frameData.transform.skX += Math.PI * 2;
-									frameData.transform.skY += Math.PI * 2;
+									frameData.transform.skX += 360;
+									frameData.transform.skY += 360;
 								}
 								
 								if(prevFrameData.tweenRotate > 1)
 								{
-									frameData.transform.skX += Math.PI * 2 * (prevFrameData.tweenRotate - 1);
-									frameData.transform.skY += Math.PI * 2 * (prevFrameData.tweenRotate - 1);
+									frameData.transform.skX += 360 * (prevFrameData.tweenRotate - 1);
+									frameData.transform.skY += 360 * (prevFrameData.tweenRotate - 1);
 								}
 							}
 							else
 							{
 								if(dLX > 0)
 								{
-									frameData.transform.skX -= Math.PI * 2;
-									frameData.transform.skY -= Math.PI * 2;
+									frameData.transform.skX -= 360;
+									frameData.transform.skY -= 360;
 								}
 								
 								if(prevFrameData.tweenRotate < 1)
 								{
-									frameData.transform.skX += Math.PI * 2 * (prevFrameData.tweenRotate + 1);
-									frameData.transform.skY += Math.PI * 2 * (prevFrameData.tweenRotate + 1);
+									frameData.transform.skX += 360 * (prevFrameData.tweenRotate + 1);
+									frameData.transform.skY += 360 * (prevFrameData.tweenRotate + 1);
 								}
 							}
 						}
@@ -272,9 +288,12 @@ package core.utils
 					
 					var i:int = parentTimelineDataList.length;
 					
-					var helpMatrix:Matrix = new Matrix();
 					var globalTransform:Object;
+					var globalTransformMatrix:Matrix = new Matrix();
+					
 					var currentTransform:Object = new Object();
+					var currentTransformMatrix:Matrix = new Matrix();
+					
 					//从根开始遍历
 					while(i --)
 					{
@@ -283,25 +302,27 @@ package core.utils
 						//一级一级找到当前帧对应的每个父节点的transform(相对transform) 保存到currentTransform，globalTransform保存根节点的transform
 						calculateTimelineTransform(parentTimelineData, frameData.position, currentTransform, !globalTransform);
 						
-						if(globalTransform)
-						{
-							globalTransform.skX += currentTransform.skX + parentBoneData.transform.skX;
-							globalTransform.skY += currentTransform.skY + parentBoneData.transform.skY;
-							globalTransform.scX = currentTransform.scX + parentBoneData.transform.scX;
-							globalTransform.scY = currentTransform.scY + parentBoneData.transform.scY;
-							
-							var x:Number = currentTransform.x + parentBoneData.transform.x;
-							var y:Number = currentTransform.y + parentBoneData.transform.y;
-							
-							globalTransform.x = helpMatrix.a * x + helpMatrix.c * y + helpMatrix.tx;
-							globalTransform.y = helpMatrix.d * y + helpMatrix.b * x + helpMatrix.ty;
-						}
-						else
+						if(!globalTransform)
 						{
 							globalTransform = new Object();
 							copyTransform(currentTransform, globalTransform);
 						}
-						transformToMatrix(globalTransform, helpMatrix, true);
+						else
+						{
+							currentTransform.x += parentBoneData.transform.x;
+							currentTransform.y += parentBoneData.transform.y;
+							
+							currentTransform.skX += parentBoneData.transform.skX;
+							currentTransform.skY += parentBoneData.transform.skY;
+							
+							currentTransform.scX *= parentBoneData.transform.scX;
+							currentTransform.scY *= parentBoneData.transform.scY;
+							
+							transformToMatrix(currentTransform, currentTransformMatrix, true);
+							currentTransformMatrix.concat(globalTransformMatrix);
+							matrixToTransform(currentTransformMatrix, globalTransform, currentTransform.scX * globalTransform.scX >= 0, currentTransform.scY * globalTransform.scY >= 0);
+						}
+						transformToMatrix(globalTransform, globalTransformMatrix, true);
 					}
 					globalToLocal(frameData.transform, globalTransform);
 				}
@@ -440,17 +461,13 @@ package core.utils
 		
 		private static function globalToLocal(transform:Object, parentTransform:Object):void
 		{
-			transformToMatrix(parentTransform, _helpMatrix, true);
-			_helpMatrix.invert();
+			transformToMatrix(transform, _helpTransformMatrix, true);
+			transformToMatrix(parentTransform, _helpParentTransformMatrix, true);
 			
-			var x:Number = transform.x;
-			var y:Number = transform.y;
+			_helpParentTransformMatrix.invert();
+			_helpTransformMatrix.concat(_helpParentTransformMatrix);
 			
-			transform.x = _helpMatrix.a * x + _helpMatrix.c * y + _helpMatrix.tx;
-			transform.y = _helpMatrix.d * y + _helpMatrix.b * x + _helpMatrix.ty;
-			
-			transform.skX = formatAngle(transform.skX - parentTransform.skX);
-			transform.skY = formatAngle(transform.skY - parentTransform.skY);
+			matrixToTransform(_helpTransformMatrix, transform, transform.scX * parentTransform.scX >= 0, transform.scY * parentTransform.scY >= 0);
 		}
 		
 		private static function transformToMatrix(transform:Object, matrix:Matrix, keepScale:Boolean = false):void
@@ -473,6 +490,47 @@ package core.utils
 				matrix.tx = transform.x;
 				matrix.ty = transform.y;
 			}
+		}
+		
+		public static function matrixToTransform(matrix:Matrix, transform:Object, scaleXF:Boolean, scaleYF:Boolean):void
+		{
+			transform.x = matrix.tx;
+			transform.y = matrix.ty;
+			transform.scX = Math.sqrt(matrix.a * matrix.a + matrix.b * matrix.b) * (scaleXF ? 1 : -1);
+			transform.scY = Math.sqrt(matrix.d * matrix.d + matrix.c * matrix.c) * (scaleYF ? 1 : -1);
+			
+			var skewXArray:Array = [];
+			skewXArray[0] = Math.acos(matrix.d / transform.scY);
+			skewXArray[1] = -skewXArray[0];
+			skewXArray[2] = Math.asin(-matrix.c / transform.scY);
+			skewXArray[3] = skewXArray[2] >= 0 ? Math.PI - skewXArray[2] : skewXArray[2] - Math.PI;
+			
+			if(Number(skewXArray[0]).toFixed(4) == Number(skewXArray[2]).toFixed(4) || Number(skewXArray[0]).toFixed(4) == Number(skewXArray[3]).toFixed(4))
+			{
+				transform.skX = skewXArray[0];
+			}
+			else 
+			{
+				transform.skX = skewXArray[1];
+			}
+			
+			var skewYArray:Array = [];
+			skewYArray[0] = Math.acos(matrix.a / transform.scX);
+			skewYArray[1] = -skewYArray[0];
+			skewYArray[2] = Math.asin(matrix.b / transform.scX);
+			skewYArray[3] = skewYArray[2] >= 0 ? Math.PI - skewYArray[2] : skewYArray[2] - Math.PI;
+			
+			if(Number(skewYArray[0]).toFixed(4) == Number(skewYArray[2]).toFixed(4) || Number(skewYArray[0]).toFixed(4) == Number(skewYArray[3]).toFixed(4))
+			{
+				transform.skY = skewYArray[0];
+			}
+			else 
+			{
+				transform.skY = skewYArray[1];
+			}
+			
+			transform.skX *= ConstValues.RADIAN_TO_ANGLE;
+			transform.skY *= ConstValues.RADIAN_TO_ANGLE;
 		}
 		
 		private static function formatAngle(angle:Number):Number

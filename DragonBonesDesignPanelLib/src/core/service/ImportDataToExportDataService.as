@@ -231,6 +231,7 @@ package core.service
 					
 					
 					var obj:Object = DataUtils.xmlToObject(importModel.vo.skeleton, GlobalConstValues.XML_LIST_NAMES);
+					obj[ConstValues.A_IS_RELATIVE] = "1";
 					trace(com.adobe.serialization.json.JSON.encode(obj));
 					DataUtils.convertDragonBonesDataToRelativeObject(obj);
 					trace(com.adobe.serialization.json.JSON.encode(obj));
