@@ -16,73 +16,7 @@ package core.utils
 		private static const _helpTransformMatrix:Matrix = new Matrix();
 		private static const _helpParentTransformMatrix:Matrix = new Matrix();
 		
-		public static function xmlToObject(xml:XML, listNames:Vector.<String> = null):Object
-		{
-			if (xml == null)
-			{
-				return null;
-			}
-			
-			var result:Object;
-			var isSimpleType:Boolean = false;
-			
-			if (xml.children().length() > 0 && xml.hasSimpleContent())
-			{
-				isSimpleType = true;
-				result = ComplexString.simpleType(xml.toString());
-			} 
-			else if (xml.hasComplexContent())
-			{
-				result = {};
-				for each(var childXML:XML in xml.elements())
-				{
-					var objectName:String = childXML.localName();
-					var object:Object = xmlToObject(childXML, listNames);
-					var existing:Object = result[objectName];
-					if (existing != null)
-					{
-						if (existing is Array)
-						{
-							existing.push(object);
-						} 
-						else 
-						{
-							existing = [existing];
-							existing.push(object);
-							result[objectName] = existing;
-						}
-					}
-					else if(listNames && listNames.indexOf(objectName) >= 0)
-					{
-						result[objectName] = [object];
-					}
-					else
-					{
-						result[objectName] = object;
-					}
-				}
-			}
-			
-			for each(var attributeXML:XML in xml.attributes())
-			{
-				/*if (attribute == "xmlns" || attribute.indexOf("xmlns:") != -1)
-				{
-				continue;
-				}*/
-				if (result == null)
-				{
-					result = {};
-				}
-				if (isSimpleType && !(result is ComplexString))
-				{
-					result = new ComplexString(result.toString());
-					isSimpleType = false;
-				}
-				var attributeName:String = attributeXML.localName();
-				result[attributeName] = ComplexString.simpleType(attributeXML.toString());
-			}
-			return result;
-		}
+		
 		
 		public static function convertDragonBonesDataToRelativeObject(dragonBonesData:Object):void
 		{
@@ -151,17 +85,20 @@ package core.utils
 			
 			var boneDataList:Array = armatureData.bone;
 			var boneData:Object;
+			
+			var timelineData:Object;
+			var frameDataList:Array;
+			var frameData:Object;
 			for each(boneData in boneDataList)
 			{
-				var timelineData:Object = findTimelineData(animationData, boneData.name);
+				timelineData = findTimelineData(animationData, boneData.name);
 				if(!timelineData)
 				{
 					continue;
 				}
 				
-				var frameData:Object;
 				var position:Number = 0;
-				var frameDataList:Array = timelineData.frame;
+				frameDataList = timelineData.frame;
 				//为Timeline中的每个frame计算position.
 				for each(frameData in frameDataList)
 				{
@@ -179,11 +116,10 @@ package core.utils
 					//空帧的情况
 					if(frameData.transform == null)
 					{
-						if(timelineData.originPivot == null)
+						if(timelineData.originPivotX == null)
 						{
-							timelineData.originPivot = {};
-							timelineData.originPivot.x = 0;
-							timelineData.originPivot.y = 0;
+							timelineData.originPivotX = 0;
+							timelineData.originPivotY = 0;
 						}
 
 						continue;
@@ -197,15 +133,14 @@ package core.utils
 					frameData.transform.scX /= boneData.transform.scX;
 					frameData.transform.scY /= boneData.transform.scY;
 					
-					if(timelineData.originPivot == null)
+					if(timelineData.originPivotX == null)
 					{
-						timelineData.originPivot = {};
-						timelineData.originPivot.x = frameData.transform.pX;
-						timelineData.originPivot.y = frameData.transform.pY;
+						timelineData.originPivotX = frameData.transform.pX;
+						timelineData.originPivotY = frameData.transform.pY;
 					}
 					
-					frameData.transform.pX -= timelineData.originPivot.x;
-					frameData.transform.pY -= timelineData.originPivot.y;
+					frameData.transform.pX -= timelineData.originPivotX;
+					frameData.transform.pY -= timelineData.originPivotY;
 					
 					if(slotData)
 					{
@@ -255,6 +190,18 @@ package core.utils
 						}
 					}
 					prevFrameData = frameData;
+				}
+			}
+			
+		//移除没用的数据 frame.global, frame.position
+			var timelineDataList:Array = animationData.timeline;
+			for each(timelineData in timelineDataList)
+			{
+				frameDataList = timelineData.frame;
+				for each(frameData in frameDataList)
+				{
+					delete frameData.position;
+					delete frameData.global;
 				}
 			}
 		}
@@ -546,47 +493,5 @@ package core.utils
 			}
 			return angle;
 		}
-	}
-}
-
-dynamic class ComplexString
-{
-	public var value:String;
-	
-	public function ComplexString(val:String)
-	{
-		value = val;
-	}
-	
-	public function toString():String 
-	{
-		return value;
-	}
-	
-	public function valueOf():Object 
-	{
-		return simpleType(value);
-	}
-	
-	public static function simpleType(value:Object):Object 
-	{
-		switch(value) 
-		{
-			case "NaN":
-				return NaN;
-			case "true":
-				return true;
-			case "false":
-				return false;
-			case "null":
-				return null;
-			case "undefined":
-				return undefined;
-		}
-		if (isNaN(Number(value))) 
-		{
-			return value;
-		}
-		return Number(value);
 	}
 }

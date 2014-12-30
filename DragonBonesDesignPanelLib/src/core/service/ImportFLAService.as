@@ -1,12 +1,6 @@
 package core.service
 {
-	import flash.display.DisplayObject;
-	import flash.display.DisplayObjectContainer;
-	import flash.events.Event;
-	import flash.geom.Rectangle;
-	import flash.net.URLLoader;
-	import flash.net.URLLoaderDataFormat;
-	
+	import core.SettingManager;
 	import core.events.ServiceEvent;
 	import core.model.ImportModel;
 	import core.model.vo.ImportVO;
@@ -14,6 +8,13 @@ package core.service
 	import core.utils.GlobalConstValues;
 	
 	import dragonBones.utils.ConstValues;
+	
+	import flash.display.DisplayObject;
+	import flash.display.DisplayObjectContainer;
+	import flash.events.Event;
+	import flash.geom.Rectangle;
+	import flash.net.URLLoader;
+	import flash.net.URLLoaderDataFormat;
 	
 	import light.managers.ErrorManager;
 	import light.managers.RequestManager;
@@ -137,6 +138,8 @@ package core.service
 			if(importModel.vo.id)
 			{
 				importModel.vo.textureAtlasType = GlobalConstValues.TEXTURE_ATLAS_TYPE_SWF;
+				importModel.vo.dataType = GlobalConstValues.DATA_TYPE_ABSOLUTE;
+				
 				importModel.vo.configType = GlobalConstValues.CONFIG_TYPE_XML;
 				
 				importModel.vo.name = _dragonBonesData.@[ConstValues.A_NAME];
@@ -150,6 +153,7 @@ package core.service
 				_currentLoadIndex = 0;
 				_isWorking = true;
 				readNextArmature();
+				SettingManager.getInstance().updateSettingAfterImportData(importModel.vo.dataType);
 			}
 			else
 			{

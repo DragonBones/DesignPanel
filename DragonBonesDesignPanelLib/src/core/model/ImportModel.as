@@ -1,9 +1,9 @@
 package core.model
 {
-	import flash.geom.Rectangle;
-	
+	import core.SettingManager;
 	import core.model.vo.ImportVO;
 	import core.suppotClass._BaseModel;
+	import core.utils.GlobalConstValues;
 	import core.utils.TextureUtil;
 	import core.utils.formatDataToCurrentVersion;
 	
@@ -14,6 +14,8 @@ package core.model
 	import dragonBones.objects.DisplayData;
 	import dragonBones.objects.TransformTimeline;
 	import dragonBones.utils.ConstValues;
+	
+	import flash.geom.Rectangle;
 
 	public final class ImportModel extends _BaseModel
 	{
@@ -61,6 +63,15 @@ package core.model
 			{
 				_vo.textureAtlasConfig.@[ConstValues.A_NAME] = _vo.name;
 			}
+		}
+		
+		public function get isRelative():Boolean
+		{
+			return _vo.skeleton.@[ConstValues.A_IS_RELATIVE] == "1";
+		}
+		public function set isRelative(value:Boolean):void
+		{
+			_vo.skeleton.@[ConstValues.A_IS_RELATIVE] = value ? "1" : "0";
 		}
 		
 		public function get textureAtlasPath():String
@@ -213,7 +224,9 @@ package core.model
 		public function formatXML():void
 		{
 			_vo.name = name;
-			
+			_vo.dataType = isRelative ? GlobalConstValues.DATA_TYPE_RELATIVE : GlobalConstValues.DATA_TYPE_ABSOLUTE;
+			SettingManager.getInstance().updateSettingAfterImportData(_vo.dataType);
+				
 			var version:String = _vo.skeleton.@[ConstValues.A_VERSION];
 			switch(version)
 			{

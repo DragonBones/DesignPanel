@@ -3,10 +3,8 @@
 						xmlns:s="library://ns.adobe.com/flex/spark" 
 						xmlns:mx="library://ns.adobe.com/flex/mx" 
 						xmlns:view="plugin.view.*"
-						
 						width="400"
 						title="{resourceManager.getString('resources', 'export')}" 
-						
 						creationComplete="creationCompleteHandler(event)"
 						>
 	
@@ -113,6 +111,9 @@
 	<s:HGroup width="100%">
 		<s:VGroup minWidth="100" gap="6" horizontalAlign="right">
 			<s:Label height="24" textAlign="right" verticalAlign="middle" text="{resourceManager.getString('resources','dataFormat')}"/>
+			<s:Label height="24" textAlign="right" verticalAlign="middle" text="{resourceManager.getString('resources','dataType')}"
+					 visible="{!_isMerged}" includeInLayout="{!_isMerged}"
+					 />
 			<s:Label height="24" textAlign="right" verticalAlign="middle" text="{resourceManager.getString('resources','textureFormat')}"/>
 			<s:Label height="24" textAlign="right" verticalAlign="middle" text="{resourceManager.getString('resources','exportscale')}"
 					 visible="{!_isSWF}" includeInLayout="{!_isSWF}"
@@ -129,6 +130,13 @@
 							dataProvider="{_settingManager.exportDataFormatAC}" 
 							selectedIndex="@{_settingManager.exportDataFormatIndex}" 
 							change="changeHandler(event)"
+							/>
+			<s:DropDownList width="100%" height="24" textAlign="right" 
+							id="dataTypeDropDownList" labelField="label" 
+							dataProvider="{_settingManager.exportDataTypeAC}" 
+							selectedIndex="@{_settingManager.exportDataTypeIndex}" 
+							enabled="{_settingManager.enableDataType}" visible="{!_isMerged}" includeInLayout="{!_isMerged}"
+							toolTip="TBD"
 							/>
 			<s:DropDownList width="100%" height="24" textAlign="right" 
 							id="textureFormatDropDownList" labelField="label" 

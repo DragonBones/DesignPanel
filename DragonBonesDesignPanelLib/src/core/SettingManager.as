@@ -4,6 +4,8 @@ package core
 	import core.model.vo.ImportVO;
 	import core.utils.GlobalConstValues;
 	
+	import dragonBones.utils.ConstValues;
+	
 	import flash.errors.IllegalOperationError;
 	import flash.net.SharedObject;
 	
@@ -23,6 +25,7 @@ package core
 		
 		private static const EXPORT_DATA_FORMAT:String = "exportDataFormat";
 		private static const EXPORT_TEXTURE_FORMAT:String = "exportTextureFormat";
+		private static const EXPORT_DATA_TYPE:String = "exportDataType";
 		
 		private static const EXPORT_SCALE:String = "exportScale";
 		private static const EXPORT_BACKGROUND_COLOR:String = "exportBackgoundColor";
@@ -75,7 +78,6 @@ package core
 			{value:1, label:"Any Size"}, 
 		]);
 		
-		//
 		public var exportDataFormatAC:ArrayCollection = new ArrayCollection([
 			{value:GlobalConstValues.CONFIG_TYPE_MERGED, label:GlobalConstValues.CONFIG_TYPE_MERGED}, 
 			{value:GlobalConstValues.CONFIG_TYPE_AMF3, label:GlobalConstValues.CONFIG_TYPE_AMF3}, 
@@ -83,25 +85,41 @@ package core
 			{value:GlobalConstValues.CONFIG_TYPE_JSON, label:GlobalConstValues.CONFIG_TYPE_JSON}
 		]);
 		
-		//
 		public var exportTextureFormatAC:ArrayCollection = new ArrayCollection([
 			{value:GlobalConstValues.TEXTURE_ATLAS_TYPE_PNG, label:GlobalConstValues.TEXTURE_ATLAS_TYPE_PNG}, 
 			{value:GlobalConstValues.TEXTURE_ATLAS_TYPE_PNGS, label:GlobalConstValues.TEXTURE_ATLAS_TYPE_PNGS}
 		]);
 		
-		//
 		public var exportTextureMergedFormatAC:ArrayCollection = new ArrayCollection([
 			{value:GlobalConstValues.TEXTURE_ATLAS_TYPE_SWF, label:GlobalConstValues.TEXTURE_ATLAS_TYPE_SWF}, 
 			{value:GlobalConstValues.TEXTURE_ATLAS_TYPE_PNG, label:GlobalConstValues.TEXTURE_ATLAS_TYPE_PNG}
 		]);
 		
-		//
+		public var exportDataTypeAC:ArrayCollection = new ArrayCollection([
+			{value:GlobalConstValues.DATA_TYPE_ABSOLUTE, label:GlobalConstValues.DATA_TYPE_ABSOLUTE}, 
+			{value:GlobalConstValues.DATA_TYPE_RELATIVE, label:GlobalConstValues.DATA_TYPE_RELATIVE}
+		]);
+		
 		public var textureAtlasWidthAC:ArrayCollection = new ArrayCollection(["Auto Size", 128, 256, 512, 1024, 2048, 4096]);
 		
 		public var textureAtlasWidthIndex:int = 0;
 		public var textureAtlasPadding:int = 2;
 		
 		private var _shareObject:SharedObject = null;
+		
+		public var enableDataType:Boolean = true;
+		public function updateSettingAfterImportData(dataType:String):void
+		{
+			if(dataType == GlobalConstValues.DATA_TYPE_RELATIVE)
+			{
+				exportDataTypeIndex = 1;
+				enableDataType = false;
+			}
+			else
+			{
+				enableDataType = true;
+			}
+		}
 		
 		public function get textureAtlasWidth():int
 		{
@@ -191,6 +209,18 @@ package core
 			setData(EXPORT_TEXTURE_FORMAT, value);
 		}
 		
+		public function get exportDataTypeIndex():int
+		{
+			return hasData(EXPORT_DATA_TYPE)?getData(EXPORT_DATA_TYPE):0;
+		}
+		public function set exportDataTypeIndex(value:int):void
+		{
+			if(exportDataTypeIndex == value)
+			{
+				return;
+			}
+			setData(EXPORT_DATA_TYPE, value);
+		}
 		public function get exportScale():Number
 		{
 			return hasData(EXPORT_SCALE)?getData(EXPORT_SCALE):1;
@@ -365,6 +395,7 @@ package core
 			exportVO.scale = exportScale;
 			exportVO.textureAtlasPath = textureAtlasPath;
 			exportVO.configType = exportDataFormatAC.source[exportDataFormatIndex].value;
+			exportVO.dataType = exportDataTypeAC.source[exportDataTypeIndex].value;
 			
 			if (exportVO.configType == GlobalConstValues.CONFIG_TYPE_MERGED)
 			{
@@ -423,6 +454,11 @@ package core
 			for each (var exportTextureItem:Object in exportTextureFormatAC.source)
 			{
 				exportTextureItem.label = ResourceManager.getInstance().getString('resources', String(exportTextureItem.value)) || exportTextureItem.value;
+			}
+			
+			for each (var exportDataTypeItem:Object in exportDataTypeAC.source)
+			{
+				exportDataTypeItem.label = ResourceManager.getInstance().getString('resources', String(exportDataTypeItem.value)) || exportDataTypeItem.value;
 			}
 			
 			for each (var exportTextureMergedItem:Object in exportTextureMergedFormatAC.source)

@@ -4,6 +4,7 @@ package core.model.vo
 	{
 		public var textureAtlasType:String = null;
 		public var configType:String = null;
+		public var dataType:String = null;
 		public var scale:Number = 1;
 		public var enableBackgroundColor:Boolean = false;
 		public var backgroundColor:uint = 0xff00ff;

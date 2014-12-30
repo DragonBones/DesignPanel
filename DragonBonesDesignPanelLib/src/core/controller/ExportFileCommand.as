@@ -24,7 +24,7 @@ package core.controller
 			this.directCommandMap.detain(this);
 			
 			importDataToExportDataService.addEventListener(ImportDataToExportDataService.IMPORT_TO_EXPORT_COMPLETE, serviceHandler);
-			importDataToExportDataService.changeTo(event.data[0], event.data[1]);
+			importDataToExportDataService.export(event.data[0], event.data[1]);
 		}
 		
 		private function serviceHandler(e:ServiceEvent):void
