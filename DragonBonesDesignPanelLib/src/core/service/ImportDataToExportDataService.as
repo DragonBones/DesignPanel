@@ -12,6 +12,7 @@ package core.service
 	import core.utils.DataFormatUtils;
 	import core.utils.DataUtils;
 	import core.utils.GlobalConstValues;
+	import core.utils.OptimizeDataUtils;
 	import core.utils.PNGEncoder;
 	
 	import dragonBones.objects.DataParser;
@@ -191,13 +192,22 @@ package core.service
 	
 		private function zipDragonBonesData(zip:Zip, date:Date):void
 		{
-			var relativeDataObj:Object;
+			var objData:Object;
 			if( _exportVO.dataType == GlobalConstValues.DATA_TYPE_RELATIVE && 
 				importModel.vo.dataType == GlobalConstValues.DATA_TYPE_ABSOLUTE)
 			{
-				relativeDataObj = DataFormatUtils.xmlToObject(importModel.vo.skeleton, GlobalConstValues.XML_LIST_NAMES);
-				relativeDataObj[ConstValues.A_IS_RELATIVE] = "1";
-				DataUtils.convertDragonBonesDataToRelativeObject(relativeDataObj);
+				objData = DataFormatUtils.xmlToObject(importModel.vo.skeleton, GlobalConstValues.XML_LIST_NAMES);
+				objData[ConstValues.A_IS_RELATIVE] = "1";
+				DataUtils.convertDragonBonesDataToRelativeObject(objData);
+			}
+			
+			if(_exportVO.enableDataOptimization)
+			{
+				if(!objData)
+				{
+					objData = DataFormatUtils.xmlToObject(importModel.vo.skeleton, GlobalConstValues.XML_LIST_NAMES);
+				}
+				OptimizeDataUtils.optimizeData(objData);
 			}
 			
 			var dataToZip:Object;
@@ -207,9 +217,9 @@ package core.service
 			switch (_exportVO.configType)
 			{
 				case GlobalConstValues.CONFIG_TYPE_XML:
-					if(relativeDataObj)
+					if(objData)
 					{
-						dataToZip = DataFormatUtils.objectToXML(relativeDataObj).toXMLString();
+						dataToZip = DataFormatUtils.objectToXML(objData).toXMLString();
 					}
 					else
 					{
@@ -219,9 +229,9 @@ package core.service
 					break;
 				
 				case GlobalConstValues.CONFIG_TYPE_JSON:
-					if(relativeDataObj)
+					if(objData)
 					{
-						dataToZip = com.adobe.serialization.json.JSON.encode(relativeDataObj);
+						dataToZip = com.adobe.serialization.json.JSON.encode(objData);
 					}
 					else
 					{
@@ -232,9 +242,9 @@ package core.service
 				
 				case GlobalConstValues.CONFIG_TYPE_AMF3:
 					var bytes:ByteArray = new ByteArray();
-					if(relativeDataObj)
+					if(objData)
 					{
-						bytes.writeObject(relativeDataObj);
+						bytes.writeObject(objData);
 					}
 					else
 					{

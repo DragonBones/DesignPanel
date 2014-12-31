@@ -26,6 +26,7 @@ package core
 		private static const EXPORT_DATA_FORMAT:String = "exportDataFormat";
 		private static const EXPORT_TEXTURE_FORMAT:String = "exportTextureFormat";
 		private static const EXPORT_DATA_TYPE:String = "exportDataType";
+		private static const ENABLE_DATA_OPTIMIZATION:String = "enableDataOptimization";
 		
 		private static const EXPORT_SCALE:String = "exportScale";
 		private static const EXPORT_BACKGROUND_COLOR:String = "exportBackgoundColor";
@@ -107,17 +108,17 @@ package core
 		
 		private var _shareObject:SharedObject = null;
 		
-		public var enableDataType:Boolean = true;
+		public var enableDataTypeAbsolute:Boolean = true;
 		public function updateSettingAfterImportData(dataType:String):void
 		{
 			if(dataType == GlobalConstValues.DATA_TYPE_RELATIVE)
 			{
 				exportDataTypeIndex = 1;
-				enableDataType = false;
+				enableDataTypeAbsolute = false;
 			}
 			else
 			{
-				enableDataType = true;
+				enableDataTypeAbsolute = true;
 			}
 		}
 		
@@ -221,6 +222,20 @@ package core
 			}
 			setData(EXPORT_DATA_TYPE, value);
 		}
+		
+		public function get enableDataOptimization():Boolean
+		{
+			return hasData(ENABLE_DATA_OPTIMIZATION)?getData(ENABLE_DATA_OPTIMIZATION):false;
+		}
+		public function set enableDataOptimization(value:Boolean):void
+		{
+			if(enableDataOptimization == value)
+			{
+				return;
+			}
+			setData(ENABLE_DATA_OPTIMIZATION, value);
+		}
+		
 		public function get exportScale():Number
 		{
 			return hasData(EXPORT_SCALE)?getData(EXPORT_SCALE):1;
@@ -396,7 +411,8 @@ package core
 			exportVO.textureAtlasPath = textureAtlasPath;
 			exportVO.configType = exportDataFormatAC.source[exportDataFormatIndex].value;
 			exportVO.dataType = exportDataTypeAC.source[exportDataTypeIndex].value;
-			
+			exportVO.enableDataOptimization = enableDataOptimization
+				
 			if (exportVO.configType == GlobalConstValues.CONFIG_TYPE_MERGED)
 			{
 				exportVO.textureAtlasType = exportTextureMergedFormatAC.source[exportTextureFormatIndex].value;

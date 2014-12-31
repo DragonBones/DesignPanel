@@ -10,13 +10,9 @@ package core.utils
 	import flash.utils.Dictionary;
 
 	public class DataUtils
-	{
-		private static const _helpMatrix:Matrix = new Matrix();
-		
+	{	
 		private static const _helpTransformMatrix:Matrix = new Matrix();
 		private static const _helpParentTransformMatrix:Matrix = new Matrix();
-		
-		
 		
 		public static function convertDragonBonesDataToRelativeObject(dragonBonesData:Object):void
 		{
@@ -116,10 +112,10 @@ package core.utils
 					//空帧的情况
 					if(frameData.transform == null)
 					{
-						if(timelineData.originPivotX == null)
+						if(timelineData.pX == null)
 						{
-							timelineData.originPivotX = 0;
-							timelineData.originPivotY = 0;
+							timelineData.pX = 0;
+							timelineData.pY = 0;
 						}
 
 						continue;
@@ -133,14 +129,14 @@ package core.utils
 					frameData.transform.scX /= boneData.transform.scX;
 					frameData.transform.scY /= boneData.transform.scY;
 					
-					if(timelineData.originPivotX == null)
+					if(timelineData.pX == null)
 					{
-						timelineData.originPivotX = frameData.transform.pX;
-						timelineData.originPivotY = frameData.transform.pY;
+						timelineData.pX = frameData.transform.pX;
+						timelineData.pY = frameData.transform.pY;
 					}
 					
-					frameData.transform.pX -= timelineData.originPivotX;
-					frameData.transform.pY -= timelineData.originPivotY;
+					frameData.transform.pX -= timelineData.pX;
+					frameData.transform.pY -= timelineData.pY;
 					
 					if(slotData)
 					{

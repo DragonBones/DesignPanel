@@ -95,6 +95,11 @@
 				
 			}
 			
+			private function exportDataTypeChanged(event:Event):void
+			{
+				var isAbsolute:Boolean = event.target == absoluteDataTypeRadioBtn;
+				_settingManager.exportDataTypeIndex = isAbsolute ? 0 : 1;
+			}
 		]]>
 	</fx:Script>
 	
@@ -131,13 +136,26 @@
 							selectedIndex="@{_settingManager.exportDataFormatIndex}" 
 							change="changeHandler(event)"
 							/>
-			<s:DropDownList width="100%" height="24" textAlign="right" 
-							id="dataTypeDropDownList" labelField="label" 
-							dataProvider="{_settingManager.exportDataTypeAC}" 
-							selectedIndex="@{_settingManager.exportDataTypeIndex}" 
-							enabled="{_settingManager.enableDataType}" visible="{!_isMerged}" includeInLayout="{!_isMerged}"
-							toolTip="TBD"
-							/>
+			<s:HGroup width="100%" height="24" gap="10" visible="{!_isMerged}" includeInLayout="{!_isMerged}">
+				
+				<s:RadioButton id="absoluteDataTypeRadioBtn" groupName="exportDataType" 
+							   label="{resourceManager.getString('resources','dataTypeAbsolute')}" 
+							   selected="{_settingManager.exportDataTypeIndex == 0}"
+							   enabled="{_settingManager.enableDataTypeAbsolute}" 
+							   change="exportDataTypeChanged(event)"
+							   toolTip="{resourceManager.getString('resources','dataTypeAbsoluteToolTip')}"/>
+				<s:RadioButton id="relativeDataTypeRadioBtn" groupName="exportDataType"
+							   label="{resourceManager.getString('resources','dataTypeRelative')}" 
+							   selected="{_settingManager.exportDataTypeIndex == 1}"
+							   change="exportDataTypeChanged(event)"
+							   toolTip="{resourceManager.getString('resources','dataTypeRelativeToolTip')}"/>
+				<s:Spacer width="20"/>
+				<s:CheckBox label="{resourceManager.getString('resources','compressData')}" 
+							selected="@{_settingManager.enableDataOptimization}" 
+							toolTip="{resourceManager.getString('resources','compressDataToolTip')}" />
+				
+				
+			</s:HGroup>
 			<s:DropDownList width="100%" height="24" textAlign="right" 
 							id="textureFormatDropDownList" labelField="label" 
 							selectedIndex="@{_settingManager.exportTextureFormatIndex}" 
