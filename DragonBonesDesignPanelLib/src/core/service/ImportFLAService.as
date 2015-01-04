@@ -138,7 +138,7 @@ package core.service
 			if(importModel.vo.id)
 			{
 				importModel.vo.textureAtlasType = GlobalConstValues.TEXTURE_ATLAS_TYPE_SWF;
-				importModel.vo.dataType = GlobalConstValues.DATA_TYPE_ABSOLUTE;
+				importModel.vo.dataType = GlobalConstValues.DATA_TYPE_GLOBAL;
 				
 				importModel.vo.configType = GlobalConstValues.CONFIG_TYPE_XML;
 				

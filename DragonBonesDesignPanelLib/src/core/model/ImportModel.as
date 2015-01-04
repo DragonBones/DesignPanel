@@ -65,13 +65,13 @@ package core.model
 			}
 		}
 		
-		public function get isRelative():Boolean
+		public function get isGlobal():Boolean
 		{
-			return _vo.skeleton.@[ConstValues.A_IS_RELATIVE] == "1";
+			return _vo.skeleton.@[ConstValues.A_IS_GLOBAL] == "1";
 		}
-		public function set isRelative(value:Boolean):void
+		public function set isGlobal(value:Boolean):void
 		{
-			_vo.skeleton.@[ConstValues.A_IS_RELATIVE] = value ? "1" : "0";
+			_vo.skeleton.@[ConstValues.A_IS_GLOBAL] = value ? "1" : "0";
 		}
 		
 		public function get textureAtlasPath():String
@@ -224,7 +224,7 @@ package core.model
 		public function formatXML():void
 		{
 			_vo.name = name;
-			_vo.dataType = isRelative ? GlobalConstValues.DATA_TYPE_RELATIVE : GlobalConstValues.DATA_TYPE_ABSOLUTE;
+			_vo.dataType = isGlobal ? GlobalConstValues.DATA_TYPE_GLOBAL : GlobalConstValues.DATA_TYPE_PARENT;
 			SettingManager.getInstance().updateSettingAfterImportData(_vo.dataType);
 				
 			var version:String = _vo.skeleton.@[ConstValues.A_VERSION];

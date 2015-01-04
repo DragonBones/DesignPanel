@@ -193,11 +193,11 @@ package core.service
 		private function zipDragonBonesData(zip:Zip, date:Date):void
 		{
 			var objData:Object;
-			if( _exportVO.dataType == GlobalConstValues.DATA_TYPE_RELATIVE && 
-				importModel.vo.dataType == GlobalConstValues.DATA_TYPE_ABSOLUTE)
+			if( _exportVO.dataType == GlobalConstValues.DATA_TYPE_PARENT && 
+				importModel.vo.dataType == GlobalConstValues.DATA_TYPE_GLOBAL)
 			{
 				objData = DataFormatUtils.xmlToObject(importModel.vo.skeleton, GlobalConstValues.XML_LIST_NAMES);
-				objData[ConstValues.A_IS_RELATIVE] = "1";
+				objData[ConstValues.A_IS_GLOBAL] = 0;
 				DataUtils.convertDragonBonesDataToRelativeObject(objData);
 			}
 			

@@ -97,8 +97,8 @@ package core
 		]);
 		
 		public var exportDataTypeAC:ArrayCollection = new ArrayCollection([
-			{value:GlobalConstValues.DATA_TYPE_ABSOLUTE, label:GlobalConstValues.DATA_TYPE_ABSOLUTE}, 
-			{value:GlobalConstValues.DATA_TYPE_RELATIVE, label:GlobalConstValues.DATA_TYPE_RELATIVE}
+			{value:GlobalConstValues.DATA_TYPE_GLOBAL, label:GlobalConstValues.DATA_TYPE_GLOBAL}, 
+			{value:GlobalConstValues.DATA_TYPE_PARENT, label:GlobalConstValues.DATA_TYPE_PARENT}
 		]);
 		
 		public var textureAtlasWidthAC:ArrayCollection = new ArrayCollection(["Auto Size", 128, 256, 512, 1024, 2048, 4096]);
@@ -111,7 +111,7 @@ package core
 		public var enableDataTypeAbsolute:Boolean = true;
 		public function updateSettingAfterImportData(dataType:String):void
 		{
-			if(dataType == GlobalConstValues.DATA_TYPE_RELATIVE)
+			if(dataType == GlobalConstValues.DATA_TYPE_PARENT)
 			{
 				exportDataTypeIndex = 1;
 				enableDataTypeAbsolute = false;

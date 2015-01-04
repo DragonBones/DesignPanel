@@ -26,8 +26,8 @@
 		public static const TEXTURE_ATLAS_TYPE_PNGS:String = "texturePngs";
 		
 		//dataType
-		public static const DATA_TYPE_ABSOLUTE:String = "dataTypeAbsolute";
-		public static const DATA_TYPE_RELATIVE:String = "dataTypeRelative";
+		public static const DATA_TYPE_GLOBAL:String = "dataTypeGlobal";
+		public static const DATA_TYPE_PARENT:String = "dataTypeParent";
 		
 		// suffix
 		public static const XML_SUFFIX:String = "xml";
