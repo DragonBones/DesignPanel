@@ -12,7 +12,7 @@ All these features will be hold in community experience version for months befor
 * Data format standard upgraded to 3.0. Major changes as following:  
 1) Add relative parent data format standard.   
 2) Add default value standard  
-* See details in  
+* See details in [DragonBonesDataFormatSpec_V3.0_en.xml](DragonBonesDataFormatSpec_V3.0_en.xml)
 
 ##### Support export relative parent data format  
 * Add a “Data Coordinate” option in Export panel. Support global coordinate and parent coordinate.  
