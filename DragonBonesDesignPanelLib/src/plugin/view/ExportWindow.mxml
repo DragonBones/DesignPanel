@@ -136,19 +136,27 @@
 							selectedIndex="@{_settingManager.exportDataFormatIndex}" 
 							change="changeHandler(event)"
 							/>
-			<s:HGroup width="100%" height="24" gap="10" visible="{!_isMerged}" includeInLayout="{!_isMerged}">
+			<s:HGroup width="100%" height="24" gap="10" visible="{!_isMerged}" includeInLayout="{!_isMerged}" verticalAlign="middle">
 				
-				<s:RadioButton id="absoluteDataTypeRadioBtn" groupName="exportDataType" 
-							   label="{resourceManager.getString('resources','dataTypeAbsolute')}" 
-							   selected="{_settingManager.exportDataTypeIndex == 0}"
-							   enabled="{_settingManager.enableDataTypeAbsolute}" 
-							   change="exportDataTypeChanged(event)"
-							   toolTip="{resourceManager.getString('resources','dataTypeAbsoluteToolTip')}"/>
-				<s:RadioButton id="relativeDataTypeRadioBtn" groupName="exportDataType"
-							   label="{resourceManager.getString('resources','dataTypeRelative')}" 
-							   selected="{_settingManager.exportDataTypeIndex == 1}"
-							   change="exportDataTypeChanged(event)"
-							   toolTip="{resourceManager.getString('resources','dataTypeRelativeToolTip')}"/>
+				<s:HGroup height="100%" verticalAlign="middle" gap="0"
+						  toolTip="{_settingManager.enableExportGlobalDataType ?
+						  			resourceManager.getString('resources','dataTypeAbsoluteToolTip') :
+						  			resourceManager.getString('resources','dataTypeAbsoluteDisableToolTip')}">
+					<s:RadioButton id="absoluteDataTypeRadioBtn" groupName="exportDataType"
+								   selected="{_settingManager.exportDataTypeIndex == 0}"
+								   enabled="{_settingManager.enableExportGlobalDataType}" 
+								   change="exportDataTypeChanged(event)"/>
+					<s:Label enabled="{_settingManager.enableExportGlobalDataType}" 
+							 text="{resourceManager.getString('resources','dataTypeAbsolute')}"/>
+				</s:HGroup>
+				<s:HGroup height="100%" verticalAlign="middle" gap="0" 
+						  toolTip="{resourceManager.getString('resources','dataTypeRelativeToolTip')}">
+					<s:RadioButton id="relativeDataTypeRadioBtn" groupName="exportDataType"
+								   selected="{_settingManager.exportDataTypeIndex == 1}"
+								   change="exportDataTypeChanged(event)"/>
+					<s:Label text="{resourceManager.getString('resources','dataTypeRelative')}"/>
+				</s:HGroup>
+				
 				<s:Spacer width="20"/>
 				<s:CheckBox label="{resourceManager.getString('resources','compressData')}" 
 							selected="@{_settingManager.enableDataOptimization}" 

@@ -31,7 +31,7 @@
 			<s:HGroup width="100%" height="100%" gap="0">
 				<components:DragTree minWidth="40" width="100%" height="100%" borderVisible="false" textSelectedColor="#CCCCCC" textRollOverColor="#CCCCCC"
 									 id="boneTree"
-									 labelField="@name" dropEnabled="true" dragEnabled="true"
+									 labelField="@name" dropEnabled="{_settingManager.boneHierarchyEditable}" dragEnabled="{_settingManager.boneHierarchyEditable}"
 									 />
 				
 				<s:Line height="100%">

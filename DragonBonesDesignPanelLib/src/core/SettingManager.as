@@ -45,9 +45,6 @@ package core
 		private static const ANIMATION_ADVANCED_EXPAND:String = "animationAdvancedExpand";
 		private static const SKELETON_ADVANCED_EXPAND:String = "skeletonAdvancedExpand";
 		
-		private static const USER_NAME:String = "userName";
-		private static const USERE_MAIL:String = "userEmail";
-		
 		private static var _instance:SettingManager;
 		public static function getInstance():SettingManager
 		{
@@ -108,17 +105,21 @@ package core
 		
 		private var _shareObject:SharedObject = null;
 		
-		public var enableDataTypeAbsolute:Boolean = true;
+		public var enableExportGlobalDataType:Boolean = true;
+		public var boneHierarchyEditable:Boolean = true;
+		
 		public function updateSettingAfterImportData(dataType:String):void
 		{
 			if(dataType == GlobalConstValues.DATA_TYPE_PARENT)
 			{
 				exportDataTypeIndex = 1;
-				enableDataTypeAbsolute = false;
+				enableExportGlobalDataType = false;
+				boneHierarchyEditable = false;
 			}
 			else
 			{
-				enableDataTypeAbsolute = true;
+				enableExportGlobalDataType = true;
+				boneHierarchyEditable = true;
 			}
 		}
 		
@@ -356,24 +357,6 @@ package core
 		public function set skeletonAdvancedExpand(value:Boolean):void
 		{
 			setData(SKELETON_ADVANCED_EXPAND, value);
-		}
-		
-		public function get userName():String
-		{
-			return hasData(USER_NAME)?getData(USER_NAME):"";
-		}
-		public function set userName(value:String):void
-		{
-			setData(USER_NAME, value);
-		}
-		
-		public function get userEmail():String
-		{
-			return hasData(USERE_MAIL)?getData(USERE_MAIL):"";
-		}
-		public function set userEmail(value:String):void
-		{
-			setData(USERE_MAIL, value);
 		}
 		
 		public function SettingManager()

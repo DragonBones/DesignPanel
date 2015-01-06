@@ -12,12 +12,12 @@
 	
 	<fx:Script>
 		<![CDATA[
-			import core.AssetManager;
 			import com.greensock.TweenMax;
 			
+			import core.AssetManager;
+			import core.SettingManager;
 			import core.events.ViewEvent;
 			import core.utils.getPointTarget;
-			
 			
 			import dragonBones.Armature;
 			import dragonBones.Bone;
@@ -367,8 +367,7 @@
 						}
 					}
 					
-					
-					_armatureSymbols.update(_armatureScale, _boneSelected, _isDragedBone);
+					_armatureSymbols.update(_armatureScale, _boneSelected, SettingManager.getInstance().boneHierarchyEditable && _isDragedBone);
 				}
 			}
 			

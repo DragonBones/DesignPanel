@@ -240,7 +240,6 @@ package core.model
 					_vo.skeleton = formatDataToCurrentVersion(_vo.skeleton);
 					setVersion();
 					break;
-				
 				default:
 					break;
 			}

@@ -15,6 +15,7 @@ package core.service
 	import core.utils.OptimizeDataUtils;
 	import core.utils.PNGEncoder;
 	
+	import dragonBones.core.DragonBones;
 	import dragonBones.objects.DataParser;
 	import dragonBones.utils.ConstValues;
 	
@@ -198,6 +199,7 @@ package core.service
 			{
 				objData = DataFormatUtils.xmlToObject(importModel.vo.skeleton, GlobalConstValues.XML_LIST_NAMES);
 				objData[ConstValues.A_IS_GLOBAL] = 0;
+				objData[ConstValues.A_VERSION] = DragonBones.PARENT_COORDINATE_DATA_VERSION;
 				DataUtils.convertDragonBonesDataToRelativeObject(objData);
 			}
 			
