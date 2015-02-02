@@ -17,7 +17,7 @@ package core.utils
 		private static var transformValueArray:Array = [0,0,0,0,1,1,0,0];
 		
 		private static var colorTransformPropertyArray:Array = [ConstValues.A_ALPHA_OFFSET, ConstValues.A_RED_OFFSET, ConstValues.A_GREEN_OFFSET, ConstValues.A_BLUE_OFFSET, ConstValues.A_ALPHA_MULTIPLIER,  ConstValues.A_RED_MULTIPLIER,  ConstValues.A_GREEN_MULTIPLIER,  ConstValues.A_BLUE_MULTIPLIER];
-		private static var colorTransformValueArray:Array = [0,0,0,0,1,1,1,1];
+		private static var colorTransformValueArray:Array = [0,0,0,0,100,100,100,100];
 		
 		public static function optimizeData(dragonBonesData:Object):void
 		{
