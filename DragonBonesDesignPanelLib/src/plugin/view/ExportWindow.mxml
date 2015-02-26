@@ -3,10 +3,8 @@
 						xmlns:s="library://ns.adobe.com/flex/spark" 
 						xmlns:mx="library://ns.adobe.com/flex/mx" 
 						xmlns:view="plugin.view.*"
-						
 						width="400"
 						title="{resourceManager.getString('resources', 'export')}" 
-						
 						creationComplete="creationCompleteHandler(event)"
 						>
 	
@@ -99,6 +97,11 @@
 				
 			}
 			
+			private function exportDataTypeChanged(event:Event):void
+			{
+				var isAbsolute:Boolean = event.target == absoluteDataTypeRadioBtn;
+				_settingManager.exportDataTypeIndex = isAbsolute ? 0 : 1;
+			}
 		]]>
 	</fx:Script>
 	
@@ -115,6 +118,9 @@
 	<s:HGroup width="100%">
 		<s:VGroup minWidth="100" gap="6" horizontalAlign="right">
 			<s:Label height="24" textAlign="right" verticalAlign="middle" text="{resourceManager.getString('resources','dataFormat')}"/>
+			<s:Label height="24" textAlign="right" verticalAlign="middle" text="{resourceManager.getString('resources','dataType')}"
+					 visible="{!_isMerged}" includeInLayout="{!_isMerged}"
+					 />
 			<s:Label height="24" textAlign="right" verticalAlign="middle" text="{resourceManager.getString('resources','textureFormat')}"/>
 			<s:Label height="24" textAlign="right" verticalAlign="middle" text="{resourceManager.getString('resources','exportscale')}"
 					 visible="{!_isSWF}" includeInLayout="{!_isSWF}"
@@ -132,6 +138,34 @@
 							selectedIndex="@{_settingManager.exportDataFormatIndex}" 
 							change="changeHandler(event)"
 							/>
+			<s:HGroup width="100%" height="24" gap="10" visible="{!_isMerged}" includeInLayout="{!_isMerged}" verticalAlign="middle">
+				
+				<s:HGroup height="100%" verticalAlign="middle" gap="0"
+						  toolTip="{_settingManager.enableExportGlobalDataType ?
+						  			resourceManager.getString('resources','dataTypeAbsoluteToolTip') :
+						  			resourceManager.getString('resources','dataTypeAbsoluteDisableToolTip')}">
+					<s:RadioButton id="absoluteDataTypeRadioBtn" groupName="exportDataType"
+								   selected="{_settingManager.exportDataTypeIndex == 0}"
+								   enabled="{_settingManager.enableExportGlobalDataType}" 
+								   change="exportDataTypeChanged(event)"/>
+					<s:Label enabled="{_settingManager.enableExportGlobalDataType}" 
+							 text="{resourceManager.getString('resources','dataTypeAbsolute')}"/>
+				</s:HGroup>
+				<s:HGroup height="100%" verticalAlign="middle" gap="0" 
+						  toolTip="{resourceManager.getString('resources','dataTypeRelativeToolTip')}">
+					<s:RadioButton id="relativeDataTypeRadioBtn" groupName="exportDataType"
+								   selected="{_settingManager.exportDataTypeIndex == 1}"
+								   change="exportDataTypeChanged(event)"/>
+					<s:Label text="{resourceManager.getString('resources','dataTypeRelative')}"/>
+				</s:HGroup>
+				
+				<s:Spacer width="20"/>
+				<s:CheckBox label="{resourceManager.getString('resources','compressData')}" 
+							selected="@{_settingManager.enableDataOptimization}" 
+							toolTip="{resourceManager.getString('resources','compressDataToolTip')}" />
+				
+				
+			</s:HGroup>
 			<s:DropDownList width="100%" height="24" textAlign="right" 
 							id="textureFormatDropDownList" labelField="label" 
 							selectedIndex="{_settingManager.exportTextureFormatIndex}" 

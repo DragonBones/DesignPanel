@@ -2,13 +2,6 @@ package core.service
 {
 	import com.adobe.serialization.json.JSON;
 	
-	import flash.display.BitmapData;
-	import flash.display.DisplayObject;
-	import flash.display.MovieClip;
-	import flash.geom.Matrix;
-	import flash.geom.Rectangle;
-	import flash.utils.ByteArray;
-	
 	import core.SettingManager;
 	import core.events.ServiceEvent;
 	import core.model.ImportModel;
@@ -16,12 +9,22 @@ package core.service
 	import core.model.vo.ImportVO;
 	import core.suppotClass._BaseService;
 	import core.utils.BitmapDataUtil;
+	import core.utils.DataFormatUtils;
+	import core.utils.DataUtils;
 	import core.utils.GlobalConstValues;
+	import core.utils.OptimizeDataUtils;
 	import core.utils.PNGEncoder;
-	import core.utils.xmlToObject;
 	
+	import dragonBones.core.DragonBones;
 	import dragonBones.objects.DataParser;
 	import dragonBones.utils.ConstValues;
+	
+	import flash.display.BitmapData;
+	import flash.display.DisplayObject;
+	import flash.display.MovieClip;
+	import flash.geom.Matrix;
+	import flash.geom.Rectangle;
+	import flash.utils.ByteArray;
 	
 	import light.managers.ErrorManager;
 	
@@ -42,7 +45,7 @@ package core.service
 			
 		}
 		
-		public function changeTo(importVO:ImportVO, exportVO:ExportVO):void
+		public function export(importVO:ImportVO, exportVO:ExportVO):void
 		{
 			importModel.vo = importVO.clone();
 			_exportVO = exportVO;
@@ -76,27 +79,20 @@ package core.service
 				scaleData(_exportVO.scale);
 			}
 			
-			
 			if(_exportVO.configType == GlobalConstValues.CONFIG_TYPE_MERGED)
 			{
-				if (changeToMergedData())
-				{
-					return;
-				}
-			}
-			else if (_exportVO.textureAtlasType == GlobalConstValues.TEXTURE_ATLAS_TYPE_PNGS)
-			{
-				if (changeToSubTextureData())
+				if (exportDataMerged())
 				{
 					return;
 				}
 			}
 			else
 			{
-				if (changeToTextureAtlasData())
+				if (exportZip())
 				{
 					return;
 				}
+				
 			}
 			
 			light.managers.ErrorManager.getInstance().dispatchErrorEvent(this, IMPORT_TO_EXPORT_ERROR);
@@ -155,7 +151,7 @@ package core.service
 				);
 		}
 		
-		private function changeToMergedData():Boolean
+		private function exportDataMerged():Boolean
 		{
 			var textureAtlasBytes:ByteArray;
 			if (
@@ -173,57 +169,152 @@ package core.service
 			}
 			exportSave(
 				DataParser.compressData(
-					xmlToObject(importModel.vo.skeleton, GlobalConstValues.XML_LIST_NAMES), 
-					xmlToObject(importModel.vo.textureAtlasConfig, GlobalConstValues.XML_LIST_NAMES), 
+					DataFormatUtils.xmlToObject(importModel.vo.skeleton, GlobalConstValues.XML_LIST_NAMES), 
+					DataFormatUtils.xmlToObject(importModel.vo.textureAtlasConfig, GlobalConstValues.XML_LIST_NAMES), 
 					textureAtlasBytes
 				)
 			);
 			return true;
 		}
 		
-		private function changeToTextureAtlasData():Boolean
+		private function exportZip():Boolean
 		{
-			var textureAtlasBytes:ByteArray;
 			var zip:Zip = new Zip();
 			var date:Date = new Date();
 			
-			// update texture atlas and it's name
-			_exportVO.textureAtlasFileName = _exportVO.textureAtlasFileName || GlobalConstValues.TEXTURE_ATLAS_DATA_NAME;
-			if (
-				_exportVO.textureAtlasType == GlobalConstValues.TEXTURE_ATLAS_TYPE_SWF &&
-				importModel.vo.textureAtlasType == GlobalConstValues.TEXTURE_ATLAS_TYPE_SWF
-			)
+			zipTextureAtlas(zip, date);
+			zipDragonBonesData(zip, date);
+			
+			_exportVO.name += "." + GlobalConstValues.ZIP_SUFFIX;
+			exportSave(zip.encode());
+			zip.clear();
+			return true;
+		}
+	
+		private function zipDragonBonesData(zip:Zip, date:Date):void
+		{
+			var objData:Object;
+			if( _exportVO.dataType == GlobalConstValues.DATA_TYPE_PARENT && 
+				importModel.vo.dataType == GlobalConstValues.DATA_TYPE_GLOBAL)
 			{
-				_exportVO.textureAtlasFileName += "." + GlobalConstValues.SWF_SUFFIX;
-				textureAtlasBytes = importModel.vo.textureAtlasBytes;
+				objData = DataFormatUtils.xmlToObject(importModel.vo.skeleton, GlobalConstValues.XML_LIST_NAMES);
+				objData[ConstValues.A_IS_GLOBAL] = 0;
+				objData[ConstValues.A_VERSION] = DragonBones.PARENT_COORDINATE_DATA_VERSION;
+				DataUtils.convertDragonBonesDataToRelativeObject(objData);
+			}
+			
+			if(_exportVO.enableDataOptimization)
+			{
+				if(!objData)
+				{
+					objData = DataFormatUtils.xmlToObject(importModel.vo.skeleton, GlobalConstValues.XML_LIST_NAMES);
+				}
+				OptimizeDataUtils.optimizeData(objData);
+			}
+			
+			var dataToZip:Object;
+			var fileName:String = _exportVO.dragonBonesFileName + ".";
+			
+			_exportVO.dragonBonesFileName = _exportVO.dragonBonesFileName || GlobalConstValues.DRAGON_BONES_DATA_NAME;
+			switch (_exportVO.configType)
+			{
+				case GlobalConstValues.CONFIG_TYPE_XML:
+					if(objData)
+					{
+						dataToZip = DataFormatUtils.objectToXML(objData).toXMLString();
+					}
+					else
+					{
+						dataToZip = importModel.vo.skeleton.toXMLString();
+					}
+					fileName += GlobalConstValues.XML_SUFFIX;
+					break;
+				
+				case GlobalConstValues.CONFIG_TYPE_JSON:
+					if(objData)
+					{
+						dataToZip = com.adobe.serialization.json.JSON.encode(objData);
+					}
+					else
+					{
+						dataToZip = com.adobe.serialization.json.JSON.encode(DataFormatUtils.xmlToObject(importModel.vo.skeleton, GlobalConstValues.XML_LIST_NAMES));
+					}
+					fileName += GlobalConstValues.JSON_SUFFIX;
+					break;
+				
+				case GlobalConstValues.CONFIG_TYPE_AMF3:
+					var bytes:ByteArray = new ByteArray();
+					if(objData)
+					{
+						bytes.writeObject(objData);
+					}
+					else
+					{
+						bytes.writeObject(DataFormatUtils.xmlToObject(importModel.vo.skeleton, GlobalConstValues.XML_LIST_NAMES));
+					}
+					bytes.compress();
+					dataToZip = bytes;
+					fileName += GlobalConstValues.AMF3_SUFFIX;
+					break;
+			}
+			
+			if(dataToZip)
+			{
+				zip.add(dataToZip, fileName, date);
+			}
+		}
+		
+		private function zipTextureAtlas(zip:Zip, date:Date):void
+		{
+			if(_exportVO.textureAtlasType == GlobalConstValues.TEXTURE_ATLAS_TYPE_PNGS)
+			{
+				var subBitmapDataMap:Object = BitmapDataUtil.getSubBitmapDataDic(
+					importModel.vo.textureAtlas, 
+					importModel.getSubTextureRectMap()
+				);
+				
+				// update texture folder name and add subtextures to zip
+				_exportVO.subTextureFolderName = _exportVO.subTextureFolderName || GlobalConstValues.TEXTURE_ATLAS_DATA_NAME;
+				for (var subTextureName:String in subBitmapDataMap)
+				{
+					var subBitmapData:BitmapData = subBitmapDataMap[subTextureName];
+					zip.add(
+						PNGEncoder.encode(subBitmapData), 
+						_exportVO.subTextureFolderName + "/" + subTextureName + "." + GlobalConstValues.PNG_SUFFIX, 
+						date
+					);
+					subBitmapData.dispose();
+				}
 			}
 			else
 			{
-				_exportVO.textureAtlasFileName += "." + GlobalConstValues.PNG_SUFFIX;
-				textureAtlasBytes = getPNGBytes();
+				var textureAtlasBytes:ByteArray;
+				_exportVO.textureAtlasFileName = _exportVO.textureAtlasFileName || GlobalConstValues.TEXTURE_ATLAS_DATA_NAME;
+				
+				if(_exportVO.textureAtlasType == GlobalConstValues.TEXTURE_ATLAS_TYPE_SWF &&
+					importModel.vo.textureAtlasType == GlobalConstValues.TEXTURE_ATLAS_TYPE_SWF)
+				{
+					_exportVO.textureAtlasFileName += "." + GlobalConstValues.SWF_SUFFIX;
+					textureAtlasBytes = importModel.vo.textureAtlasBytes;
+				}
+				else
+				{
+					_exportVO.textureAtlasFileName += "." + GlobalConstValues.PNG_SUFFIX;
+					textureAtlasBytes = getPNGBytes();
+				}
+				
+				zip.add(textureAtlasBytes, _exportVO.textureAtlasFileName, date);
+				importModel.textureAtlasPath = (_exportVO.textureAtlasPath || "") + _exportVO.textureAtlasFileName;
+				zipTextureAtlasData(zip, date);
 			}
-			
-			// add texture atlas to zip
-			zip.add(
-				textureAtlasBytes, 
-				_exportVO.textureAtlasFileName,
-				date
-			);
-			
-			// update texture atlas path
-			importModel.textureAtlasPath = (_exportVO.textureAtlasPath || "") + _exportVO.textureAtlasFileName;
-			
-			// update skeleton and texture atlas config file name and add them to zip
-			_exportVO.dragonBonesFileName = _exportVO.dragonBonesFileName || GlobalConstValues.DRAGON_BONES_DATA_NAME;
+		}
+		
+		private function zipTextureAtlasData(zip:Zip, date:Date):void
+		{
 			_exportVO.textureAtlasConfigFileName = _exportVO.textureAtlasConfigFileName || GlobalConstValues.TEXTURE_ATLAS_DATA_NAME;
 			switch (_exportVO.configType)
 			{
 				case GlobalConstValues.CONFIG_TYPE_XML:
-					zip.add(
-						importModel.vo.skeleton.toXMLString(),
-						_exportVO.dragonBonesFileName + "." + GlobalConstValues.XML_SUFFIX, 
-						date
-					);
 					zip.add(
 						importModel.vo.textureAtlasConfig.toXMLString(),
 						_exportVO.textureAtlasConfigFileName + "." + GlobalConstValues.XML_SUFFIX, 
@@ -233,12 +324,7 @@ package core.service
 				
 				case GlobalConstValues.CONFIG_TYPE_JSON:
 					zip.add(
-						com.adobe.serialization.json.JSON.encode(xmlToObject(importModel.vo.skeleton, GlobalConstValues.XML_LIST_NAMES)), 
-						_exportVO.dragonBonesFileName + "." + GlobalConstValues.JSON_SUFFIX, 
-						date
-					);
-					zip.add(
-						com.adobe.serialization.json.JSON.encode(xmlToObject(importModel.vo.textureAtlasConfig, GlobalConstValues.XML_LIST_NAMES)), 
+						com.adobe.serialization.json.JSON.encode(DataFormatUtils.xmlToObject(importModel.vo.textureAtlasConfig, GlobalConstValues.XML_LIST_NAMES)), 
 						_exportVO.textureAtlasConfigFileName + "." + GlobalConstValues.JSON_SUFFIX, 
 						date
 					);
@@ -246,16 +332,7 @@ package core.service
 				
 				case GlobalConstValues.CONFIG_TYPE_AMF3:
 					var bytes:ByteArray = new ByteArray();
-					bytes.writeObject(xmlToObject(importModel.vo.skeleton, GlobalConstValues.XML_LIST_NAMES));
-					bytes.compress();
-					zip.add(
-						bytes, 
-						_exportVO.dragonBonesFileName + "." + GlobalConstValues.AMF3_SUFFIX, 
-						date
-					);
-					
-					bytes = new ByteArray();
-					bytes.writeObject(xmlToObject(importModel.vo.textureAtlasConfig, GlobalConstValues.XML_LIST_NAMES));
+					bytes.writeObject(DataFormatUtils.xmlToObject(importModel.vo.textureAtlasConfig, GlobalConstValues.XML_LIST_NAMES));
 					bytes.compress();
 					zip.add(
 						bytes, 
@@ -264,75 +341,6 @@ package core.service
 					);
 					break;
 			}
-			
-			_exportVO.name += "." + GlobalConstValues.ZIP_SUFFIX;
-			exportSave(zip.encode());
-			zip.clear();
-			return true;
-		}
-		
-		private function changeToSubTextureData():Boolean
-		{
-			/*
-			_xmlDataProxy.changePath();
-			*/
-			var zip:Zip = new Zip();
-			var date:Date = new Date();
-			
-			var subBitmapDataMap:Object = BitmapDataUtil.getSubBitmapDataDic(
-				importModel.vo.textureAtlas, 
-				importModel.getSubTextureRectMap()
-			);
-			
-			// update texture folder name and add subtextures to zip
-			_exportVO.subTextureFolderName = _exportVO.subTextureFolderName || GlobalConstValues.TEXTURE_ATLAS_DATA_NAME;
-			for (var subTextureName:String in subBitmapDataMap)
-			{
-				var subBitmapData:BitmapData = subBitmapDataMap[subTextureName];
-				zip.add(
-					PNGEncoder.encode(subBitmapData), 
-					_exportVO.subTextureFolderName + "/" + subTextureName + "." + GlobalConstValues.PNG_SUFFIX, 
-					date
-				);
-				subBitmapData.dispose();
-			}
-			
-			// update skeleton file name and add it to zip
-			_exportVO.dragonBonesFileName = _exportVO.dragonBonesFileName || GlobalConstValues.DRAGON_BONES_DATA_NAME;
-			switch (_exportVO.configType)
-			{
-				case GlobalConstValues.CONFIG_TYPE_XML:
-					zip.add(
-						importModel.vo.skeleton.toXMLString(),
-						_exportVO.dragonBonesFileName + "." + GlobalConstValues.XML_SUFFIX, 
-						date
-					);
-					break;
-				
-				case GlobalConstValues.CONFIG_TYPE_JSON:
-					zip.add(
-						com.adobe.serialization.json.JSON.encode(xmlToObject(importModel.vo.skeleton, GlobalConstValues.XML_LIST_NAMES)), 
-						_exportVO.dragonBonesFileName + "." + GlobalConstValues.JSON_SUFFIX, 
-						date
-					);
-					break;
-				
-				case GlobalConstValues.CONFIG_TYPE_AMF3:
-					var bytes:ByteArray = new ByteArray();
-					bytes.writeObject(xmlToObject(importModel.vo.skeleton, GlobalConstValues.XML_LIST_NAMES));
-					bytes.compress();
-					zip.add(
-						bytes, 
-						_exportVO.dragonBonesFileName + "." + GlobalConstValues.AMF3_SUFFIX, 
-						date
-					);
-					break;
-			}
-			
-			_exportVO.name += "." + GlobalConstValues.ZIP_SUFFIX;
-			exportSave(zip.encode());
-			zip.clear();
-			return true;
 		}
 		
 		private function getPNGBytes():ByteArray

@@ -1,0 +1,279 @@
+﻿<!--
+
+	Dragonbones 3.0数据
+	name:
+		DragonBones数据名,从FlashPro导出时，该值默认取自FLA 文件名，比如 dragon.fla，导出时，此值为 dragon。
+		此值会做为 DragonBonesData 的 name 属性，用于数据加入Factory 后的默认索引名.
+	
+	frameRate:
+		FLA 文件的帧频，动画数据中存储的都是帧，而不是时间，通过除以帧频即可得出正确的时间。
+		
+	version:
+		数据版本号
+		
+	isGlobal:
+		[可选属性]，默认值为1。标记数据中的所有坐标是相对Global的还是相对Parent的
+-->
+<dragonBones
+	name="dataName"
+	frameRate="24"
+	version="3.0.0"
+	isGlobal="1"
+>
+	<!--armatureList-->
+	<!--
+		骨架
+		name:
+			骨架名，取自FLA 库元件名，包含文件夹路径。
+	-->
+	<armature
+		name="armatureName"
+	>
+	
+		<!--boneList-->
+		<!--
+			骨骼
+			name:
+				骨骼名，取自时间轴图层名，在读取此数据时，会自动重命名重叠的图层名。
+				如果图层同名，但这些同名图层的动画并不重叠，可视为同一个骨骼深度Z改变。
+				
+			parent:
+				父骨骼名
+				
+			length:
+				[可选属性]，代表骨头长度，默认值为0。目前该值是保留属性，没有实际用途。
+		-->
+		<bone
+			name="boneName"
+			parent="parentBoneName"
+			length="0"
+		>
+			<!--
+				骨骼注册在骨架上的绝对位置、斜切、缩放。所有属性均为可选属性，默认值如下：x,y,skX,skY默认值为0; scX,scY 默认值为1
+			-->
+			<transform
+				x="0.00"
+				y="0.00"
+				skX="0.00"
+				skY="0.00"
+				scX="1.00"
+				scY="1.00"
+			/>
+		</bone>
+		
+		<!--skinList-->
+		<!--
+			皮肤
+			name:
+				皮肤名
+		-->
+		<skin
+			name="skinName"
+		>
+		
+			<!--slotList-->
+			<!--
+				衔接骨骼与显示对象
+				name:
+					默认与骨骼同名
+				parent:
+					所属骨骼名
+				zOrder:
+					初始深度
+				blendMode:
+					[可选属性], slot的混合模式，默认为""
+
+			-->
+			<slot
+				name="slotName"
+				parent="parentBoneName"
+				zOrder="0.00"
+				blendMode=""
+			>
+				
+				<!--displayList-->
+				<!--
+					衔接骨骼与显示对象
+					type:
+						image或armature，表示该display是使用贴图还是子骨架
+					name:
+						名字
+				-->
+				<display
+					type="image"
+					name="displayName"
+				>
+					<!--
+						显示对象注册在slot上的绝对位置、斜切、缩放、偏移。
+					-->
+					<transform
+						x="0.00"
+						y="0.00"
+						skX="0.00"
+						skY="0.00"
+						scX="1.00"
+						scY="1.00"
+						pX="0.00"
+						pY="0.00"
+					/>
+				</display>
+				
+			</slot>
+			
+		</skin>
+		
+		<!--animationList-->
+		<!--
+			动画
+			name:
+				动画名
+			fadeInTime:
+				[可选属性]，淡入的混合时间，默认值0
+			duration:
+				动画帧长度
+			scale:
+				[可选属性]，时间缩放，默认值1
+			loop:
+				[可选属性]，播放次数，0循环，1~+∞播放次数，默认值1
+			tweenEasing:
+				[可选属性]，覆盖所有关键帧的缓动效果，默认值为NaN，代表不覆盖
+			autoTween:
+				[可选属性]，覆盖所有关键帧的补间效果，默认值为1，代表不覆盖，默认自动补间。设置为0代表所有关键帧不补间，动画变为关键帧动画。
+		-->
+		<animation
+			name="animationName"
+			fadeInTime="0.25"
+			duration="36"
+			scale="1.00"
+			loop="0"
+			tweenEasing="NaN"
+			autoTween="1"
+		>
+			
+			<!--frameList-->
+			<!--
+				主图层时间轴关键帧数据
+				duration:
+					此关键帧持续的帧数。
+
+				event:
+					[可选属性], 默认值为空
+					时间轴事件，在主图层时间轴帧写帧标签 @事件名，此时触发 AnimationEvent。
+					
+				sound:
+					[可选属性], 默认值为空
+					声音事件，会触发声音事件，声音ID会是声音在 FLA 库中的动态链接名或元件名（当没有动态链接的情况下）。
+					
+				action:
+					[可选属性], 默认值为空
+					跳转动作，相当于gotoAndPlay，在主图层时间轴帧标签上写 #run, 就相当于控制整个动画播放 run动作。
+			-->
+			<frame
+				duration="12"
+				event="eventName"
+				sound="soundName"
+				action="action"
+			/>
+			<!--
+				骨骼动画
+				name:
+					骨骼名，与所属层同名
+					
+				scale:
+					[可选属性], 默认值为1
+					骨骼动作的缩放，(0, +∞]，此值从 dragonpanel 中设置。
+					比如一个循环跑步动作有 4 秒，其中对腿的动作设置此值为 0.5，那么腿的循环周期就缩短了一倍，就是2秒。
+					
+				offset:
+					[可选属性], 默认值为0
+					骨骼动作的延时，[0, 1]，此值从 dragonpanel 中设置。
+					比如一个循环跑步动作有 4 秒，其中对腿的动作设置此值为 0.25，那么腿的循环比其他骨骼动作提前1秒。
+				
+				pX/pY:
+					[可选属性], 默认值为0
+					代表动画的中该骨骼轴点的初始值。这个属性只有用相对Parent的数据才有意义，如果用相对Global的数据，这个值会在数据解析时被覆盖。
+					
+			-->
+			<timeline
+				name="boneName"
+				scale="1.00"
+				offset="0.00"
+				pX="0"
+				pY="0"
+			>
+				<!--
+					骨骼动作关键帧数据
+					duration:
+						关键帧长度，单位是帧。
+						
+					displayIndex:
+						[可选属性], 默认值为0
+						此关键帧该骨骼的第一个Slot使用的自有贴图列表中的索引。
+						比如此Slot共使用了三个贴图（比如五指张开，拳头，剪刀手），那么此值可能为0、1或2。
+					event:
+						[可选属性], 默认值为空
+						骨骼时间轴事件，从骨骼图层时间轴帧上写帧标签 @事件名，即可在动画播放时发出 FrameEvent 事件。
+
+					sound:
+						[可选属性], 默认值为空
+						声音事件，会触发声音事件，声音ID会是声音在 FLA 库中的动态链接名或元件名（当没有动态链接的情况下）。
+						
+					action:
+						[可选属性], 默认值为空
+						子骨架跳转动作，相当于childArmature.gotoAndPlay。
+						在骨骼图层时间轴帧标签上写 #run, 就相当于控制子骨架动画播放 run 动作（如果此骨骼是一个子骨架）。
+						
+					tweenEasing:
+						[可选属性], 默认值为0，代表线性补间，NaN代表不补间。
+						读取的关键帧补间的缓动，-1~1，（尚不支持自定义补间数据），如果在该关键帧标签上写^，则此值为NaN，此时将不会再自动补间。
+						
+					tweenRotate:
+						[可选属性], 默认值为0，必须为整数
+						顺时针或逆时针旋转几周，从补间动画中读取。
+						
+					hide:
+						[可选属性]，默认值为0，代表不隐藏
+						Slot是否隐藏，与把骨骼从时间轴动画删除不同，控制Slot的visible。			
+				-->
+				<frame
+					duration="12"
+					event="eventName"
+					sound="soundName"
+					action="action"
+					hide="1"
+					tweenEasing="1.00"
+					tweenRotate="0"
+					displayIndex="0"
+					zOrder="0.00"
+				>
+					<transform
+						x="0.00"
+						y="0.00"
+						skX="0.00"
+						skY="0.00"
+						scX="1.00"
+						scY="1.00"
+						pX="0.00"
+						pY="0.00"
+					/>
+					
+					<!--
+						颜色叠加。所有属性均为可选属性，默认值如下：aO,rO,gO,bO默认值为0; aM,rM,gM,bM 默认值为100
+					-->
+					<colorTransform
+						aO="0"
+						rO="0"
+						gO="0"
+						bO="0"
+						aM="100"
+						rM="100"
+						gM="100"
+						bM="100"
+					/>
+				</frame>
+			</timeline>
+			
+		</animation>
+	
+	</armature>
+</dragonBones>

@@ -232,7 +232,7 @@ package core.controller
 			
 			importDataToExportDataService.addEventListener(ImportDataToExportDataService.IMPORT_TO_EXPORT_ERROR, exportChangeServiceHandler);
 			importDataToExportDataService.addEventListener(ImportDataToExportDataService.IMPORT_TO_EXPORT_COMPLETE, exportChangeServiceHandler);
-			importDataToExportDataService.changeTo(importVO, exportVO);
+			importDataToExportDataService.export(importVO, exportVO);
 		}
 		
 		private function exportChangeServiceHandler(e:Event):void

@@ -29,6 +29,9 @@ package core.model.vo
 		//资源贴图类型，swf，png，pngs
 		public var textureAtlasType:String = null;
 		
+		//数据类型，相对数据，绝对数据
+		public var dataType:String = null;
+		
 		//只导入数组中存在的
 		public var flaItems:Vector.<String> = null;
 		
@@ -91,6 +94,7 @@ package core.model.vo
 			importVO.importType = importType;
 			importVO.configType = configType;
 			importVO.textureAtlasType = textureAtlasType;
+			importVO.dataType = dataType;
 			importVO.typeFilter = typeFilter;
 			importVO.flaItems = flaItems;
 			importVO.isToMerge = isToMerge;
