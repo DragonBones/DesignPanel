@@ -144,7 +144,7 @@
 			
 			if (isNearest2N)
 			{
-				getNearest2N(heightMax);
+				heightMax = getNearest2N(heightMax);
 			}
 			
 			return new Rectangle(0, 0, widthDefault, heightMax);
