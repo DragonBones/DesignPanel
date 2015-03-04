@@ -2,12 +2,11 @@
 <view:BaseWindow xmlns:fx="http://ns.adobe.com/mxml/2009"
 						xmlns:s="library://ns.adobe.com/flex/spark"
 						xmlns:mx="library://ns.adobe.com/flex/mx"
-						xmlns:view="plugin.view.*"
 						
-						title="{resourceManager.getString('resources', 'textureAtlas')}"
+						title="{resourceManager.getString('resources', 'xml')}"
 						
 						creationComplete="creationCompleteHandler(event)"
-						removedFromStage="removeFromStageHandler(event)"
+						removedFromStage="removeFromStageHandler(event)" xmlns:view="plugin.view.*"
 						>
 	
 	<fx:Declarations>
@@ -15,34 +14,22 @@
 	
 	<fx:Script>
 		<![CDATA[
-			import mx.resources.ResourceManager;
-			
 			import core.ShareConfig;
 			
 			public var shareConfig:ShareConfig;
-			
-			private var _bitmap:Bitmap;
 			
 			private function creationCompleteHandler(event:Event):void
 			{
 				if (shareConfig && shareConfig.parsedModel.vo.importVO)
 				{
-					_bitmap = new Bitmap();
-					_bitmap.bitmapData = shareConfig.parsedModel.vo.importVO.textureAtlas;
-					
-					textureContainer.addChild(_bitmap);
-					textureContainerGroup.width = _bitmap.width;
-					textureContainerGroup.height = _bitmap.height;
-					
-					this.title = 
-						ResourceManager.getInstance().getString('resources', 'textureAtlas') +
-						": " + _bitmap.width + " x " + _bitmap.height;
+					textXML.text = shareConfig.parsedModel.vo.importVO.skeleton.toXMLString();
 				}
 				
 				this.stage.addEventListener(Event.RESIZE, stageResizeHandler);
 				
 				updateSize();
 			}
+			
 			
 			private function removeFromStageHandler(event:Event):void
 			{
@@ -64,12 +51,8 @@
 		]]>
 	</fx:Script>
 	
-	<s:Scroller width="100%" height="100%">
-		<s:Group>
-			<s:Group id="textureContainerGroup">
-				<mx:UIComponent id="textureContainer"/>
-			</s:Group>
-		</s:Group>
-	</s:Scroller>
+	<s:Group width="100%" height="100%">
+		<s:TextArea id="textXML" left="2" right="2" top="2" bottom="2" borderColor="#000000" editable="false"/>
+	</s:Group>
 	
 </view:BaseWindow>

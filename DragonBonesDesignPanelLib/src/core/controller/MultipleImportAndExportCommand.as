@@ -97,8 +97,7 @@ package core.controller
 			}
 			else
 			{
-				jsflService.addEventListener(BROWSE_FILES, jsflServerHandler);
-				jsflService.runJSFLCode(BROWSE_FILES, _isFLAFile? _jsflScript.browseFLA.text(): _jsflScript.browseExportedFile.text());
+				jsflService.runJSFLCode(BROWSE_FILES, _isFLAFile? _jsflScript.browseFLA.text(): _jsflScript.browseExportedFile.text(), jsflServerHandler);
 			}
 		}
 		
@@ -107,7 +106,6 @@ package core.controller
 			switch(e.type)
 			{
 				case BROWSE_FILES:
-					jsflService.removeEventListener(BROWSE_FILES, jsflServerHandler);
 					var result:String = e.data as String;
 					if (result != "false")
 					{
@@ -125,7 +123,6 @@ package core.controller
 					break;
 				
 				case OPEN_FLA_DOCUMENT:
-					jsflService.removeEventListener(OPEN_FLA_DOCUMENT, jsflServerHandler);
 					importCurrentFLAFile();
 					break;
 			}
@@ -158,8 +155,7 @@ package core.controller
 				var file:Object = _fileList.pop();
 				if (_isFLAFile)
 				{
-					jsflService.addEventListener(OPEN_FLA_DOCUMENT, jsflServerHandler);
-					jsflService.runJSFLMethod(OPEN_FLA_DOCUMENT, "fl.openDocument", file.url);
+					jsflService.runJSFLMethod(OPEN_FLA_DOCUMENT, "fl.openDocument", file.url, jsflServerHandler);
 				}
 				else
 				{

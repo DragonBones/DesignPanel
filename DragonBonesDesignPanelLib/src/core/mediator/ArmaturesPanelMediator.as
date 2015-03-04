@@ -1,4 +1,4 @@
-package plugin.mediator
+package core.mediator
 {
 	
 	import flash.events.Event;
@@ -24,7 +24,7 @@ package plugin.mediator
 	import core.suppotClass._BaseMediator;
 	import core.utils.GlobalConstValues;
 	
-	import plugin.view.ArmaturesPanel;
+	import core.view.ArmaturesPanel;
 	
 	import dragonBones.Bone;
 	import dragonBones.animation.AnimationState;

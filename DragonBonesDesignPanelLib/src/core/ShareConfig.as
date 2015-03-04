@@ -2,6 +2,7 @@ package core
 {
 	import flash.events.IEventDispatcher;
 	
+	import core.controller.ControlCommand;
 	import core.controller.CreateAnimationToFlashCommand;
 	import core.controller.ExportFileCommand;
 	import core.controller.ImportFLACommand;
@@ -9,9 +10,13 @@ package core
 	import core.controller.ModelCommand;
 	import core.controller.MultipleImportAndExportCommand;
 	import core.controller.RemoveArmatureCommand;
+	import core.controller.SettingStartupCommand;
+	import core.controller.ViewCommand;
 	import core.events.ControllerEvent;
+	import core.events.MediatorEvent;
 	import core.events.ModelEvent;
 	import core.mediator.AnimationControlViewMediator;
+	import core.mediator.ArmaturesPanelMediator;
 	import core.mediator.BoneControlViewMediator;
 	import core.model.ImportModel;
 	import core.model.ParsedModel;
@@ -21,6 +26,7 @@ package core
 	import core.service.JSFLService;
 	import core.service.LoadTextureAtlasBytesService;
 	import core.view.AnimationControlView;
+	import core.view.ArmaturesPanel;
 	import core.view.BoneControlView;
 	
 	import light.net.LocalConnectionClientService;
@@ -30,6 +36,7 @@ package core
 	import robotlegs.bender.extensions.mediatorMap.api.IMediatorMap;
 	import robotlegs.bender.framework.api.IConfig;
 	import robotlegs.bender.framework.api.IInjector;
+	import robotlegs.bender.mxml.ContextBuilderTag;
 	
 	public final class ShareConfig implements IConfig
 	{
@@ -55,6 +62,9 @@ package core
 		// 
 		public var parsedModel:ParsedModel;
 		
+		//
+		private var _contextBuilderTag:ContextBuilderTag;
+		
 		
 		public function configure():void
 		{
@@ -70,9 +80,12 @@ package core
 			//view
 			mediatorMap.map(core.view.AnimationControlView).toMediator(core.mediator.AnimationControlViewMediator);
 			mediatorMap.map(core.view.BoneControlView).toMediator(core.mediator.BoneControlViewMediator);
+			mediatorMap.map(core.view.ArmaturesPanel).toMediator(core.mediator.ArmaturesPanelMediator);
 			
 			
 			//controller
+			commandMap.map(core.events.ControllerEvent.SETTING_STARTUP).toCommand(core.controller.SettingStartupCommand);
+			
 			commandMap.map(core.events.ModelEvent.PARSED_MODEL_ANIMATION_DATA_CHANGE).toCommand(core.controller.ModelCommand);
 			commandMap.map(core.events.ModelEvent.PARSED_MODEL_TIMELINE_DATA_CHANGE).toCommand(core.controller.ModelCommand);
 			commandMap.map(core.events.ModelEvent.PARSED_MODEL_BONE_PARENT_CHANGE).toCommand(core.controller.ModelCommand);
@@ -85,22 +98,23 @@ package core
 			commandMap.map(core.events.ControllerEvent.MULTIPLE_IMPORT_AND_EXPORT).toCommand(core.controller.MultipleImportAndExportCommand);
 			commandMap.map(core.events.ControllerEvent.CREATE_ANIMATION_TO_FLASH).toCommand(core.controller.CreateAnimationToFlashCommand);
 			
+			commandMap.map(core.events.ControllerEvent.IMPORT_COMPLETE).toCommand(core.controller.ControlCommand);
+			commandMap.map(core.events.ControllerEvent.EXPORT_COMPLETE).toCommand(core.controller.ControlCommand);
+			
+			commandMap.map(core.events.MediatorEvent.UPDATE_FLA_ARMATURE).toCommand(core.controller.ViewCommand);
+			commandMap.map(core.events.MediatorEvent.REMOVE_ARMATURE).toCommand(core.controller.ViewCommand);
+			
+			
 			
 			// service
 			var server:LocalConnectionServerService;
 			if(JSFLService.isAvailable)
 			{
 				server = new LocalConnectionServerService();
-				server.host = HOST;
-				server.on();
 			}
 			
-			// client
 			var client:LocalConnectionClientService = new LocalConnectionClientService();
-			client.host = HOST;
-			client.on();
 			
-			//
 			var jsflService:JSFLService = new JSFLService();
 			
 			injector.map(LocalConnectionServerService).toValue(server);
@@ -108,14 +122,31 @@ package core
 			
 			injector.map(core.service.LoadTextureAtlasBytesService).asSingleton();
 			injector.map(core.service.JSFLService).toValue(jsflService);
-				
+			
 			injector.map(core.service.ImportFLAService).asSingleton();
 			injector.map(core.service.ImportFileService).asSingleton();
 			injector.map(core.service.ImportDataToExportDataService).asSingleton();
 			
 			injector.injectInto(jsflService);
 			
+			
+			
+			
+			if (server)
+			{
+				server.host = HOST;
+				server.on();
+			}
+			
+			client.host = HOST;
+			client.on();
 			jsflService.on();
+			
+			
+			(injector.getInstance(IEventDispatcher) as IEventDispatcher)
+				.dispatchEvent(
+					new ControllerEvent(ControllerEvent.SETTING_STARTUP)
+				);
 		}
 	}
 }

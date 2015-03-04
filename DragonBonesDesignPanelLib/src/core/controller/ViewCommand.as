@@ -1,4 +1,4 @@
-package plugin.controller
+package core.controller
 {
 	import core.SettingManager;
 	import core.events.ControllerEvent;

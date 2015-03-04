@@ -36,13 +36,6 @@ package core.service
 		public static const ERROR_NO_ACTIVE_DOM:String = "noActiveDom";
 		public static const ERROR_NO_ARMATURE_IN_DOM:String = "noArmatureInDom";
 		
-		private static const GET_ARMATURE_LIST:String = "GET_ARMATURE_LIST";
-		private static const GENERATE_ARMATURE:String = "GENERATE_ARMATURE";
-		private static const CLEAR_TEXTURE_SWFITEM:String = "CLEAR_TEXTURE_SWFITEM";
-		private static const ADD_SUB_TEXTURE_TO_SWFITEM:String = "ADD_SUB_TEXTURE_TO_SWFITEM";
-		private static const EXPORT_SWF:String = "EXPORT_SWF";
-		private static const COPY_ANIMATION:String = "COPY_ANIMATION";
-		
 		[Inject (name="importModel")]
 		public var importModel:ImportModel;
 		
@@ -79,9 +72,9 @@ package core.service
 			}
 			importModel.vo = importVO;
 			
-			//Load bone elements from Flash Pro
-			jsflService.addEventListener(GET_ARMATURE_LIST, getArmatureListHandler);
 			jsflService.addEventListener(JSFLService.JSFL_CONNECTION_ERROR, jsflConnectionErrorHandler);
+			
+			//Load bone elements from Flash Pro
 			getArmatureList(
 				importModel.vo.id || "",
 				importModel.vo.importType == GlobalConstValues.IMPORT_TYPE_FLA_SELECTED_LIBRARY_ITEMS, 
@@ -103,33 +96,31 @@ package core.service
 		
 		private function getArmatureList(domID:String = null, isSelected:Boolean = false, armatureNames:Vector.<String> = null):void
 		{
-			jsflService.runJSFLMethod(GET_ARMATURE_LIST, "db.getArmatureList", domID, isSelected, armatureNames);
+			jsflService.runJSFLMethod(null, "db.getArmatureList", domID, isSelected, armatureNames, getArmatureListHandler);
 		}
 		
 		private function getArmature(domID:String, armatureName:String, dragonBonesData:XML, fadeInTime:Number, mergeLayersInFolder:Boolean = false):void
 		{
-			jsflService.runJSFLMethod(GENERATE_ARMATURE, "db.getArmature", domID, armatureName, dragonBonesData, fadeInTime, mergeLayersInFolder);
+			jsflService.runJSFLMethod(null, "db.getArmature", domID, armatureName, dragonBonesData, fadeInTime, mergeLayersInFolder, readNextArmatureHandler);
 		}
 		
 		private function clearTextureSWFItem(domID:String):void
 		{
-			jsflService.runJSFLMethod(CLEAR_TEXTURE_SWFITEM, "db.clearTextureSWFItem", domID);
+			jsflService.runJSFLMethod(null, "db.clearTextureSWFItem", domID, clearTextureAtlasSWFHandler);
 		}
 		
 		private function addSubTextureToSWFItem(domID:String, textureName:String):void
 		{
-			jsflService.runJSFLMethod(ADD_SUB_TEXTURE_TO_SWFITEM, "db.addTextureToSWFItem", domID, textureName);
+			jsflService.runJSFLMethod(null, "db.addTextureToSWFItem", domID, textureName, readNextSubTextureHandler);
 		}
 		
 		private function exportSWF(domID:String):void
 		{
-			jsflService.runJSFLMethod(EXPORT_SWF, "db.exportSWF", domID);
+			jsflService.runJSFLMethod(null, "db.exportSWF", domID, exportSWFHandler);
 		}
 		
 		private function getArmatureListHandler(e:ServiceEvent):void
 		{
-			jsflService.removeEventListener(GET_ARMATURE_LIST, getArmatureListHandler);
-			
 			var result:String = e.data;
 			_dragonBonesData = XML(result);
 			
@@ -175,21 +166,17 @@ package core.service
 					return;
 				}
 				this.dispatchEvent(new ServiceEvent(IMPORT_ARMATURE, [armatureName, _currentLoadIndex, _totalCounts]));
-				jsflService.addEventListener(GENERATE_ARMATURE, readNextArmatureHandler);
 				getArmature(importModel.vo.id, armatureName, _dragonBonesData, importModel.vo.fadeInTime);
 			}
 			else
 			{
 				//load texture complete, start to place texture
-				jsflService.addEventListener(CLEAR_TEXTURE_SWFITEM, clearTextureAtlasSWFHandler);
 				clearTextureSWFItem(importModel.vo.id);
 			}
 		}
 		
 		private function readNextArmatureHandler(e:ServiceEvent):void
 		{
-			jsflService.removeEventListener(GENERATE_ARMATURE, readNextArmatureHandler);
-			
 			var result:String = e.data;
 			if(result != "false")
 			{
@@ -219,7 +206,6 @@ package core.service
 		
 		private function clearTextureAtlasSWFHandler(e:ServiceEvent):void
 		{
-			jsflService.removeEventListener(CLEAR_TEXTURE_SWFITEM, clearTextureAtlasSWFHandler);
 			_subTextureListSuccess = new Vector.<String>;
 			_subTextureList = importModel.getSubTextureListFromDisplayList();
 			_totalCounts = _subTextureList.length;
@@ -235,20 +221,16 @@ package core.service
 				var subTextureName:String = _subTextureList[_currentLoadIndex];
 				_currentLoadIndex ++;
 				this.dispatchEvent(new ServiceEvent(IMPORT_SUBTEXTURE, [subTextureName, _currentLoadIndex, _totalCounts]));
-				jsflService.addEventListener(ADD_SUB_TEXTURE_TO_SWFITEM, readNextSubTextureHandler);
 				addSubTextureToSWFItem(importModel.vo.id, subTextureName);
 			}
 			else
 			{
-				jsflService.addEventListener(EXPORT_SWF, exportSWFHandler);
 				exportSWF(importModel.vo.id);
 			}
 		}
 		
 		private function readNextSubTextureHandler(e:ServiceEvent):void
 		{
-			jsflService.removeEventListener(ADD_SUB_TEXTURE_TO_SWFITEM, readNextSubTextureHandler);
-			
 			var result:String = e.data;
 			if(result == ERROR_NO_ACTIVE_DOM)
 			{
@@ -273,7 +255,6 @@ package core.service
 		
 		private function exportSWFHandler(e:ServiceEvent):void
 		{
-			jsflService.removeEventListener(EXPORT_SWF, exportSWFHandler);
 			var result:String = e.data;
 			if (result == ERROR_NO_ACTIVE_DOM)
 			{

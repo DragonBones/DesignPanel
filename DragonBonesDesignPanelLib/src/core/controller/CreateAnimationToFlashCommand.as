@@ -11,8 +11,6 @@ package core.controller
 	
 	public final class CreateAnimationToFlashCommand extends _BaseCommand
 	{
-		private static const CREATE_ARMATURE_TO_FLASH:String = "createArmatureToFlash";
-		
 		[Inject]
 		public var event:ControllerEvent;
 		
@@ -77,14 +75,11 @@ package core.controller
 				}
 			}
 			_isPassedFirst = true;
-			jsflService.addEventListener(CREATE_ARMATURE_TO_FLASH, jsflServerHandler);
-			jsflService.runJSFLMethod(CREATE_ARMATURE_TO_FLASH, "dragonBonesExtensions.createArmatureAnimation", _armatureName, animationName, animation, _armature, isFirstData?true:"");
+			jsflService.runJSFLMethod(null, "dragonBonesExtensions.createArmatureAnimation", _armatureName, animationName, animation, _armature, isFirstData?true:"", jsflServerHandler);
 		}
 		
 		private function jsflServerHandler(e:ServiceEvent):void
 		{
-			jsflService.removeEventListener(CREATE_ARMATURE_TO_FLASH, jsflServerHandler);
-			
 			var result:String = e.data as String;
 			if(result != "false")
 			{

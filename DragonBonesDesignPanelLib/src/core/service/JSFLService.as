@@ -54,17 +54,13 @@
 		{
 			if(isAvailable)
 			{
-				MMExecute("fl.trace('" + arg.join(", ") + "');");
+				var str:String = arg.join(",").replace(/"/g, '\\"').replace(/\n/g, "\\n");
+				MMExecute("fl.trace(\"" + str + "\");");
 			}
 			else
 			{
 				trace.apply(null, arg);
 			}
-		}
-		
-		private static function xmlToString(xml:XML):String
-		{
-			return <a a={xml.toXMLString()}/>.@a[0].toXMLString();
 		}
 		
 		[Inject]
@@ -78,6 +74,8 @@
 		
 		private var _prevPort:String;
 		
+		private var _callbackMap:Object;
+		
 		public function JSFLService()
 		{
 			init();
@@ -88,6 +86,8 @@
 			_requestGroup = new RequestGroup();
 			_requestGroup.loadingMaxCount = 1;
 			_timer = new Timer(2000);
+			
+			_callbackMap = {};
 		}
 		
 		public function on():void
@@ -130,6 +130,12 @@
 				client.removeEventListener(LocalConnectionClientService.CLIENT_RECEIIVED, clientHandler);
 				client.removeEventListener(LocalConnectionClientService.SEND_ERROR, clientErrorHandler);
 			}
+			
+			for (var type:String in _callbackMap)
+			{
+				this.removeEventListener(type, _callbackMap[type]);
+			}
+			_callbackMap = {};
 		}
 		
 		public function loadJSFLFile():void
@@ -143,11 +149,21 @@
 			}
 		}
 		
-		public function runJSFLCode(type:String, code:String):void
+		public function runJSFLCode(type:String, code:String, callback:Function = null):void
 		{
 			if(client)
 			{
 				_prevPort = PORT_JSFL;
+				
+				if (callback != null)
+				{
+					while (!type || _callbackMap[type])
+					{
+						type = "_type_" + Math.random();
+					}
+					_callbackMap[type] = callback;
+					this.addEventListener(type, callback);
+				}
 				client.send(PORT_JSFL, type, code);
 			}
 		}
@@ -155,33 +171,42 @@
 		public function runJSFLMethod(type:String, method:String, ...args):void
 		{
 			var code:String = method + "(";
-			for each(var arg:Object in args)
+			var callback:Function = null;
+			
+			for (var i:int = 0, l:int = args.length; i < l; ++i)
 			{
-				if(arg is Number || arg is Boolean)
+				var arg:* = args[i];
+				
+				if(arg is Function)
 				{
-					code += arg + ",";
+					callback = arg;
+					continue;
+				}
+				
+				if (i != 0)
+				{
+					code += ",";
+				}
+				
+				if(arg is Number || arg is Boolean || arg is RegExp)
+				{
+					code += arg;
 				}
 				else if(arg is XML)
 				{
 					XML.prettyIndent = -1;
-					var xmlString:String = xmlToString(arg as XML);
+					code += (arg as XML).toXMLString();
 					XML.prettyIndent = 1;
-					code += '"' + xmlString + '",';
 				}
 				else
 				{
-					code += '"' + arg + '",';
+					code += '"' + arg + '"';
 				}
-			}
-			
-			if(args.length > 0)
-			{
-				code = code.substr(0, code.length -1);
 			}
 			
 			code += ');';
 			
-			runJSFLCode(type, code);
+			runJSFLCode(type, code, callback);
 		}
 		
 		private function jsflLoadHandler(e:Event):void
@@ -234,6 +259,12 @@
 						if (vo.type)
 						{
 							this.dispatchEvent(new ServiceEvent(vo.type, vo.data));
+							var callback:Function = _callbackMap[vo.type];
+							if (callback != null)
+							{
+								delete _callbackMap[vo.type];
+								this.removeEventListener(vo.type, callback);
+							}
 						}
 					}
 					break;

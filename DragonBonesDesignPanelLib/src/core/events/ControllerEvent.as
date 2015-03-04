@@ -6,6 +6,8 @@ package core.events
 	{
 		public static const STARTUP:String = "startup";
 		
+		public static const SETTING_STARTUP:String = "settingStartup";
+		
 		public static const IMPORT_FLA:String = "importFLA";
 		public static const IMPORT_FILE:String = "importFile";
 		public static const EXPORT_FILE:String = "exportFile";

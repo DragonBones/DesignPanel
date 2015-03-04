@@ -1,4 +1,4 @@
-package plugin.controller
+package core.controller
 {
 	import core.events.ControllerEvent;
 	import core.model.ParsedModel;

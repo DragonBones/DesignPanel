@@ -24,6 +24,8 @@ var dragonBones;
             this._currentArmatureItem = null;
             this._currentArmatureXML = null;
             this._displayRegistPositionMap = null;
+            this._textHasAnimationMap = null;
+            this._fontItemMap = null;
         }
 
         DragonBones.DRAGON_BONES = "dragonBones";
@@ -111,7 +113,11 @@ var dragonBones;
         DragonBones.A_LINE_TYPE = "lineType";
         DragonBones.A_TEXT_TYPE = "textType";
         DragonBones.A_TEXT = "text";
-        
+        DragonBones.A_HTML_TEXT = "htmlText";
+        DragonBones.A_LETTER_SPACING = "letterSpacing";
+        DragonBones.A_LINE_SPACING = "lineSpacing";
+        DragonBones.A_MAX_CHARACTERS = "maxCharacters";
+
         DragonBones.A_Z = "z";
         DragonBones.A_ROTATION_X = "rotationX";
         DragonBones.A_ROTATION_Y = "rotationY";
@@ -176,6 +182,8 @@ var dragonBones;
 
         DragonBones.formatTransform = function (transform)
         {
+            assert(transform);
+
             var dSkew = Utils.formatAngle(transform.skewY - transform.skewX);
 
             if (dSkew > 90 || dSkew < -90)
@@ -253,6 +261,8 @@ var dragonBones;
 
         DragonBones.formatSameName = function (object, nameList)
         {
+            assert(object && nameList);
+
             var name = object.name || "unnamed";
             var i = 0;
             while (nameList.indexOf(name) >= 0)
@@ -268,14 +278,32 @@ var dragonBones;
             return name;
         };
 
+        DragonBones.isMainFrame = function (frame)
+        {
+            assert(frame);
+            
+            if (frame.labelType == "name" && frame.name)
+            {
+                var result = DragonBones.getNameParameters(frame.name);
+                if (!result[2] || (result[1] && result[1] != DragonBones.NO_EASING))
+                {
+                    return false;
+                }
+
+                return true;
+            }
+
+            return false;
+        };
+
         DragonBones.isMainLayer = function (layer)
         {
             assert(layer);
 
             var keyFrames = Utils.toUniqueArray(layer.frames);
-            for (var i = keyFrames.length; i--; )
+            for each (var frame in keyFrames)
             {
-                if (DragonBones.isMainFrame(keyFrames[i]))
+                if (DragonBones.isMainFrame(frame))
                 {
                     return true;
                 }
@@ -305,11 +333,9 @@ var dragonBones;
             }
 
             var keyFrames = Utils.toUniqueArray(layer.frames);
-            for (var i = 0, l = keyFrames.length; i < l; ++i)
+            for each (var frame in keyFrames)
             {
-                //
-                var frame = keyFrames[i];
-                if (currentFrame? (frame.startFrame <= currentFrame && frame.startFrame + frame.duration > currentFrame): true)
+                if (currentFrame != null? (frame.startFrame <= currentFrame && frame.startFrame + frame.duration > currentFrame): true)
                 {
                     if (frame.elements.length > 0)
                     {
@@ -321,29 +347,16 @@ var dragonBones;
             return false;
         };
 
-        DragonBones.isMainFrame = function (frame)
-        {
-            if (frame.labelType == "name" && frame.name)
-            {
-                var result = DragonBones.getNameParameters(frame.name);
-                if (!result[2] || (result[1] && result[1] != DragonBones.NO_EASING))
-                {
-                    return false;
-                }
-
-                return true;
-            }
-
-            return false;
-        };
-
         //To determine whether the item is valide armature.
         //If yes, return mainLayer and boneLayers
         DragonBones.isArmatureItem = function (item, isChildArmature)
         {
             if (
-                item.itemType != "movie clip" && 
-                item.itemType != "graphic"
+                !item ||
+                (
+                    item.itemType != "movie clip" && 
+                    item.itemType != "graphic"
+                )
             )
             {
                 return null;
@@ -352,16 +365,15 @@ var dragonBones;
             var layersFiltered = [];
             var layers = item.timeline.layers;
             var mainLayer = null;
-            for (var i = layers.length; i--; )
+            for each (var layer in layers)
             {
-                var layer = layers[i];
                 if (!mainLayer && DragonBones.isMainLayer(layer))
                 {
                     mainLayer = layer;
                 }
                 else if (DragonBones.isBoneLayer(layer))
                 {
-                    layersFiltered.push(layer);
+                    layersFiltered.unshift(layer);
                 }
             }
             
@@ -376,11 +388,12 @@ var dragonBones;
                 else if (isChildArmature && item.timeline.frameCount > 1)
                 {
                     // 伪造一个 mainLayer 和 mainFrame
-                    // 检测未加标签的子动画时，虽然frameCount大于1，但应更深入的检查是否各个图层只有一帧
                     mainLayer = {};
                     mainLayer.frameCount = item.timeline.frameCount;
                     mainLayer.frames = [];
                     mainLayer.noLabelChildArmature = true;
+                    layersFiltered.unshift(mainLayer);
+
                     var frame = {};
                     frame.labelType = "name";
                     frame.name = "unnamed";
@@ -388,11 +401,41 @@ var dragonBones;
                     frame.duration = mainLayer.frameCount;
                     
                     mainLayer.frames.push(frame);
-                    layersFiltered.unshift(mainLayer);
                     return layersFiltered;
                 }
             }
             return null;
+        };
+
+        DragonBones.isTextLayerHasColorAnimation = function (textLayer)
+        {
+            if (!textLayer)
+            {
+                return false;
+            }
+
+            var frames = Utils.toUniqueArray(textLayer.frames);
+            var color = null;
+            for each (var frame in frames)
+            {
+                var text = frame? frame.elements[0]: null;
+                if (text && text.elementType == "text")
+                {
+                    if (color)
+                    {
+                        if (color != text.getTextAttr("fillColor"))
+                        {
+                            return true;
+                        }
+                    }
+                    else
+                    {
+                        color = text.getTextAttr("fillColor");
+                    }
+                }
+            }
+
+            return false;
         };
 
         DragonBones.getMainFrameList = function (frames)
@@ -440,325 +483,8 @@ var dragonBones;
             return mainFrameList;
         };
 
-        DragonBones.canMergeLayersInFolder = function (item)
-        {
-            var folderMap = {};
-            var hasFolder = false;
-            for each (var layer in item.timeline.layers)
-            {
-                if (layer.layerType == "folder")
-                {
-                    folderMap[layer.name] = 0;
-                    hasFolder = true;
-                }
-            }
-
-            if (hasFolder)
-            {
-                for each (var layer in item.timeline.layers)
-                {
-                    if (layer.layerType != "folder" && layer.parentLayer)
-                    {
-                        var count = folderMap[layer.parentLayer.name] || 0;
-                        count ++;
-                        if (count > 1)
-                        {
-                            return true;
-                        }
-                        folderMap[layer.parentLayer.name] = count;
-                    }
-                }
-            }
-            return false;
-        };
-
-        DragonBones.mergeLayersInFolder = function (item)
-        {
-            var currentDOM = fl.getDocumentDOM();
-            var library = currentDOM.library;
-            
-            library.selectNone();
-            library.duplicateItem(item.name);
-            
-            var itemCopy = library.getSelectedItems()[0];
-            
-            library.addNewItem("folder", DragonBones.TEXTURE_AUTO_CREATE);
-            library.moveToFolder(DragonBones.TEXTURE_AUTO_CREATE, itemCopy.name, true);
-            
-            library.editItem(itemCopy.name);
-            var timeline = itemCopy.timeline;
-            
-            //搜索所有图层，把补间转换为关键帧，去掉嵌套的文件夹，标记需要删除的图层
-            var folderObjArr = [];
-            var currFolderLayer = null;
-            var junkLayerMark = [];
-            var junkLayerCount = 0;
-            var layerID = -1;
-            for each (var layer in timeline.layers)
-            {
-                layerID++;
-                if (currFolderLayer)
-                {
-                    if (folderObj)
-                    {
-                    }
-                    else
-                    {
-                        var folderObj = {folderLayerID:layerID - 1 - junkLayerCount, layerIdArr:[]};
-                    }
-                }
-                else
-                {
-                    if (layer.layerType == "folder")
-                    {
-                        //找到一个文件夹
-                        currFolderLayer = layer;
-                    }
-                    continue;
-                }
-                
-                if (layer.parentLayer)
-                {
-                    if (layer.parentLayer == currFolderLayer)
-                    {
-                        if (layer.layerType == "folder")
-                        {
-                            //嵌套的文件夹
-                            layer.layerType = "normal";
-                            junkLayerCount ++;
-                            junkLayerMark[layerID] = true;
-                            continue;
-                        }
-                    }
-                }
-                else
-                {
-                    folderObjArr.push(folderObj);
-                    folderObj = null;
-                    currFolderLayer = null;
-                    if (layer.layerType == "folder")
-                    {
-                        //找到一个文件夹
-                        currFolderLayer = layer;
-                    }
-                    continue;
-                }
-                
-                switch (layer.layerType)
-                {
-                    case "guide":
-                    case "mask":
-                        junkLayerCount ++;
-                        junkLayerMark[layerID] = true;
-                        continue;
-                        break;
-                }
-                
-                folderObj.layerIdArr.push(layerID - junkLayerCount);
-                timeline.currentLayer = layerID;
-                if (layer.animationType == "none")
-                {
-                    //无补间，或传统补间，或形状补间
-                    for (var i = layer.frames.length; i--; )
-                    {
-                        var startFrameIndex = layer.frames[i].startFrame;
-                        var frame = layer.frames[i];
-                        
-                        var hasPlayOnceOrLoopGraphic = false;
-                        for each (var element in frame.elements)
-                        {
-                            if (
-                                element.libraryItem &&
-                                element.libraryItem.timeline &&
-                                element.libraryItem.timeline.frameCount > 1 &&
-                                element.symbolType == "graphic" &&
-                                (
-                                    element.loop=="play once" ||
-                                    element.loop=="loop"
-                                )
-                            )
-                            {
-                                hasPlayOnceOrLoopGraphic=true;
-                                break;
-                            }
-                        }
-
-                        if (hasPlayOnceOrLoopGraphic)
-                        {
-                            timeline.convertToKeyframes(startFrameIndex + 1, i + 1);
-                        }
-                        else
-                        {
-                            switch (frame.tweenType)
-                            {
-                                case "motion":
-                                case "shape":
-                                    if (startFrameIndex != i)
-                                    {
-                                        timeline.convertToKeyframes(startFrameIndex + 1, i + 1);
-                                    }
-                                    break;
-                                
-                                case "none":
-                                    //
-                                    break;
-                            }
-                        }
-                        i = startFrameIndex;
-                    }
-                }
-                else
-                {
-                    //motion object 或 IK pose 全部转成关键帧
-                    //timeline.convertToKeyframes(0, layer.frames.length);//失败
-                    for (var i = layer.frames.length; i--; )
-                    {
-                        timeline.convertToKeyframes(i);
-                    }
-                }
-            }
-
-            if (folderObj)
-            {
-                folderObjArr.push(folderObj);
-                folderObj = null;
-            }
-            
-            for (var layerID = junkLayerMark.length; --layerID >= 0; )
-            {
-                if (junkLayerMark[layerID])
-                {
-                    timeline.deleteLayer(layerID);
-                }
-            }
-            junkLayerMark = null;
-            
-            for (var folderObjID = folderObjArr.length; folderObjID--; )
-            {
-                for each (var layer in timeline.layers)
-                {
-                    layer.locked = true;
-                    layer.visible = true;
-                }
-                
-                var folderObj = folderObjArr[folderObjID];
-                
-                //获取最大帧数
-                var maxFrameCount = -1;
-                for each (var layerID in folderObj.layerIdArr)
-                {
-                    var layer = timeline.layers[layerID];
-                    layer.locked = false;
-                    if (maxFrameCount < layer.frames.length)
-                    {
-                        maxFrameCount = layer.frames.length;
-                    }
-                }
-                
-                //根据最大帧数补齐不足最大帧数的图层
-                for each (var layerID in folderObj.layerIdArr)
-                {
-                    var layer = timeline.layers[layerID];
-                    if (layer.frames.length < maxFrameCount)
-                    {
-                        timeline.currentLayer = layerID;
-                        timeline.convertToBlankKeyframes(layer.frames.length);
-                        //没这句有时候不行很奇怪
-                        timeline.currentLayer = layerID;
-                        timeline.insertFrames(maxFrameCount - layer.frames.length, false, layer.frames.length);
-                    }
-                }
-                
-                //标记公共关键帧
-                var keyFrameIdMark = new Array();
-                for each (var layerID in folderObj.layerIdArr)
-                {
-                    var layer = timeline.layers[layerID];
-                    for (var i = maxFrameCount; i--; )
-                    {
-                        i = layer.frames[i].startFrame;
-                        keyFrameIdMark[i] = true;
-                    }
-                }
-                
-                //同步关键帧
-                for each (var layerID in folderObj.layerIdArr)
-                {
-                    var layer = timeline.layers[layerID];
-                    timeline.currentLayer = layerID;
-                    for (var i = keyFrameIdMark.length; i--; )
-                    {
-                        if (keyFrameIdMark[i])
-                        {
-                            var frame = layer.frames[i];
-                            if (frame.startFrame == i)
-                            {
-                            }
-                            else
-                            {
-                                timeline.convertToKeyframes(i);
-                            }
-                        }
-                    }
-                }
-                
-                var folderLayer = timeline.layers[folderObj.folderLayerID];
-                folderLayer.locked = false;
-                folderLayer.layerType = "normal";
-                timeline.currentLayer = folderObj.folderLayerID;
-                if (folderLayer.length < maxFrameCount)
-                {
-                    timeline.insertFrames(maxFrameCount - folderLayer.length, false, folderLayer.length);
-                }
-                
-                for (var i = keyFrameIdMark.length; i--; )
-                {
-                    if (keyFrameIdMark[i])
-                    {
-                        timeline.currentLayer = folderObj.folderLayerID;
-                        timeline.convertToKeyframes(i);
-                        timeline.currentFrame = i;
-                        currentDOM.selectAll();
-                        if (currentDOM.selection.length)
-                        {
-                            currentDOM.group();
-                            var itemName = item.name + "_" + folderLayer.name + "_" + (i + 1);
-                            if (library.itemExists(itemName))
-                            {
-                                var itemID = 1;
-                                while (library.itemExists(itemName + "(" + (++ itemID) + ")"))
-                                {
-                                }
-                                itemName += "(" + itemID + ")";
-                            }
-                            currentDOM.convertToSymbol("movie clip", itemName, "top left");
-                            
-                            var element = currentDOM.selection[0];
-                            itemName = element.libraryItem.name;
-                            timeline.currentLayer = folderObj.folderLayerID;
-                            var frame = timeline.layers[folderObj.folderLayerID].frames[i];
-                            frame.labelType = "name";
-                            frame.name = DragonBones.NO_EASING;
-                            library.addItemToDocument({x:0, y:0}, itemName);
-                            currentDOM.selection[0].matrix = element.matrix;
-                            
-                            currentDOM.library.moveToFolder(DragonBones.TEXTURE_AUTO_CREATE, itemName, true);
-                        }
-                    }
-                }
-                
-                for (var i = folderObj.layerIdArr.length; i--; )
-                {
-                    var layerID = folderObj.layerIdArr[i];
-                    timeline.deleteLayer(layerID);
-                }
-            }
-
-            return itemCopy;
-        };
-
         //Write armatureConnection data by armatureName
-        DragonBones.changeArmatureConnection = function (domID, armatureName, armatureXMLData)
+        DragonBones.changeArmatureConnection = function (domID, armatureName, armatureXML)
         {
             var currentDOM = Utils.getDOM(domID, true);
             if (!currentDOM)
@@ -771,20 +497,15 @@ var dragonBones;
             {
                 return false;
             }
-            
-            armatureXMLData = XML(armatureXMLData).toXMLString();
-            armatureXMLData = armatureXMLData.split("&lt;").join("<");
-            armatureXMLData = armatureXMLData.split("&gt;").join(">");
-            
-            armatureItem.addData(DragonBones.ARMATURE_DATA, "string", armatureXMLData);
+            armatureItem.addData(DragonBones.ARMATURE_DATA, "string", armatureXML.toXMLString());
+
             //Jsfl api Or Flash pro bug
             armatureItem.symbolType = "graphic";
             armatureItem.symbolType = "movie clip";
-            
             return true;
         };
 
-        DragonBones.changeAnimation = function (domID, armatureName, animationName, animationXMLData)
+        DragonBones.changeAnimation = function (domID, armatureName, animationName, animationXML)
         {
             var currentDOM = Utils.getDOM(domID, true);
             if (!currentDOM)
@@ -793,17 +514,12 @@ var dragonBones;
             }
             
             var armatureItem = Utils.filter(currentDOM.library.items, null, ["name", armatureName])[0];
-            if (!armatureItem)
+            if (!armatureItem || !animationName ||!animationXML)
             {
                 return false;
             }
             
-            animationXMLData = XML(animationXMLData).toXMLString();
-            animationXMLData = animationXMLData.split("&lt;").join("<");
-            animationXMLData = animationXMLData.split("&gt;").join(">");
-            animationXML = XML(animationXMLData);
-            
-            var animationsXMLInItem;
+            var animationsXMLInItem = null;
             if (armatureItem.hasData(DragonBones.ANIMATION_DATA))
             {
                 animationsXMLInItem = XML(armatureItem.getData(DragonBones.ANIMATION_DATA));
@@ -819,16 +535,18 @@ var dragonBones;
                 var childIndex = animationXMLInItem.childIndex();
                 delete animationsXMLInItem.elements()[childIndex];
             }
+
             animationsXMLInItem.appendChild(animationXML);
             
             armatureItem.addData(DragonBones.ANIMATION_DATA, "string", animationsXMLInItem.toXMLString());
+
             //Jsfl api Or Flash pro bug
             armatureItem.symbolType = "graphic";
             armatureItem.symbolType = "movie clip";
             return true;
         };
 
-        DragonBones.selectBoneAndChildren = function()
+        DragonBones.selectBoneAndChildren = function ()
         {
             var currentDOM = fl.getDocumentDOM();
             if (!currentDOM)
@@ -861,7 +579,7 @@ var dragonBones;
             return true;
         }
             
-        DragonBones._frameChangedHandler = function()
+        DragonBones._frameChangedHandler = function ()
         {
             DragonBones.selectBoneAndChildren();
         }
@@ -869,38 +587,40 @@ var dragonBones;
 
         function selectBoneAndChildren(boneSymbol, timeline, armatureXML)
         {
-            if (armatureXML)
+            if (!armatureXML)
             {
-                var layerNameList = DragonBones.getNameParameters(boneSymbol.layer.name);
-                var boneName = layerNameList[2];
-                var layerMap = {};
-                for each (var eachLayer in timeline.layers)
+                return;
+            }
+
+            var layerNameList = DragonBones.getNameParameters(boneSymbol.layer.name);
+            var boneName = layerNameList[2];
+            var layerMap = {};
+            for each (var eachLayer in timeline.layers)
+            {
+                if (DragonBones.isBoneLayer(eachLayer, timeline.currentFrame))
                 {
-                    if (DragonBones.isBoneLayer(eachLayer, timeline.currentFrame))
-                    {
-                        var eachLayerNameList = DragonBones.getNameParameters(eachLayer.name);
-                        layerMap[eachLayerNameList[2]] = eachLayer;
-                    }
+                    var eachLayerNameList = DragonBones.getNameParameters(eachLayer.name);
+                    layerMap[eachLayerNameList[2]] = eachLayer;
                 }
+            }
 
-                boneSymbol.selected = true;
+            boneSymbol.selected = true;
 
-                for each (var boneXML in armatureXML[DragonBones.BONE])
+            for each (var boneXML in armatureXML[DragonBones.BONE])
+            {
+                if (boneXML.@[DragonBones.A_PARENT] == boneName)
                 {
-                    if (boneXML.@[DragonBones.A_PARENT] == boneName)
+                    var childName = boneXML.@[DragonBones.A_NAME];
+                    var childLayer = layerMap[childName];
+                    if (childLayer && !childLayer.locked && childLayer.visible)
                     {
-                        var childName = boneXML.@[DragonBones.A_NAME];
-                        var childLayer = layerMap[childName];
-                        if (childLayer && !childLayer.locked && childLayer.visible)
+                        var childFrame = childLayer.frames[timeline.currentFrame];
+                        if (childFrame && childFrame.startFrame == timeline.currentFrame)
                         {
-                            var childFrame = childLayer.frames[timeline.currentFrame];
-                            if (childFrame && childFrame.startFrame == timeline.currentFrame)
+                            var boneChildSymbol = Utils.filter(childFrame.elements, null, ["instanceType", "symbol", "bitmap"])[0];
+                            if (boneChildSymbol)
                             {
-                                var boneChildSymbol = Utils.filter(childFrame.elements, null, ["instanceType", "symbol", "bitmap"])[0];
-                                if (boneChildSymbol)
-                                {
-                                    selectBoneAndChildren(boneChildSymbol, timeline, armatureXML);
-                                }
+                                selectBoneAndChildren(boneChildSymbol, timeline, armatureXML);
                             }
                         }
                     }
@@ -935,7 +655,7 @@ var dragonBones;
                 //var autoTween = this._defaultAutoTween;
                 var autoTween = 1;
                 
-                var animationXMLInItem;
+                var animationXMLInItem = null;
                 if (armatureItem.hasData(DragonBones.ANIMATION_DATA))
                 {
                     var animationsXMLInItem = XML(armatureItem.getData(DragonBones.ANIMATION_DATA));
@@ -973,11 +693,14 @@ var dragonBones;
                     }
                 }
                 
-                if (!animationXMLInItem && duration == 2)
+                if (!animationXMLInItem)
                 {
-                    playTimes = 0;
-                    scale = 5;
-                    tweenEasing = 2;
+                    if (duration == 2)
+                    {
+                        playTimes = 0;
+                        scale = 5;
+                        tweenEasing = 2;
+                    }
                 }
                 
                 if (noAutoTween)
@@ -992,12 +715,12 @@ var dragonBones;
                         {DragonBones.A_DURATION}={duration}
                         {DragonBones.A_SCALE}={Utils.formatNumber(scale) || 1}
                         {DragonBones.A_LOOP}={playTimes}
-                        {DragonBones.A_AUTO_TWEEN}={Utils.formatNumber(autoTween)}
+                        {DragonBones.A_AUTO_TWEEN}={autoTween}
                         {DragonBones.A_TWEEN_EASING}={Utils.formatNumber(tweenEasing)}/>;
 
                 Utils.appendXML(armatureXML, animationXML);
             }
-            
+
             return animationXML;
         }
 
@@ -1052,6 +775,7 @@ var dragonBones;
                 
                 Utils.appendXML(animationXML, timelineXML);
             }
+
             return timelineXML;
         }
 
@@ -1142,7 +866,7 @@ var dragonBones;
             {
                 displayXML = 
                     <{DragonBones.DISPLAY} 
-                        {DragonBones.A_NAME}={displayName? displayName: ""}
+                        {DragonBones.A_NAME}={displayName || ""}
                         {DragonBones.A_TYPE}={displayType}
                     >
                         <{DragonBones.TRANSFORM}
@@ -1150,8 +874,8 @@ var dragonBones;
                             {DragonBones.A_Y}={Utils.formatNumber(transform.y) || 0}
                             {DragonBones.A_SKEW_X}={Utils.formatNumber(transform.skewX) || 0}
                             {DragonBones.A_SKEW_Y}={Utils.formatNumber(transform.skewY) || 0}
-                            {DragonBones.A_SCALE_X}={Utils.formatNumber(transform.scaleX) || 1}
-                            {DragonBones.A_SCALE_Y}={Utils.formatNumber(transform.scaleY) || 1}/>
+                            {DragonBones.A_SCALE_X}={Utils.formatNumber(transform.scaleX, 4) || 1}
+                            {DragonBones.A_SCALE_Y}={Utils.formatNumber(transform.scaleY, 4) || 1}/>
                     </{DragonBones.DISPLAY}>;
 
                 Utils.appendXML(slotXML, displayXML);
@@ -1159,7 +883,7 @@ var dragonBones;
             return displayXML;
         }
 
-        function getTextXML(displayXML, textSymbol)
+        function getTextXML(displayXML, textSymbol, fontFace, textHasColorAnimation)
         {
             var textXML = displayXML[DragonBones.TEXT][0];
             if (!textXML)
@@ -1178,18 +902,22 @@ var dragonBones;
                         {DragonBones.A_WIDTH}={Math.ceil(textSymbol.width / textSymbol.scaleX)}
                         {DragonBones.A_HEIGHT}={Math.ceil(textSymbol.height / textSymbol.scaleY)}
                         {DragonBones.A_SIZE}={textSymbol.getTextAttr("size")}
-                        {DragonBones.A_FACE}={textSymbol.getTextAttr("face")}
+                        {DragonBones.A_FACE}={fontFace}
                         {DragonBones.A_ALIGN_H}={textSymbol.getTextAttr("alignment")}
                         {DragonBones.A_ALIGN_V}={"top"}
                         {DragonBones.A_LINE_TYPE}={textSymbol.lineType}
                         {DragonBones.A_TEXT_TYPE}={textSymbol.textType}
                         {DragonBones.A_TEXT}={textSymbol.getTextString()}
+                        {DragonBones.A_HTML_TEXT}={textSymbol.renderAsHTML}
+                        {DragonBones.A_LETTER_SPACING}={textSymbol.getTextAttr("letterSpacing")}
+                        {DragonBones.A_LINE_SPACING}={textSymbol.getTextAttr("lineSpacing")}
+                        {DragonBones.A_MAX_CHARACTERS}={textSymbol.maxCharacters}
                     >
                         <{DragonBones.COLOR}
-                         {DragonBones.A_ALPHA}={parseInt(colorString.substr(7, 2), 16)}
-                         {DragonBones.A_RED}={parseInt(colorString.substr(1, 2), 16)}
-                         {DragonBones.A_GREEN}={parseInt(colorString.substr(3, 2), 16)}
-                         {DragonBones.A_BLUE}={parseInt(colorString.substr(5, 2), 16)}/>
+                         {DragonBones.A_ALPHA}={textHasColorAnimation? 255: parseInt(colorString.substr(7, 2), 16)}
+                         {DragonBones.A_RED}={textHasColorAnimation? 255: parseInt(colorString.substr(1, 2), 16)}
+                         {DragonBones.A_GREEN}={textHasColorAnimation? 255: parseInt(colorString.substr(3, 2), 16)}
+                         {DragonBones.A_BLUE}={textHasColorAnimation? 255: parseInt(colorString.substr(5, 2), 16)}/>
                     </{DragonBones.TEXT}>;
 
                 Utils.appendXML(displayXML, textXML);
@@ -1198,16 +926,77 @@ var dragonBones;
             return textXML;
         }
 
+        DragonBones.prototype._generateArmature = function (armatureName, isChildArmature)
+        {
+            var currentDOM = fl.getDocumentDOM();
+            if (this._xml[DragonBones.ARMATURE].(@name == armatureName)[0])
+            {
+                return;
+            }
+
+            if (armatureName.indexOf(DragonBones.NO_EASING) >= 0)
+            {
+                return;
+            }
+
+            this._currentArmatureItem = Utils.filter(currentDOM.library.items, null, ["name", armatureName])[0];
+
+            if (!this._currentArmatureItem || this._currentArmatureItem.linkageImportForRS)
+            {
+                return;
+            }
+
+            fl.showIdleMessage(false);
+            
+            this._displayRegistPositionMap = {};
+            this._textHasAnimationMap = {};
+            this._currentArmatureXML = 
+                <{DragonBones.ARMATURE} {DragonBones.A_NAME}={armatureName}>
+                    <{DragonBones.SKIN} {DragonBones.A_NAME}="default"/>
+                </{DragonBones.ARMATURE}>;
+
+            this._xml.appendChild(this._currentArmatureXML);
+
+            if (this.hasEventListener(DragonBones.ARMATURE))
+            {
+                this.dispatchEvent(new events.Event(DragonBones.ARMATURE, ["start", this._currentArmatureItem, this._currentArmatureXML]));
+            }
+
+            currentDOM.library.editItem(this._currentArmatureItem.name);
+            var layersFiltered = DragonBones.isArmatureItem(this._currentArmatureItem, isChildArmature);
+            var mainLayer = layersFiltered.shift();
+            var mainFrameList = DragonBones.getMainFrameList(mainLayer.frames);
+            var noLabelChildArmature = mainLayer.noLabelChildArmature;
+            for each (var mainFrame in mainFrameList)
+            {
+                this._generateAnimation(mainFrame, layersFiltered, noLabelChildArmature);
+            }
+
+            this._generateArea(this._currentArmatureXML, this._currentArmatureItem);
+            this._displayRegistPositionMap = null;
+            this._textHasAnimationMap = null;
+
+            if (this.hasEventListener(DragonBones.ARMATURE))
+            {
+                this.dispatchEvent(new events.Event(DragonBones.ARMATURE, ["end", this._currentArmatureItem, this._currentArmatureXML]));
+            }
+
+            fl.showIdleMessage(true);
+        };
 
         DragonBones.prototype._generateAnimation = function (mainFrame, layers, noLabelChildArmature)
         {
             var currentDOM = fl.getDocumentDOM();
+            var timeline = currentDOM.getTimeline();
+
             var start = mainFrame.frame.startFrame;
             var duration = mainFrame.duration;
             var frameNameList = DragonBones.formatObjectName(mainFrame.frame);
             var animationName = frameNameList[2];
             var noAutoEasing = frameNameList[1] == DragonBones.NO_EASING;
             var animationXML = getAnimationXML(this._currentArmatureXML, animationName, this._currentArmatureItem, duration, noLabelChildArmature? 0: this._defaultFadeInTime, noAutoEasing);
+
+            timeline.currentFrame = 0;
 
             if (frameNameList[3])
             {
@@ -1223,17 +1012,16 @@ var dragonBones;
                 this.dispatchEvent(new events.Event(DragonBones.ANIMATION, ["start", this._currentArmatureItem, animationXML, start, duration, animationName]));
             }
 
-            currentDOM.library.editItem(this._currentArmatureItem.name);
-            currentDOM.getTimeline().currentFrame = 0;
-
             var boneNameList = [];
             var boneZOrderMap = {};
             var zOrderList = [];
             var changeFrames = [];
             
-            for (var i = 0, l = layers.length; i < l; i ++)
+            for (var i = 0, l = layers.length; i < l; ++i)
             {
                 var layer = layers[i];
+                var layerLockBackup = layer.locked;
+                var layerVisibleBackup = layer.visible;
                 layer.locked = false;
                 layer.visible = true;
 
@@ -1257,8 +1045,6 @@ var dragonBones;
                     )
                     {
                         changeFrames.push({layer:layer, start:frame.startFrame + 1, end:frame.startFrame + frame.duration});
-                        currentDOM.library.editItem(this._currentArmatureItem.name);
-                        var timeline = currentDOM.getTimeline();
                         timeline.setSelectedLayers(timeline.layers.indexOf(layer));
                         timeline.convertToKeyframes(frame.startFrame, frame.startFrame + frame.duration);
                         
@@ -1273,8 +1059,6 @@ var dragonBones;
                         if (boneSymbol && boneSymbol.libraryItem.timeline.frameCount > 1 && (boneSymbol.loop == "loop" || boneSymbol.loop == "play once") && !DragonBones.isArmatureItem(boneSymbol.libraryItem, false))
                         {
                             changeFrames.push({layer:layer, start:frame.startFrame + 1, end:frame.startFrame + frame.duration});
-                            currentDOM.library.editItem(this._currentArmatureItem.name);
-                            var timeline = currentDOM.getTimeline();
                             timeline.setSelectedLayers(timeline.layers.indexOf(layer));
                             timeline.convertToKeyframes(frame.startFrame, frame.startFrame + frame.duration);
                             
@@ -1373,7 +1157,7 @@ var dragonBones;
                     }
 
                     //
-                    var frameXML = this._generateFrame(frame, boneName, boneSymbol, i, noAutoEasingFrame, frameStart);
+                    var frameXML = this._generateFrame(layer, frame, boneName, boneSymbol, i, noAutoEasingFrame, frameStart);
                     if (frameXML)
                     {
                         addFrameToTimeline(frameXML, frameStart, frameDuration, timelineXML);
@@ -1386,13 +1170,15 @@ var dragonBones;
                         currentDOM.exitEditMode();
                     }
                 }
+
+                layer.locked = layerLockBackup;
+                layer.visible = layerVisibleBackup;
             }
             
             //还原
             if (changeFrames.length > 0)
             {
                 currentDOM.library.editItem(this._currentArmatureItem.name);
-                timeline = currentDOM.getTimeline();
                 for each (var object in changeFrames)
                 {
                     timeline.setSelectedLayers(timeline.layers.indexOf(object.layer));
@@ -1448,7 +1234,7 @@ var dragonBones;
             }
         };
 
-        DragonBones.prototype._generateFrame = function (frame, boneName, boneSymbol, zOrder, noAutoEasing, frameStart)
+        DragonBones.prototype._generateFrame = function (layer, frame, boneName, boneSymbol, zOrder, noAutoEasing, frameStart)
         {
             var boneSymbolItem = boneSymbol.libraryItem;
             var transform = boneSymbol.getTransformationPoint();
@@ -1458,6 +1244,8 @@ var dragonBones;
             var isGraphicBone = false;
             //当空元件或空图形时，TODO: 更完善的检测
             var hasDisplay = false;
+
+            var isArmature = Boolean(DragonBones.isArmatureItem(boneSymbolItem, boneSymbol.symbolType == "movie clip"));
 
             switch (boneSymbol.instanceType)
             {
@@ -1476,9 +1264,6 @@ var dragonBones;
                     break;
 
                 case "symbol":
-                    var isChildArmature = boneSymbol.symbolType == "movie clip";
-                    var isArmature = Boolean(DragonBones.isArmatureItem(boneSymbolItem, isChildArmature));
-
                     if (isArmature)
                     {
                         displayType = DragonBones.V_ARMATURE;
@@ -1487,22 +1272,23 @@ var dragonBones;
                     else if (
                         boneSymbol.symbolType == "graphic" &&
                         boneSymbolItem.timeline.frameCount > 1 &&
-                        (boneSymbol.loop == "single frame" || boneSymbol.loop == "loop" || boneSymbol.loop == "play once")    // TODO: multiply slots
-                    )
+                        (boneSymbol.loop == "single frame" || boneSymbol.loop == "loop" || boneSymbol.loop == "play once"))
                     {
+                        // TODO: multiply slots
                         displayType = DragonBones.V_IMAGE;
                         isGraphicBone = true;
+                        hasDisplay = (boneSymbol.width > 0 || boneSymbol.height > 0);
                         hasDisplay = (boneSymbol.width > 0 || boneSymbol.height > 0);
                     }
                     else
                     {
                         displayType = DragonBones.V_IMAGE;
                         hasDisplay = (boneSymbol.width > 0 || boneSymbol.height > 0);
+                        hasDisplay = (boneSymbol.width > 0 || boneSymbol.height > 0);
                     }
                     break;
 
                 default:
-                    //
                     if (boneSymbol.textType)
                     {
                         displayType = DragonBones.V_TEXT;
@@ -1515,7 +1301,6 @@ var dragonBones;
                     return null;
             }
 
-            //
             var displayMap = this._displayRegistPositionMap[boneName];
             if (!displayMap)
             {
@@ -1545,10 +1330,10 @@ var dragonBones;
                     {DragonBones.A_Y}={Utils.formatNumber(boneSymbol.transformY)}
                     {DragonBones.A_SKEW_X}={Utils.formatNumber(transform.skewX)}
                     {DragonBones.A_SKEW_Y}={Utils.formatNumber(transform.skewY)}
-                    {DragonBones.A_SCALE_X}={Utils.formatNumber(transform.scaleX)}
-                    {DragonBones.A_SCALE_Y}={Utils.formatNumber(transform.scaleY)}
-                    {DragonBones.A_PIVOT_X}={Utils.formatNumber(transform.pivotOffsetX)}
-                    {DragonBones.A_PIVOT_Y}={Utils.formatNumber(transform.pivotOffsetY)}/>;
+                    {DragonBones.A_SCALE_X}={Utils.formatNumber(transform.scaleX, 4)}
+                    {DragonBones.A_SCALE_Y}={Utils.formatNumber(transform.scaleY, 4)}
+                    {DragonBones.A_PIVOT_X}={Utils.formatNumber(transform.pivotOffsetX, 4)}
+                    {DragonBones.A_PIVOT_Y}={Utils.formatNumber(transform.pivotOffsetY, 4)}/>;
             frameXML.appendChild(transformXML);
 
             //
@@ -1591,15 +1376,16 @@ var dragonBones;
                 if (frameStart > 0 && boneSymbol.hasPersistentData(DragonBones.SCALE_OFFSET_DATA))
                 {
                     var scaleOffset = boneSymbol.getPersistentData(DragonBones.SCALE_OFFSET_DATA);
-                    frameXML.@[DragonBones.A_SCALE_X_OFFSET] = Utils.formatNumber(scaleOffset[0]);
-                    frameXML.@[DragonBones.A_SCALE_Y_OFFSET] = Utils.formatNumber(scaleOffset[1]);
+                    frameXML.@[DragonBones.A_SCALE_X_OFFSET] = Utils.formatNumber(scaleOffset[0], 4);
+                    frameXML.@[DragonBones.A_SCALE_Y_OFFSET] = Utils.formatNumber(scaleOffset[1], 4);
                 }
 
                 //
                 var displayXML = null;
                 var textXML = null;
 
-                var parseTextColorToAnimation = false;
+                var textHasColorAnimation = false;
+
                 var textAlpah = 0;
                 var textRed = 0;
                 var textGreen = 0;
@@ -1622,7 +1408,7 @@ var dragonBones;
 
                         displayXML = getDisplayXML(slotXML, displayName, displayTransform, this._currentArmatureItem, displayType);
 
-                        if (displayType == DragonBones.V_ARMATURE && symbolNameList[1] != DragonBones.NO_EASING)
+                        if (displayType == DragonBones.V_ARMATURE)
                         {
                             if (this._armatureList.indexOf(displayName) < 0)
                             {
@@ -1646,10 +1432,25 @@ var dragonBones;
                 else
                 {
                     // text
+
+                    textHasColorAnimation = this._textHasAnimationMap[boneName];
+                    if (
+                        textHasColorAnimation === false ||
+                        textHasColorAnimation === true
+                        )
+                    {
+
+                    }
+                    else
+                    {
+                        textHasColorAnimation = DragonBones.isTextLayerHasColorAnimation(layer);
+                        this._textHasAnimationMap[boneName] = textHasColorAnimation;
+                    }
+
                     var displayTransform = {x:-transform.x, y:-transform.y};
                     displayXML = getDisplayXML(slotXML, "text", displayTransform, this._currentArmatureItem, displayType);
-                    textXML = displayXML[DragonBones.TEXT][0];
-                    if (textXML)
+                    
+                    if (textHasColorAnimation)
                     {
                         var colorString = boneSymbol.getTextAttr("fillColor");
                         if (colorString.length < 9)
@@ -1660,20 +1461,11 @@ var dragonBones;
                         textRed = parseInt(colorString.substr(1, 2), 16);
                         textGreen = parseInt(colorString.substr(3, 2), 16);
                         textBlue = parseInt(colorString.substr(5, 2), 16);
-
-                        var colorXML = textXML[DragonBones.COLOR][0];
-                        if (
-                            String(textAlpah) != colorXML.@[DragonBones.A_ALPHA] ||
-                            String(textRed) != colorXML.@[DragonBones.A_RED] ||
-                            String(textGreen) != colorXML.@[DragonBones.A_GREEN] ||
-                            String(textBlue) != colorXML.@[DragonBones.A_BLUE]
-                            )
-                        {
-                            parseTextColorToAnimation = true;
-                        }
                     }
 
-                    textXML = getTextXML(displayXML, boneSymbol);
+                    var fontFace = boneSymbol.getTextAttr("face");
+                    var fontItem = this._fontItemMap[fontFace];
+                    textXML = getTextXML(displayXML, boneSymbol, fontItem? fontItem.name: fontFace, textHasColorAnimation);
                 }
                 
                 if (displayXML)
@@ -1691,7 +1483,7 @@ var dragonBones;
             }
 
             //
-            if (boneSymbol.instanceType == "symbol" || parseTextColorToAnimation)
+            if (boneSymbol.instanceType == "symbol" || textHasColorAnimation)
             {
                 var aO = 0;
                 var rO = 0;
@@ -1702,7 +1494,7 @@ var dragonBones;
                 var gM = 100;
                 var bM = 100;
 
-                if (parseTextColorToAnimation)
+                if (textHasColorAnimation)
                 {
                     aM = Math.ceil(textAlpah / 255 * 100);
                     rM = Math.ceil(textRed / 255 * 100);
@@ -1911,8 +1703,8 @@ var dragonBones;
                                 {DragonBones.A_Y}={Utils.formatNumber(areaShape.transformY)}
                                 {DragonBones.A_SKEW_X}={Utils.formatNumber(areaShape.skewX)}
                                 {DragonBones.A_SKEW_Y}={Utils.formatNumber(areaShape.skewY)}
-                                {DragonBones.A_SCALE_X}={Utils.formatNumber(areaShape.scaleX)}
-                                {DragonBones.A_SCALE_Y}={Utils.formatNumber(areaShape.scaleY)}
+                                {DragonBones.A_SCALE_X}={Utils.formatNumber(areaShape.scaleX, 4)}
+                                {DragonBones.A_SCALE_Y}={Utils.formatNumber(areaShape.scaleY, 4)}
                                 {DragonBones.A_PIVOT_X}={Utils.formatNumber(areaShape.transformX - (x - width * 0.5))}
                                 {DragonBones.A_PIVOT_Y}={Utils.formatNumber(areaShape.transformY - (y - height * 0.5))}/>
 
@@ -1954,10 +1746,9 @@ var dragonBones;
                     }
                 }
 
-                var sound = frame.soundName && (frame.soundLibraryItem.linkageClassName || frame.soundName);
-                if (sound)
+                if (frame.soundName)
                 {
-                    frameXML.@[DragonBones.A_SOUND] = sound;
+                    frameXML.@[DragonBones.A_SOUND] = frame.soundLibraryItem.linkageClassName || frame.soundName;
                 }
                 animationXML.appendChild(frameXML);
             }
@@ -2037,7 +1828,7 @@ var dragonBones;
                             mainDisplayXML = getDisplayXML(mainSlotXML, displayName, transform, this._currentArmatureItem, isArmature? DragonBones.V_ARMATURE: DragonBones.V_IMAGE);
                         }
 
-                        if (isArmature && symbolNameList[1] != DragonBones.NO_EASING)
+                        if (isArmature)
                         {
                             if (this._armatureList.indexOf(displayName) < 0)
                             {
@@ -2063,63 +1854,6 @@ var dragonBones;
             }
 
             return mainDisplayXML;
-        };
-
-        DragonBones.prototype._generateArmature = function (armatureName, isChildArmature)
-        {
-            var currentDOM = fl.getDocumentDOM();
-            if (this._xml[DragonBones.ARMATURE].(@name == armatureName)[0])
-            {
-                return false;
-            }
-
-            if (armatureName.indexOf(DragonBones.NO_EASING) >= 0)
-            {
-                return false;
-            }
-
-            fl.showIdleMessage(false);
-            
-            this._displayRegistPositionMap = {};
-            this._currentArmatureItem = Utils.filter(currentDOM.library.items, null, ["name", armatureName])[0];
-            
-            if (this._isMergeLayersInFolder && DragonBones.canMergeLayersInFolder(this._currentArmatureItem))
-            {
-                this._currentArmatureItem = DragonBones.mergeLayersInFolder(this._currentArmatureItem);
-            }
-            
-            this._currentArmatureXML = 
-                <{DragonBones.ARMATURE} {DragonBones.A_NAME}={armatureName}>
-                    <{DragonBones.SKIN} {DragonBones.A_NAME}="default"/>
-                </{DragonBones.ARMATURE}>;
-
-            this._xml.appendChild(this._currentArmatureXML);
-
-            if (this.hasEventListener(DragonBones.ARMATURE))
-            {
-                this.dispatchEvent(new events.Event(DragonBones.ARMATURE, ["start", this._currentArmatureItem, this._currentArmatureXML]));
-            }
-            
-            var layersFiltered = DragonBones.isArmatureItem(this._currentArmatureItem, isChildArmature);
-            var mainLayer = layersFiltered.shift();
-            var mainFrameList = DragonBones.getMainFrameList(mainLayer.frames);
-            var noLabelChildArmature = mainLayer.noLabelChildArmature;
-            for each (var mainFrame in mainFrameList)
-            {
-                this._generateAnimation(mainFrame, layersFiltered, noLabelChildArmature);
-            }
-
-            this._generateArea(this._currentArmatureXML, this._currentArmatureItem);
-            this._displayRegistPositionMap = null;
-
-            if (this.hasEventListener(DragonBones.ARMATURE))
-            {
-                this.dispatchEvent(new events.Event(DragonBones.ARMATURE, ["end", this._currentArmatureItem, this._currentArmatureXML]));
-            }
-
-            fl.showIdleMessage(true);
-
-            return true;
         };
 
         DragonBones.prototype.getArmatureList = function (domID, isSelected, armatureNames)
@@ -2154,7 +1888,7 @@ var dragonBones;
                 armatureNames = armatureNames.split(",");
             }
             
-            var items;
+            var items = null;
             if (armatureNames && armatureNames.length > 0)
             {
                 items = [];
@@ -2203,7 +1937,7 @@ var dragonBones;
             return DragonBones.ERROR_NO_ARMATURE_IN_DOM;
         };
 
-        DragonBones.prototype.getArmature = function (domID, armatureName, dragonBonesData, defaultFadeInTime, isMergeLayersInFolder, defaultAutoTween)
+        DragonBones.prototype.getArmature = function (domID, armatureName, dragonBonesXML, defaultFadeInTime, isMergeLayersInFolder, defaultAutoTween)
         {
             var currentDOM = Utils.getDOM(domID, true);
             if (!currentDOM)
@@ -2211,26 +1945,36 @@ var dragonBones;
                 return DragonBones.ERROR_NO_ACTIVE_DOM;
             }
 
-            dragonBonesData = XML(dragonBonesData).toXMLString();
-            dragonBonesData = dragonBonesData.split("&lt;").join("<");
-            dragonBonesData = dragonBonesData.split("&gt;").join(">");
-            dragonBonesData = XML(dragonBonesData);
+            if (!armatureName || !dragonBonesXML)
+            {
+                return false;
+            }
 
             this._defaultFadeInTime = defaultFadeInTime || 0;
             this._defaultAutoTween = defaultAutoTween || 1;
             this._isMergeLayersInFolder = Boolean(isMergeLayersInFolder);
             this._xml = <{DragonBones.DRAGON_BONES}/>;
             this._armatureList = [armatureName, false];
+            this._fontItemMap = {};
+
+            var fontItemList = Utils.filter(currentDOM.library.items, null, ["itemType", "font"]);
+            for (var i = 0, l = fontItemList.length; i < l; ++i)
+            {
+                var fontItem = fontItemList[i];
+                this._fontItemMap[fontItem.font] = fontItem;
+            }
 
             while (this._armatureList.length > 0)
             {
                 var eachArmatureName = this._armatureList.shift();
                 var isChild = this._armatureList.shift();
 
-                if (eachArmatureName != armatureName && dragonBonesData[DragonBones.ARMATURE].(@name == eachArmatureName)[0])
+                if (eachArmatureName != armatureName && dragonBonesXML[DragonBones.ARMATURE].(@name == eachArmatureName)[0])
                 {
                     continue;
                 }
+
+                trace(eachArmatureName);
                 this._generateArmature(eachArmatureName, isChild);
             }
 
@@ -2239,7 +1983,10 @@ var dragonBones;
             
             var dragonBonesXMLURL = DragonBones.getConfigPath() + "/" + DragonBones.DRAGON_BONES_XML;
             FLfile.write(dragonBonesXMLURL, this._xml.toXMLString());
+
             this._xml = null;
+            this._armatureList = null;
+            this._fontItemMap = null;
 
             return dragonBonesXMLURL;
         };
@@ -2276,7 +2023,14 @@ var dragonBones;
             }
             
             var textureItem = Utils.filter(currentDOM.library.items, null, ["name", textureName])[0];
-            if (!textureItem)
+            if (textureItem)
+            {
+                if (textureItem.linkageImportForRS)
+                {
+
+                }
+            }
+            else
             {
                 var nameList = DragonBones.getNameParameters(textureName, DragonBones.NO_EASING);
                 textureItem = Utils.filter(currentDOM.library.items, null, ["name", nameList[0]])[0];
@@ -2312,8 +2066,12 @@ var dragonBones;
                         var bitmapItem = textureSymbol.libraryItem;
                         bitmapItem.compressionType = "lossless";
                         bitmapItem.allowSmoothing = true;
-                        bitmapItem.linkageExportForAS = true;
-                        bitmapItem.linkageClassName = bitmapItem.name;
+
+                        if (!bitmapItem.linkageClassName)
+                        {
+                            bitmapItem.linkageExportForAS = true;
+                            bitmapItem.linkageClassName = bitmapItem.name;
+                        }
                         break;
                 }
                 
