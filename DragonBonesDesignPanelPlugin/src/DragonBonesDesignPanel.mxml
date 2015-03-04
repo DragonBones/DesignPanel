@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
-<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009" 
-			   xmlns:s="library://ns.adobe.com/flex/spark" 
+<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009"
+			   xmlns:s="library://ns.adobe.com/flex/spark"
 			   xmlns:mx="library://ns.adobe.com/flex/mx"
 			   
-			   xmlns:mxml="robotlegs.bender.mxml.*" 
+			   xmlns:mxml="robotlegs.bender.mxml.*"
 			   xmlns:mvcs="robotlegs.bender.bundles.mvcs.*"
 			   
 			   xmlns:core="core.*"
@@ -12,13 +12,10 @@
 			   xmlns:plugin="plugin.*"
 			   xmlns:pluginView="plugin.view.*"
 			   
-			   xmlns:designPanel="designPanel.*"
-			   xmlns:designPanelView="designPanelPlugin.view.*"
-			   xmlns:component="designPanelPlugin.view.component.*"
-			   
 			   xmlns:local="*"
-			   fontSize="12"
 			   applicationComplete="applicationCompleteHandler()"
+			   
+			   fontSize="12"
 			   >
 	
 	<fx:Declarations>
