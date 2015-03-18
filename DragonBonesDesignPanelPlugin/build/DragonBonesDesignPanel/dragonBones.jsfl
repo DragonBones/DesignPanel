@@ -644,7 +644,7 @@ var dragonBones;
             timelineXML.appendChild(frameXML);
         }
 
-        function getAnimationXML(armatureXML, animationName, armatureItem, duration, fadeInTime, noAutoTween)
+        DragonBones.prototype._getAnimationXML = function (armatureXML, animationName, armatureItem, duration, fadeInTime, noAutoTween)
         {
             var animationXML = armatureXML[DragonBones.ANIMATION].(@name == animationName)[0];
             if (!animationXML)
@@ -724,7 +724,7 @@ var dragonBones;
             return animationXML;
         }
 
-        function getTimelineXML(animationXML, timelineName, armatureItem)
+        DragonBones.prototype._getTimelineXML = function (animationXML, timelineName, armatureItem)
         {
             var timelineXML = animationXML[DragonBones.TIMELINE].(@name == timelineName)[0];
             if (!timelineXML)
@@ -779,7 +779,7 @@ var dragonBones;
             return timelineXML;
         }
 
-        function getBoneXML(armatureXML, boneName, frameXML, frameStart)
+        DragonBones.prototype._getBoneXML = function (armatureXML, boneName, frameXML, frameStart)
         {
             var boneXML = armatureXML[DragonBones.BONE].(@name == boneName)[0];
             if (
@@ -803,7 +803,7 @@ var dragonBones;
             return boneXML;
         }
 
-        function addBoneXML(armatureXML, boneName, frameXML, frameStart, armatureXMLInItem)
+        DragonBones.prototype._addBoneXML = function (armatureXML, boneName, frameXML, frameStart, armatureXMLInItem)
         {
             var transformXML = frameXML[DragonBones.TRANSFORM][0];
             var boneXML = 
@@ -842,7 +842,7 @@ var dragonBones;
             return boneXML;
         }
 
-        function getSlotXML(armatureXML, boneXML, slotName, armatureItem, zOrder)
+        DragonBones.prototype._getSlotXML = function (armatureXML, boneXML, slotName, armatureItem, zOrder)
         {
             var skinXML = armatureXML[DragonBones.SKIN][0];
             var slotXML = skinXML[DragonBones.SLOT].(@name == slotName)[0];
@@ -859,7 +859,7 @@ var dragonBones;
             return slotXML;
         }
 
-        function getDisplayXML(slotXML, displayName, transform, armatureItem, displayType)
+        DragonBones.prototype._getDisplayXML = function (slotXML, displayName, transform, armatureItem, displayType)
         {
             var displayXML = slotXML[DragonBones.DISPLAY].(@name == displayName)[0];
             if (!displayXML)
@@ -994,7 +994,7 @@ var dragonBones;
             var frameNameList = DragonBones.formatObjectName(mainFrame.frame);
             var animationName = frameNameList[2];
             var noAutoEasing = frameNameList[1] == DragonBones.NO_EASING;
-            var animationXML = getAnimationXML(this._currentArmatureXML, animationName, this._currentArmatureItem, duration, noLabelChildArmature? 0: this._defaultFadeInTime, noAutoEasing);
+            var animationXML = this._getAnimationXML(this._currentArmatureXML, animationName, this._currentArmatureItem, duration, noLabelChildArmature? 0: this._defaultFadeInTime, noAutoEasing);
 
             timeline.currentFrame = 0;
 
@@ -1031,6 +1031,7 @@ var dragonBones;
 
                 var keyFrames = Utils.toUniqueArray(layer.frames.slice(start, start + duration));
                 var timelineXML = null;
+
                 for (var j = 0, lj = keyFrames.length; j < lj; j ++)
                 {
                     var frame = keyFrames[j];
@@ -1125,7 +1126,7 @@ var dragonBones;
                     
                     if (!timelineXML)
                     {
-                        timelineXML = getTimelineXML(animationXML, boneName, this._currentArmatureItem);
+                        timelineXML = this._getTimelineXML(animationXML, boneName, this._currentArmatureItem);
                     }
 
                     //zOrder
@@ -1141,7 +1142,7 @@ var dragonBones;
                             zOrderList[k] = ++ zOrder;
                         }
                     }
-                    
+
                     var zOrder = zOrderList[frameStart];
                     var boneList = boneZOrderMap[boneName];
                     for (k = frameStart, lk = frameStart + frameDuration; k < lk; k ++)
@@ -1151,7 +1152,7 @@ var dragonBones;
                             boneNameList.push(boneName);
                             boneName = DragonBones.formatSameName(layer, boneNameList);
                             boneList = boneZOrderMap[boneName] = [];
-                            timelineXML = getTimelineXML(animationXML, boneName, this._currentArmatureItem);
+                            timelineXML = this._getTimelineXML(animationXML, boneName, this._currentArmatureItem);
                         }
                         boneList[k] = zOrder;
                     }
@@ -1337,10 +1338,10 @@ var dragonBones;
             frameXML.appendChild(transformXML);
 
             //
-            var boneXML = getBoneXML(this._currentArmatureXML, boneName, frameXML, frameStart);
+            var boneXML = this._getBoneXML(this._currentArmatureXML, boneName, frameXML, frameStart);
             if (!boneXML)
             {
-                boneXML = addBoneXML(
+                boneXML = this._addBoneXML(
                     this._currentArmatureXML, boneName, frameXML, frameStart, 
                     this._currentArmatureItem.hasData(DragonBones.ARMATURE_DATA)? XML(this._currentArmatureItem.getData(DragonBones.ARMATURE_DATA)): null
                 );
@@ -1357,7 +1358,7 @@ var dragonBones;
             }
 
             //
-            var slotXML = getSlotXML(this._currentArmatureXML, boneXML, boneName, this._currentArmatureItem, zOrder);
+            var slotXML = this._getSlotXML(this._currentArmatureXML, boneXML, boneName, this._currentArmatureItem, zOrder);
             if (boneSymbol.blendMode && boneSymbol.blendMode != "normal")
             {
                 slotXML.@[DragonBones.A_BLEND_MODE] = boneSymbol.blendMode;
@@ -1406,7 +1407,7 @@ var dragonBones;
                     {
                         var displayTransform = {x:-transform.x, y:-transform.y};
 
-                        displayXML = getDisplayXML(slotXML, displayName, displayTransform, this._currentArmatureItem, displayType);
+                        displayXML = this._getDisplayXML(slotXML, displayName, displayTransform, this._currentArmatureItem, displayType);
 
                         if (displayType == DragonBones.V_ARMATURE)
                         {
@@ -1448,7 +1449,7 @@ var dragonBones;
                     }
 
                     var displayTransform = {x:-transform.x, y:-transform.y};
-                    displayXML = getDisplayXML(slotXML, "text", displayTransform, this._currentArmatureItem, displayType);
+                    displayXML = this._getDisplayXML(slotXML, "text", displayTransform, this._currentArmatureItem, displayType);
                     
                     if (textHasColorAnimation)
                     {
@@ -1573,68 +1574,10 @@ var dragonBones;
 
             if (frame.labelType == "name" && frame.name)
             {
-                var frameNameList = DragonBones.getNameParameters(frame.name);
-
-                // modify ease
-                if (frameNameList[1] == DragonBones.NO_EASING || (noAutoEasing && frame.tweenType != "motion"))
+                var nameList = frame.name.split(DragonBones.DELIM_CHAR);
+                for each (var eachName in nameList)
                 {
-                    frameXML.@[DragonBones.A_TWEEN_EASING] = NaN;
-                }
-                
-                // action
-                if (frameNameList[1] == DragonBones.ACTION_PREFIX)
-                {
-                    frameXML.@[DragonBones.A_ACTION] = frameNameList[2];
-                }
-
-                // event
-                if (frameNameList[1] == DragonBones.EVENT_PREFIX)
-                {
-                    frameXML.@[DragonBones.A_EVENT] = frameNameList[2];
-                    if (frameNameList[3])
-                    {
-                        frameXML.@[DragonBones.A_EVENT_PARAMETERS] = frameNameList[3];
-                    }
-                }
-
-                // set values
-                if (frameNameList[1] == DragonBones.SET_PREFIX && frameNameList[3])
-                {
-                    var jsonData = Utils.decodeJSON(frameNameList[3]);
-
-                    switch (frameNameList[2])
-                    {
-                        case DragonBones.SLOT:
-                            for (var key in jsonData)
-                            {
-                                var value = jsonData[key];
-                                switch (key)
-                                {
-                                    case DragonBones.A_BLEND_MODE:
-                                        slotXML.@[DragonBones.A_BLEND_MODE] = value;
-                                        break;
-                                }
-                            }
-                            break;
-
-                        case DragonBones.TEXT:
-                            if (!textXML)
-                            {
-                                break;
-                            }
-
-                            for (var key in jsonData)
-                            {
-                                var value = jsonData[key];
-                                switch (key)
-                                {
-                                    case DragonBones.A_ALIGN_V:
-                                        textXML.@[DragonBones.A_ALIGN_V] = value;
-                                        break;
-                                }
-                            }
-                            break;
-                    }
+                    this._generateFrameEvent(eachName, noAutoEasing, frameXML, slotXML, textXML);
                 }
             }
 
@@ -1645,6 +1588,73 @@ var dragonBones;
             }
             
             return frameXML;
+        };
+
+        DragonBones.prototype._generateFrameEvent = function (eachName, noAutoEasing, frameXML, slotXML, textXML)
+        {
+            var frameNameList = DragonBones.getNameParameters(eachName);
+
+            // modify ease
+            if (frameNameList[1] == DragonBones.NO_EASING || (noAutoEasing && frame.tweenType != "motion"))
+            {
+                frameXML.@[DragonBones.A_TWEEN_EASING] = NaN;
+            }
+            
+            // action
+            if (frameNameList[1] == DragonBones.ACTION_PREFIX)
+            {
+                frameXML.@[DragonBones.A_ACTION] = frameNameList[2];
+            }
+
+            // event
+            if (frameNameList[1] == DragonBones.EVENT_PREFIX)
+            {
+                frameXML.@[DragonBones.A_EVENT] = frameNameList[2];
+                if (frameNameList[3])
+                {
+                    frameXML.@[DragonBones.A_EVENT_PARAMETERS] = frameNameList[3];
+                }
+            }
+
+            // set values
+            if (frameNameList[1] == DragonBones.SET_PREFIX && frameNameList[3])
+            {
+                var jsonData = Utils.decodeJSON(frameNameList[3]);
+
+                switch (frameNameList[2])
+                {
+                    case DragonBones.SLOT:
+                        for (var key in jsonData)
+                        {
+                            var value = jsonData[key];
+                            switch (key)
+                            {
+                                case DragonBones.A_BLEND_MODE:
+                                    slotXML.@[DragonBones.A_BLEND_MODE] = value;
+                                    break;
+                            }
+                        }
+                        break;
+
+                    case DragonBones.TEXT:
+                        if (!textXML)
+                        {
+                            break;
+                        }
+
+                        for (var key in jsonData)
+                        {
+                            var value = jsonData[key];
+                            switch (key)
+                            {
+                                case DragonBones.A_ALIGN_V:
+                                    textXML.@[DragonBones.A_ALIGN_V] = value;
+                                    break;
+                            }
+                        }
+                        break;
+                }
+            }
         };
 
         DragonBones.prototype._generateArea = function (containerXML, libraryItem)
@@ -1816,16 +1826,16 @@ var dragonBones;
 
                         if (layersFiltered.length > 1 && layer.name != mainSlotName)
                         {
-                            var slotXML = getSlotXML(this._currentArmatureXML, boneXML, layer.name, this._currentArmatureItem, mainSlotZOrder + layerIndex * 0.05);
+                            var slotXML = this._getSlotXML(this._currentArmatureXML, boneXML, layer.name, this._currentArmatureItem, mainSlotZOrder + layerIndex * 0.05);
                             if (displaySymbol.blendMode && displaySymbol.blendMode != "normal")
                             {
                                 slotXML.@[DragonBones.A_BLEND_MODE] = displaySymbol.blendMode;
                             }
-                            getDisplayXML(slotXML, displayName, transform, this._currentArmatureItem, isArmature? DragonBones.V_ARMATURE: DragonBones.V_IMAGE);
+                            this._getDisplayXML(slotXML, displayName, transform, this._currentArmatureItem, isArmature? DragonBones.V_ARMATURE: DragonBones.V_IMAGE);
                         }
                         else
                         {
-                            mainDisplayXML = getDisplayXML(mainSlotXML, displayName, transform, this._currentArmatureItem, isArmature? DragonBones.V_ARMATURE: DragonBones.V_IMAGE);
+                            mainDisplayXML = this._getDisplayXML(mainSlotXML, displayName, transform, this._currentArmatureItem, isArmature? DragonBones.V_ARMATURE: DragonBones.V_IMAGE);
                         }
 
                         if (isArmature)
@@ -2027,7 +2037,7 @@ var dragonBones;
             {
                 if (textureItem.linkageImportForRS)
                 {
-
+                    return DragonBones.NOT_EXPORT;
                 }
             }
             else
@@ -2122,7 +2132,6 @@ var dragonBones;
                 DragonBones._frameChangedEventID = fl.addEventListener("frameChanged", DragonBones._frameChangedHandler);
             }
         }
-
 
         return DragonBones;
     })(events.EventDispatcher);

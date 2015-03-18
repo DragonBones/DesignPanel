@@ -14,8 +14,6 @@ package core.service
 	import core.suppotClass._BaseService;
 	import core.utils.GlobalConstValues;
 	
-	import light.managers.ErrorManager;
-	
 	public final class LoadTextureAtlasBytesService extends _BaseService
 	{
 		public static const TEXTURE_ATLAS_BYTES_LOAD_COMPLETE:String = "TEXTURE_ATLAS_BYTES_LOAD_COMPLETE";

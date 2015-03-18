@@ -54,8 +54,9 @@
 		{
 			if(isAvailable)
 			{
-				var str:String = arg.join(",").replace(/"/g, '\\"').replace(/\n/g, "\\n");
-				MMExecute("fl.trace(\"" + str + "\");");
+				var str:String = "var xml = <a><![CDATA[" + arg.join(",") + "]]></a>;";
+				str += "fl.trace(xml.text());";
+				MMExecute(str);
 			}
 			else
 			{
@@ -149,7 +150,7 @@
 			}
 		}
 		
-		public function runJSFLCode(type:String, code:String, callback:Function = null):void
+		public function runJSFLCode(type:String, code:String, callback:Function = null, ...args):void
 		{
 			if(client)
 			{
@@ -161,8 +162,7 @@
 					{
 						type = "_type_" + Math.random();
 					}
-					_callbackMap[type] = callback;
-					this.addEventListener(type, callback);
+					_callbackMap[type] = {callback:callback, args:args || []};
 				}
 				client.send(PORT_JSFL, type, code);
 			}
@@ -172,6 +172,7 @@
 		{
 			var code:String = method + "(";
 			var callback:Function = null;
+			var callbackArgs:Array = [];
 			
 			for (var i:int = 0, l:int = args.length; i < l; ++i)
 			{
@@ -180,7 +181,11 @@
 				if(arg is Function)
 				{
 					callback = arg;
-					continue;
+					if (i < l - 1)
+					{
+						callbackArgs = args.slice(i + 1);
+					}
+					break;
 				}
 				
 				if (i != 0)
@@ -206,7 +211,8 @@
 			
 			code += ');';
 			
-			runJSFLCode(type, code, callback);
+			callbackArgs.unshift(type, code, callback);
+			runJSFLCode.apply(this, callbackArgs);
 		}
 		
 		private function jsflLoadHandler(e:Event):void
@@ -258,12 +264,15 @@
 					{
 						if (vo.type)
 						{
-							this.dispatchEvent(new ServiceEvent(vo.type, vo.data));
-							var callback:Function = _callbackMap[vo.type];
-							if (callback != null)
+							var serveiceEvent:ServiceEvent = new ServiceEvent(vo.type, vo.data);
+							this.dispatchEvent(serveiceEvent);
+							
+							var callbackData:Object = _callbackMap[vo.type];
+							if (callbackData != null)
 							{
+								callbackData.args.unshift(serveiceEvent);
+								callbackData.callback.apply(null, callbackData.args);
 								delete _callbackMap[vo.type];
-								this.removeEventListener(vo.type, callback);
 							}
 						}
 					}

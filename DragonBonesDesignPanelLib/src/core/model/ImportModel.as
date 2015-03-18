@@ -67,7 +67,8 @@ package core.model
 		
 		public function get isGlobal():Boolean
 		{
-			return _vo.skeleton.@[ConstValues.A_IS_GLOBAL] == "1";
+			var globalString:String = _vo.skeleton.@[ConstValues.A_IS_GLOBAL];
+			return  globalString == "1" || globalString == "";
 		}
 		public function set isGlobal(value:Boolean):void
 		{
