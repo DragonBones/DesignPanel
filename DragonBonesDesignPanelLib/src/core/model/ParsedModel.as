@@ -248,7 +248,7 @@ package core.model
 		{
 			if(_animationSelected)
 			{
-				_animationSelected.fadeTime =  value;
+				_animationSelected.fadeTime = isNaN(value)? 0: value;
 				updateAnimation();
 			}
 		}
@@ -274,7 +274,7 @@ package core.model
 		{
 			if(_animationSelected)
 			{
-				_animationSelected.scale = value;
+				_animationSelected.scale = isNaN(value)? 0: value;
 				updateAnimation();
 				//
 				durationScaled = 0;
@@ -289,7 +289,7 @@ package core.model
 		{
 			if(_animationSelected)
 			{ 
-				_animationSelected.playTimes = value;
+				_animationSelected.playTimes = isNaN(value)? 0: value;
 				updateAnimation();
 			}
 		}
@@ -321,7 +321,7 @@ package core.model
 				}
 				else
 				{
-					_animationSelected.tweenEasing = value;
+					_animationSelected.tweenEasing = isNaN(value)? 0: value;
 				}
 				updateAnimation();
 			}
@@ -346,7 +346,7 @@ package core.model
 				var timeline:TransformTimeline = _animationSelected.getTimeline(_boneSelected.name);
 				if(timeline)
 				{
-					timeline.scale = value * 0.01;
+					timeline.scale = (isNaN(value)? 0: value) * 0.01;
 					updateTransformTimeline();
 				}
 			}
@@ -371,7 +371,7 @@ package core.model
 				var timeline:TransformTimeline = _animationSelected.getTimeline(_boneSelected.name);
 				if(timeline)
 				{
-					timeline.offset = value * 0.01;
+					timeline.offset = (isNaN(value)? 0: value) * 0.01;
 					updateTransformTimeline();
 				}
 			}
