@@ -1,16 +1,16 @@
 package core
 {
-	import core.model.vo.ExportVO;
-	import core.model.vo.ImportVO;
-	import core.utils.GlobalConstValues;
-	
-	import dragonBones.utils.ConstValues;
-	
 	import flash.errors.IllegalOperationError;
 	import flash.net.SharedObject;
 	
 	import mx.collections.ArrayCollection;
 	import mx.resources.ResourceManager;
+	
+	import core.model.vo.ExportVO;
+	import core.model.vo.ImportVO;
+	import core.utils.GlobalConstValues;
+	
+	import dragonBones.utils.ConstValues;
 	
 	[Bindable]
 	public class SettingManager
@@ -162,6 +162,10 @@ package core
 		}
 		public function set importFadeInTime(value:Number):void
 		{
+			if(value < 0 || value != value)
+			{
+				value = 0;
+			}
 			setData(IMPORT_FADE_IN_TIME, value);
 		}
 		
@@ -239,7 +243,8 @@ package core
 		
 		public function get exportScale():Number
 		{
-			return hasData(EXPORT_SCALE)?getData(EXPORT_SCALE):1;
+			var value:Number = hasData(EXPORT_SCALE)?(getData(EXPORT_SCALE)||1):1;
+			return value;
 		}
 		public function set exportScale(value:Number):void
 		{
@@ -296,7 +301,7 @@ package core
 		
 		public function get textureAtlasPath():String
 		{
-			return hasData(TEXTURE_ATLAS_PATH)?getData(TEXTURE_ATLAS_PATH):"";
+			return getData(TEXTURE_ATLAS_PATH) || "";
 		}
 		public function set textureAtlasPath(value:String):void
 		{
@@ -305,7 +310,7 @@ package core
 		
 		public function get dragonBonesFileName():String
 		{
-			return hasData(DRAGON_BONES_FILE_NAME)?getData(DRAGON_BONES_FILE_NAME):GlobalConstValues.DRAGON_BONES_DATA_NAME;
+			return getData(DRAGON_BONES_FILE_NAME) || GlobalConstValues.DRAGON_BONES_DATA_NAME;
 		}
 		public function set dragonBonesFileName(value:String):void
 		{
@@ -314,7 +319,7 @@ package core
 		
 		public function get textureAtlasFileName():String
 		{
-			return hasData(TEXTURE_ATLAS_FILE_NAME)?getData(TEXTURE_ATLAS_FILE_NAME):GlobalConstValues.TEXTURE_ATLAS_DATA_NAME;
+			return getData(TEXTURE_ATLAS_FILE_NAME) || GlobalConstValues.TEXTURE_ATLAS_DATA_NAME;
 		}
 		public function set textureAtlasFileName(value:String):void
 		{
@@ -323,7 +328,7 @@ package core
 		
 		public function get textureAtlasConfigFileName():String
 		{
-			return hasData(TEXTURE_ATLAS_CONFIG_FILE_NAME)?getData(TEXTURE_ATLAS_CONFIG_FILE_NAME):GlobalConstValues.TEXTURE_ATLAS_DATA_NAME;
+			return getData(TEXTURE_ATLAS_CONFIG_FILE_NAME) || GlobalConstValues.TEXTURE_ATLAS_DATA_NAME;
 		}
 		public function set textureAtlasConfigFileName(value:String):void
 		{
@@ -332,7 +337,7 @@ package core
 		
 		public function get subTextureFolderName():String
 		{
-			return hasData(SUB_TEXTURE_FOLDER_NAME)?getData(SUB_TEXTURE_FOLDER_NAME):GlobalConstValues.TEXTURE_ATLAS_DATA_NAME;
+			return getData(SUB_TEXTURE_FOLDER_NAME) || GlobalConstValues.TEXTURE_ATLAS_DATA_NAME;
 		}
 		public function set subTextureFolderName(value:String):void
 		{

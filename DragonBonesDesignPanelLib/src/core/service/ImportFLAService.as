@@ -223,9 +223,16 @@ package core.service
 				this.dispatchEvent(new ServiceEvent(IMPORT_SUBTEXTURE, [subTextureName, _currentLoadIndex, _totalCounts]));
 				addSubTextureToSWFItem(importModel.vo.id, subTextureName);
 			}
-			else
+			else if(_subTextureListSuccess.length > 0)
 			{
 				exportSWF(importModel.vo.id);
+			}
+			else
+			{
+				importModel.vo.textureAtlasBytes = null;
+				importModel.setVersion();
+				endImport();
+				this.dispatchEvent(new ServiceEvent(IMPORT_FLA_COMPLETE, importModel.vo));
 			}
 		}
 		

@@ -161,7 +161,9 @@ package core.mediator
 			else
 			{
 				view.numScale.enabled = false;
+				view.numScale.value = 100;
 				view.numOffset.enabled = false;
+				view.numOffset.value = 0;
 			}
 		}
 	}

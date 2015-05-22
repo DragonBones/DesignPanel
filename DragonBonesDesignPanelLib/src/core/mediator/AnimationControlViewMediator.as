@@ -115,9 +115,12 @@ package core.mediator
 						else
 						{
 							view.numAnimationScale.enabled = false;
+							view.numAnimationScale.value = 100;
 							view.numAnimationTotalTime.text = "0";
 							view.numLoop.enabled = false;
+							view.numLoop.value = 1;
 							view.checkAutoTween.enabled = false;
+							view.checkAutoTween.selected = false;
 							//view.checkTweenEasing.enabled = false;
 							//view.numTweenEasing.enabled = false;
 						}

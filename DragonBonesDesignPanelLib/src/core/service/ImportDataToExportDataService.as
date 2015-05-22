@@ -61,8 +61,7 @@ package core.service
 			if(importModel.vo.skeleton && !importModel.vo.textureAtlasConfig)
 			{
 				var retult:ByteArray = new ByteArray();
-				retult.writeObject(importModel.vo.skeleton);
-				
+				retult.writeUTFBytes(importModel.vo.skeleton.toXMLString());
 				_exportVO.name += "." + GlobalConstValues.XML_SUFFIX;
 				
 				exportSave(retult);
@@ -213,9 +212,9 @@ package core.service
 			}
 			
 			var dataToZip:Object;
-			var fileName:String = _exportVO.dragonBonesFileName + ".";
-			
 			_exportVO.dragonBonesFileName = _exportVO.dragonBonesFileName || GlobalConstValues.DRAGON_BONES_DATA_NAME;
+			
+			var fileName:String = _exportVO.dragonBonesFileName + ".";
 			switch (_exportVO.configType)
 			{
 				case GlobalConstValues.CONFIG_TYPE_XML:

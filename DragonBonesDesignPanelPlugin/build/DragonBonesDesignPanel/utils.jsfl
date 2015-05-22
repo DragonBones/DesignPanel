@@ -15,10 +15,9 @@ var __extends = this.__extends || function (d, b)
     d.prototype = new __();
 };
 
-
 function trace()
 {
-    fl.trace(Array.slice.call(this, arguments).join(", "));
+    fl.trace(Array.slice.call(this, arguments).join(" "));
 }
 
 function assert(condition, message) 
@@ -432,62 +431,6 @@ var utils;
 
             return fileFilteredList;
         };
-
-        Utils.createXUL = function (xulXML, callback, args)
-        {
-            var currentDOM = fl.getDocumentDOM();
-            if (!currentDOM)
-            {
-                return null;
-            }
-
-            var folder = fl.configURI + "xul/";
-            if (!FLfile.exists(folder))
-            {
-                if (!FLfile.createFolder(folder))
-                {
-                    return null;
-                }
-            }
-
-            if (!xulXML)
-            {
-                return null;
-            }
-
-            var id = xulXML.@["id"].toString().toLowerCase();
-            var path;
-            if (id)
-            {
-                path = folder + id;
-
-                var version = xulXML.@["version"].toString().toLowerCase();
-                if (version)
-                {
-                    path += "_" + version;
-                }
-
-                path += ".xul";
-            }
-            else
-            {
-                path = folder + "temp.xul";
-            }
-
-            if (!FLfile.exists(path))
-            {
-                FLfile.write(path, xulXML.toXMLString());
-            }
-
-            var xul = currentDOM.xmlPanel(path);
-
-            if (callback != null)
-            {
-                callback(xul, args);
-            }
-
-            return xul;
-        }
 
         Utils.escapeXML = function (xml)
         {

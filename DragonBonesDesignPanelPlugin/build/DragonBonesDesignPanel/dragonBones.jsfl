@@ -874,8 +874,8 @@ var dragonBones;
                             {DragonBones.A_Y}={Utils.formatNumber(transform.y) || 0}
                             {DragonBones.A_SKEW_X}={Utils.formatNumber(transform.skewX) || 0}
                             {DragonBones.A_SKEW_Y}={Utils.formatNumber(transform.skewY) || 0}
-                            {DragonBones.A_SCALE_X}={Utils.formatNumber(transform.scaleX, 4) || 1}
-                            {DragonBones.A_SCALE_Y}={Utils.formatNumber(transform.scaleY, 4) || 1}/>
+                            {DragonBones.A_SCALE_X}={Utils.formatNumber(transform.scaleX, 6) || 1}
+                            {DragonBones.A_SCALE_Y}={Utils.formatNumber(transform.scaleY, 6) || 1}/>
                     </{DragonBones.DISPLAY}>;
 
                 Utils.appendXML(slotXML, displayXML);
@@ -1331,8 +1331,8 @@ var dragonBones;
                     {DragonBones.A_Y}={Utils.formatNumber(boneSymbol.transformY)}
                     {DragonBones.A_SKEW_X}={Utils.formatNumber(transform.skewX)}
                     {DragonBones.A_SKEW_Y}={Utils.formatNumber(transform.skewY)}
-                    {DragonBones.A_SCALE_X}={Utils.formatNumber(transform.scaleX, 4)}
-                    {DragonBones.A_SCALE_Y}={Utils.formatNumber(transform.scaleY, 4)}
+                    {DragonBones.A_SCALE_X}={Utils.formatNumber(transform.scaleX, 6)}
+                    {DragonBones.A_SCALE_Y}={Utils.formatNumber(transform.scaleY, 6)}
                     {DragonBones.A_PIVOT_X}={Utils.formatNumber(transform.pivotOffsetX, 4)}
                     {DragonBones.A_PIVOT_Y}={Utils.formatNumber(transform.pivotOffsetY, 4)}/>;
             frameXML.appendChild(transformXML);
@@ -1377,8 +1377,8 @@ var dragonBones;
                 if (frameStart > 0 && boneSymbol.hasPersistentData(DragonBones.SCALE_OFFSET_DATA))
                 {
                     var scaleOffset = boneSymbol.getPersistentData(DragonBones.SCALE_OFFSET_DATA);
-                    frameXML.@[DragonBones.A_SCALE_X_OFFSET] = Utils.formatNumber(scaleOffset[0], 4);
-                    frameXML.@[DragonBones.A_SCALE_Y_OFFSET] = Utils.formatNumber(scaleOffset[1], 4);
+                    frameXML.@[DragonBones.A_SCALE_X_OFFSET] = Utils.formatNumber(scaleOffset[0], 6);
+                    frameXML.@[DragonBones.A_SCALE_Y_OFFSET] = Utils.formatNumber(scaleOffset[1], 6);
                 }
 
                 //
@@ -1713,8 +1713,8 @@ var dragonBones;
                                 {DragonBones.A_Y}={Utils.formatNumber(areaShape.transformY)}
                                 {DragonBones.A_SKEW_X}={Utils.formatNumber(areaShape.skewX)}
                                 {DragonBones.A_SKEW_Y}={Utils.formatNumber(areaShape.skewY)}
-                                {DragonBones.A_SCALE_X}={Utils.formatNumber(areaShape.scaleX, 4)}
-                                {DragonBones.A_SCALE_Y}={Utils.formatNumber(areaShape.scaleY, 4)}
+                                {DragonBones.A_SCALE_X}={Utils.formatNumber(areaShape.scaleX, 6)}
+                                {DragonBones.A_SCALE_Y}={Utils.formatNumber(areaShape.scaleY, 6)}
                                 {DragonBones.A_PIVOT_X}={Utils.formatNumber(areaShape.transformX - (x - width * 0.5))}
                                 {DragonBones.A_PIVOT_Y}={Utils.formatNumber(areaShape.transformY - (y - height * 0.5))}/>
 

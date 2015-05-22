@@ -88,15 +88,15 @@
 							dataProvider="{_settingManager.importTypeAC}" 
 							selectedIndex="@{_settingManager.importTypeIndex}"
 							/>
-			<s:NumericStepper width="100%" height="24" cornerRadius="0" textAlign="right"
-							  maximum="50000" minimum="0" snapInterval="0.001" stepSize="0.1" 
+			<mx:NumericStepper width="100%" height="24" cornerRadius="0" textAlign="right"
+							  maximum="50000" minimum="0" stepSize="0.001" 
 							  value="@{_settingManager.importFadeInTime}"
 							  />
 			<s:DropDownList width="100%" height="24" cornerRadius="0" textAlign="right" 
 							dataProvider="{_settingManager.textureAtlasWidthAC}" 
 							selectedIndex="@{_settingManager.textureAtlasWidthIndex}"
 							/>
-			<s:NumericStepper width="100%" height="24" textAlign="right" cornerRadius="0" minimum="0" maximum="100" 
+			<mx:NumericStepper width="100%" height="24" textAlign="right" cornerRadius="0" minimum="0" maximum="100" 
 							  value="@{_settingManager.textureAtlasPadding}"
 							  />
 		</s:VGroup>
